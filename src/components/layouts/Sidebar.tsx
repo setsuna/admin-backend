@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { 
   Home, 
@@ -8,7 +8,13 @@ import {
   Users, 
   BarChart3,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  BookOpen,
+  GitBranch,
+  HelpCircle,
+  FolderOpen
 } from 'lucide-react'
 import { cn } from '@/utils'
 import { useGlobalStore } from '@/store'
@@ -18,47 +24,93 @@ interface SidebarProps {
   className?: string
 }
 
-const menuItems = [
+interface MenuItem {
+  key: string
+  label: string
+  icon?: any
+  path?: string
+  children?: MenuItem[]
+  type?: 'group' | 'item'
+}
+
+const menuItems: MenuItem[] = [
   {
-    key: 'dashboard',
-    label: '仪表板',
-    icon: Home,
-    path: '/',
+    key: 'general',
+    label: '通用',
+    type: 'group',
+    children: [
+      {
+        key: 'dashboard',
+        label: '仪表板',
+        icon: Home,
+        path: '/',
+      },
+      {
+        key: 'devices',
+        label: '设备管理',
+        icon: Server,
+        path: '/devices',
+      },
+      {
+        key: 'users',
+        label: '用户',
+        icon: Users,
+        path: '/users',
+      },
+    ],
+  },
+  
+  {
+    key: 'book',
+    label: 'Book管理',
+    type: 'group',
+    children: [
+      {
+        key: 'projects',
+        label: '项目管理',
+        icon: FolderOpen,
+        path: '/projects',
+      },
+      {
+        key: 'ansible',
+        label: 'Ansible管理',
+        icon: GitBranch,
+        path: '/ansible',
+      },
+    ],
   },
   {
-    key: 'devices',
-    label: '设备管理',
-    icon: Server,
-    path: '/devices',
-  },
-  {
-    key: 'configs',
-    label: '配置管理',
-    icon: FileText,
-    path: '/configs',
-  },
-  {
-    key: 'users',
-    label: '用户管理',
-    icon: Users,
-    path: '/users',
-  },
-  {
-    key: 'analytics',
-    label: '数据分析',
-    icon: BarChart3,
-    path: '/analytics',
-  },
-  {
-    key: 'settings',
-    label: '系统设置',
-    icon: Settings,
-    path: '/settings',
+    key: 'other',
+    label: '其他',
+    type: 'group',
+    children: [
+      {
+        key: 'settings',
+        label: '设置',
+        icon: Settings,
+        path: '/settings',
+      },
+      {
+        key: 'help',
+        label: '帮助中心',
+        icon: HelpCircle,
+        path: '/help',
+      },
+    ],
   },
 ]
 
 export function Sidebar({ className }: SidebarProps) {
   const { sidebarCollapsed, setSidebarCollapsed } = useGlobalStore()
+  const [expandedGroups, setExpandedGroups] = useState<string[]>(['general', 'book', 'other'])
+  
+  const toggleGroup = (groupKey: string) => {
+    setExpandedGroups(prev => 
+      prev.includes(groupKey)
+        ? prev.filter(key => key !== groupKey)
+        : [...prev, groupKey]
+    )
+  }
   
   return (
     <aside className={cn(
@@ -95,29 +147,128 @@ export function Sidebar({ className }: SidebarProps) {
       
       {/* 导航菜单 */}
       <nav className="flex-1 space-y-1 p-2">
-        {menuItems.map((item) => {
-          const Icon = item.icon
-          return (
-            <NavLink
-              key={item.key}
-              to={item.path}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
-                  isActive 
-                    ? 'bg-accent text-accent-foreground' 
-                    : 'text-muted-foreground',
-                  sidebarCollapsed && 'justify-center px-2'
+        {sidebarCollapsed ? (
+          // 折叠状态：显示所有菜单项（包括分组中的子项）
+          <>
+            {menuItems.map((item) => {
+              if (item.type === 'group' && item.children) {
+                // 对于分组，显示其所有子项
+                return item.children.map((child) => {
+                  const Icon = child.icon
+                  return (
+                    <NavLink
+                      key={child.key}
+                      to={child.path!}
+                      className={({ isActive }) =>
+                        cn(
+                          'flex items-center justify-center rounded-lg px-2 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
+                          isActive 
+                            ? 'bg-accent text-accent-foreground' 
+                            : 'text-muted-foreground'
+                        )
+                      }
+                      title={child.label}
+                    >
+                      <Icon className="h-4 w-4 flex-shrink-0" />
+                    </NavLink>
+                  )
+                })
+              } else if (item.icon) {
+                // 普通菜单项
+                const Icon = item.icon
+                return (
+                  <NavLink
+                    key={item.key}
+                    to={item.path!}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center justify-center rounded-lg px-2 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
+                        isActive 
+                          ? 'bg-accent text-accent-foreground' 
+                          : 'text-muted-foreground'
+                      )
+                    }
+                    title={item.label}
+                  >
+                    <Icon className="h-4 w-4 flex-shrink-0" />
+                  </NavLink>
                 )
               }
-            >
-              <Icon className="h-4 w-4 flex-shrink-0" />
-              {!sidebarCollapsed && (
-                <span className="truncate">{item.label}</span>
-              )}
-            </NavLink>
-          )
-        })}
+              return null
+            })}
+          </>
+        ) : (
+          // 展开状态：显示分组结构
+          <>
+            {menuItems.map((item) => {
+              if (item.type === 'group') {
+                const isExpanded = expandedGroups.includes(item.key)
+                return (
+                  <div key={item.key} className="space-y-1">
+                    {/* 分组标题 */}
+                    <button
+                      onClick={() => toggleGroup(item.key)}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <span className="flex-1 text-left">{item.label}</span>
+                      {isExpanded ? (
+                        <ChevronUp className="h-3 w-3" />
+                      ) : (
+                        <ChevronDown className="h-3 w-3" />
+                      )}
+                    </button>
+                    
+                    {/* 分组子项 */}
+                    {isExpanded && item.children && (
+                      <div className="ml-2 space-y-1">
+                        {item.children.map((child) => {
+                          const Icon = child.icon
+                          return (
+                            <NavLink
+                              key={child.key}
+                              to={child.path!}
+                              className={({ isActive }) =>
+                                cn(
+                                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
+                                  isActive 
+                                    ? 'bg-accent text-accent-foreground' 
+                                    : 'text-muted-foreground'
+                                )
+                              }
+                            >
+                              <Icon className="h-4 w-4 flex-shrink-0" />
+                              <span className="truncate">{child.label}</span>
+                            </NavLink>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
+              } else {
+                // 普通菜单项
+                const Icon = item.icon
+                return (
+                  <NavLink
+                    key={item.key}
+                    to={item.path!}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
+                        isActive 
+                          ? 'bg-accent text-accent-foreground' 
+                          : 'text-muted-foreground'
+                      )
+                    }
+                  >
+                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </NavLink>
+                )
+              }
+            })}
+          </>
+        )}
       </nav>
       
       {/* 底部信息 */}

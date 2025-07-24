@@ -52,20 +52,39 @@ export const router = createBrowserRouter([
         element: <DevicesPage />,
       },
       {
-        path: 'configs',
-        element: <ConfigsPage />,
-      },
-      {
         path: 'users',
-        element: <div>用户管理页面待开发</div>,
+        element: <div className="p-6">
+          <h1 className="text-2xl font-bold mb-4">用户管理</h1>
+          <p className="text-muted-foreground">用户管理页面待开发</p>
+        </div>,
       },
       {
-        path: 'analytics',
-        element: <div>数据分析页面待开发</div>,
+        path: 'projects',
+        element: <div className="p-6">
+          <h1 className="text-2xl font-bold mb-4">项目管理</h1>
+          <p className="text-muted-foreground">项目管理页面待开发</p>
+        </div>,
+      },
+      {
+        path: 'ansible',
+        element: <div className="p-6">
+          <h1 className="text-2xl font-bold mb-4">Ansible管理</h1>
+          <p className="text-muted-foreground">Ansible管理页面待开发</p>
+        </div>,
       },
       {
         path: 'settings',
-        element: <div>系统设置页面待开发</div>,
+        element: <div className="p-6">
+          <h1 className="text-2xl font-bold mb-4">设置</h1>
+          <p className="text-muted-foreground">系统设置页面待开发</p>
+        </div>,
+      },
+      {
+        path: 'help',
+        element: <div className="p-6">
+          <h1 className="text-2xl font-bold mb-4">帮助中心</h1>
+          <p className="text-muted-foreground">帮助中心页面待开发</p>
+        </div>,
       },
     ],
   },

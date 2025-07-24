@@ -45,22 +45,35 @@ export function LoginPage() {
     
     setLoading(true)
     
-    try {
-      const response = await apiClient.post('/auth/login', formData)
+    // 模拟登录延迟
+    setTimeout(() => {
+      // 简单的账号密码验证
+      if ((formData.username === 'admin' && formData.password === 'admin123') || 
+          (formData.username === 'user' && formData.password === 'user123')) {
+        
+        // 生成mock token
+        const mockToken = `token_${Date.now()}_${Math.random().toString(36).substring(2)}`
+        localStorage.setItem('token', mockToken)
+        
+        // 保存用户信息
+        const mockUser = {
+          id: formData.username === 'admin' ? '1' : '2',
+          username: formData.username,
+          email: `${formData.username}@example.com`,
+          role: formData.username === 'admin' ? 'admin' : 'user',
+          avatar: '',
+          createdAt: new Date().toISOString(),
+        }
+        setUser(mockUser)
+        
+        // 跳转到首页
+        navigate('/')
+      } else {
+        setErrors({ submit: '用户名或密码错误' })
+      }
       
-      // 保存token
-      localStorage.setItem('token', response.data.token)
-      
-      // 保存用户信息
-      setUser(response.data.user)
-      
-      // 跳转到首页
-      navigate('/')
-    } catch (error: any) {
-      setErrors({ submit: error.message || '登录失败' })
-    } finally {
       setLoading(false)
-    }
+    }, 800) // 模拟网络延迟
   }
   
   return (
@@ -133,7 +146,9 @@ export function LoginPage() {
           </form>
           
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            <p>默认账号：admin / admin123</p>
+            <p>测试账号：</p>
+            <p>管理员：admin / admin123</p>
+            <p>普通用户：user / user123</p>
           </div>
         </CardContent>
       </Card>
