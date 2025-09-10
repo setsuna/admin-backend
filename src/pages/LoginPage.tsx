@@ -4,6 +4,7 @@ import { Server, Eye, EyeOff } from 'lucide-react'
 import { Button, Input, Card, CardHeader, CardTitle, CardContent } from '@/components'
 import { useGlobalStore } from '@/store'
 import { apiClient } from '@/services/api'
+import type { User } from '@/types'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -56,13 +57,14 @@ export function LoginPage() {
         localStorage.setItem('token', mockToken)
         
         // 保存用户信息
-        const mockUser = {
+        const mockUser: User = {
           id: formData.username === 'admin' ? '1' : '2',
           username: formData.username,
           email: `${formData.username}@example.com`,
           role: formData.username === 'admin' ? 'admin' : 'user',
           avatar: '',
           createdAt: new Date().toISOString(),
+          // 权限信息将由usePermission钩子从API获取
         }
         setUser(mockUser)
         

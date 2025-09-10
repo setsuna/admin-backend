@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Theme, User, Notification } from '@/types'
+import type { Theme, User, Notification, MenuConfig } from '@/types'
 
 // 全局状态
 interface GlobalState {
@@ -100,4 +100,31 @@ export const useDeviceStore = create<DeviceState>()((set) => ({
     }
   })),
   updateDeviceStats: (stats) => set({ deviceStats: stats }),
+}))
+
+// 权限状态store
+interface PermissionState {
+  permissions: string[]
+  menuConfig: MenuConfig | null
+  setPermissions: (permissions: string[]) => void
+  setMenuConfig: (config: MenuConfig) => void
+  hasPermission: (permission: string) => boolean
+  hasAnyPermission: (permissions: string[]) => boolean
+  clearPermissions: () => void
+}
+
+export const usePermissionStore = create<PermissionState>()((set, get) => ({
+  permissions: [],
+  menuConfig: null,
+  setPermissions: (permissions) => set({ permissions }),
+  setMenuConfig: (config) => set({ menuConfig: config }),
+  hasPermission: (permission) => {
+    const { permissions } = get()
+    return permissions.includes(permission)
+  },
+  hasAnyPermission: (permissions) => {
+    const { permissions: userPermissions } = get()
+    return permissions.some(p => userPermissions.includes(p))
+  },
+  clearPermissions: () => set({ permissions: [], menuConfig: null }),
 }))

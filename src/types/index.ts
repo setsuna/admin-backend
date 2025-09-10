@@ -64,6 +64,23 @@ export interface User {
   avatar?: string
   createdAt: string
   lastLoginAt?: string
+  permissions?: string[]
+}
+
+// 权限相关类型
+export interface Permission {
+  id: string
+  name: string
+  code: string
+  description?: string
+}
+
+export interface Role {
+  id: string
+  name: string
+  code: string
+  permissions: string[]
+  description?: string
 }
 
 // 表格相关类型
@@ -136,6 +153,14 @@ export interface MenuItem {
   icon?: React.ReactNode
   path?: string
   children?: MenuItem[]
+  type?: 'group' | 'item'
+  permissions?: string[] // 需要的权限码
+  visible?: boolean // 是否可见
+}
+
+export interface MenuConfig {
+  menus: MenuItem[]
+  userPermissions: string[]
 }
 
 // 通用状态类型

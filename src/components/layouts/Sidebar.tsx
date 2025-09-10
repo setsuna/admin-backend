@@ -18,90 +18,33 @@ import {
 } from 'lucide-react'
 import { cn } from '@/utils'
 import { useGlobalStore } from '@/store'
+import { useMenuPermission } from '@/hooks'
 import { Button } from '@/components/ui'
 
 interface SidebarProps {
   className?: string
 }
 
-interface MenuItem {
-  key: string
-  label: string
-  icon?: any
-  path?: string
-  children?: MenuItem[]
-  type?: 'group' | 'item'
+// 图标映射
+const iconMap: Record<string, any> = {
+  Home,
+  Server,
+  Settings,
+  Users,
+  FolderOpen,
+  GitBranch,
+  HelpCircle,
 }
 
-const menuItems: MenuItem[] = [
-  {
-    key: 'general',
-    label: '通用',
-    type: 'group',
-    children: [
-      {
-        key: 'dashboard',
-        label: '仪表板',
-        icon: Home,
-        path: '/',
-      },
-      {
-        key: 'devices',
-        label: '设备管理',
-        icon: Server,
-        path: '/devices',
-      },
-      {
-        key: 'users',
-        label: '用户',
-        icon: Users,
-        path: '/users',
-      },
-    ],
-  },
-  
-  {
-    key: 'book',
-    label: 'Book管理',
-    type: 'group',
-    children: [
-      {
-        key: 'projects',
-        label: '项目管理',
-        icon: FolderOpen,
-        path: '/projects',
-      },
-      {
-        key: 'ansible',
-        label: 'Ansible管理',
-        icon: GitBranch,
-        path: '/ansible',
-      },
-    ],
-  },
-  {
-    key: 'other',
-    label: '其他',
-    type: 'group',
-    children: [
-      {
-        key: 'settings',
-        label: '设置',
-        icon: Settings,
-        path: '/settings',
-      },
-      {
-        key: 'help',
-        label: '帮助中心',
-        icon: HelpCircle,
-        path: '/help',
-      },
-    ],
-  },
-]
+// 获取图标组件
+function getIconComponent(iconName?: string) {
+  if (!iconName) return null
+  return iconMap[iconName] || null
+}
 
 export function Sidebar({ className }: SidebarProps) {
   const { sidebarCollapsed, setSidebarCollapsed } = useGlobalStore()
+  const { menus: menuItems, isLoading } = useMenuPermission()
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['general', 'book', 'other'])
   
   const toggleGroup = (groupKey: string) => {
@@ -147,18 +90,23 @@ export function Sidebar({ className }: SidebarProps) {
       
       {/* 导航菜单 */}
       <nav className="flex-1 space-y-1 p-2">
-        {sidebarCollapsed ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-4">
+            <div className="text-sm text-muted-foreground">加载中...</div>
+          </div>
+        ) : sidebarCollapsed ? (
           // 折叠状态：显示所有菜单项（包括分组中的子项）
           <>
             {menuItems.map((item) => {
               if (item.type === 'group' && item.children) {
                 // 对于分组，显示其所有子项
                 return item.children.map((child) => {
-                  const Icon = child.icon
+                  const Icon = getIconComponent(child.icon as string)
+                  if (!Icon || !child.path) return null
                   return (
                     <NavLink
                       key={child.key}
-                      to={child.path!}
+                      to={child.path}
                       className={({ isActive }) =>
                         cn(
                           'flex items-center justify-center rounded-lg px-2 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
@@ -173,13 +121,14 @@ export function Sidebar({ className }: SidebarProps) {
                     </NavLink>
                   )
                 })
-              } else if (item.icon) {
+              } else if (item.icon && item.path) {
                 // 普通菜单项
-                const Icon = item.icon
+                const Icon = getIconComponent(item.icon as string)
+                if (!Icon) return null
                 return (
                   <NavLink
                     key={item.key}
-                    to={item.path!}
+                    to={item.path}
                     className={({ isActive }) =>
                       cn(
                         'flex items-center justify-center rounded-lg px-2 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
@@ -222,11 +171,12 @@ export function Sidebar({ className }: SidebarProps) {
                     {isExpanded && item.children && (
                       <div className="ml-2 space-y-1">
                         {item.children.map((child) => {
-                          const Icon = child.icon
+                          const Icon = getIconComponent(child.icon as string)
+                          if (!Icon || !child.path) return null
                           return (
                             <NavLink
                               key={child.key}
-                              to={child.path!}
+                              to={child.path}
                               className={({ isActive }) =>
                                 cn(
                                   'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
@@ -247,11 +197,12 @@ export function Sidebar({ className }: SidebarProps) {
                 )
               } else {
                 // 普通菜单项
-                const Icon = item.icon
+                const Icon = getIconComponent(item.icon as string)
+                if (!Icon || !item.path) return null
                 return (
                   <NavLink
                     key={item.key}
-                    to={item.path!}
+                    to={item.path}
                     className={({ isActive }) =>
                       cn(
                         'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',

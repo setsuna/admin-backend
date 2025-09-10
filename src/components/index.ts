@@ -6,3 +6,6 @@ export * from './layouts'
 
 // 功能组件
 export * from './features'
+
+// 权限组件
+export { PermissionGuard } from './PermissionGuard'

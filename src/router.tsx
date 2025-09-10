@@ -1,6 +1,7 @@
 import React from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { MainLayout } from '@/components/layouts'
+import { PermissionGuard } from '@/components/PermissionGuard'
 import { Dashboard, DevicesPage, ConfigsPage, LoginPage } from '@/pages'
 import { useGlobalStore } from '@/store'
 
@@ -45,46 +46,72 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Dashboard />,
+        element: (
+          <PermissionGuard permissions={['dashboard:view']}>
+            <Dashboard />
+          </PermissionGuard>
+        ),
       },
       {
         path: 'devices',
-        element: <DevicesPage />,
+        element: (
+          <PermissionGuard permissions={['device:view']}>
+            <DevicesPage />
+          </PermissionGuard>
+        ),
       },
       {
         path: 'users',
-        element: <div className="p-6">
-          <h1 className="text-2xl font-bold mb-4">用户管理</h1>
-          <p className="text-muted-foreground">用户管理页面待开发</p>
-        </div>,
+        element: (
+          <PermissionGuard permissions={['user:view']}>
+            <div className="p-6">
+              <h1 className="text-2xl font-bold mb-4">用户管理</h1>
+              <p className="text-muted-foreground">用户管理页面待开发</p>
+            </div>
+          </PermissionGuard>
+        ),
       },
       {
         path: 'projects',
-        element: <div className="p-6">
-          <h1 className="text-2xl font-bold mb-4">项目管理</h1>
-          <p className="text-muted-foreground">项目管理页面待开发</p>
-        </div>,
+        element: (
+          <PermissionGuard permissions={['project:view']}>
+            <div className="p-6">
+              <h1 className="text-2xl font-bold mb-4">项目管理</h1>
+              <p className="text-muted-foreground">项目管理页面待开发</p>
+            </div>
+          </PermissionGuard>
+        ),
       },
       {
         path: 'ansible',
-        element: <div className="p-6">
-          <h1 className="text-2xl font-bold mb-4">Ansible管理</h1>
-          <p className="text-muted-foreground">Ansible管理页面待开发</p>
-        </div>,
+        element: (
+          <PermissionGuard permissions={['ansible:view']}>
+            <div className="p-6">
+              <h1 className="text-2xl font-bold mb-4">Ansible管理</h1>
+              <p className="text-muted-foreground">Ansible管理页面待开发</p>
+            </div>
+          </PermissionGuard>
+        ),
       },
       {
         path: 'settings',
-        element: <div className="p-6">
-          <h1 className="text-2xl font-bold mb-4">设置</h1>
-          <p className="text-muted-foreground">系统设置页面待开发</p>
-        </div>,
+        element: (
+          <PermissionGuard permissions={['system:settings']}>
+            <div className="p-6">
+              <h1 className="text-2xl font-bold mb-4">设置</h1>
+              <p className="text-muted-foreground">系统设置页面待开发</p>
+            </div>
+          </PermissionGuard>
+        ),
       },
       {
         path: 'help',
-        element: <div className="p-6">
-          <h1 className="text-2xl font-bold mb-4">帮助中心</h1>
-          <p className="text-muted-foreground">帮助中心页面待开发</p>
-        </div>,
+        element: (
+          <div className="p-6">
+            <h1 className="text-2xl font-bold mb-4">帮助中心</h1>
+            <p className="text-muted-foreground">帮助中心页面待开发</p>
+          </div>
+        ),
       },
     ],
   },
