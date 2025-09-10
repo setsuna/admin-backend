@@ -197,6 +197,32 @@ export const meetingApi = {
     return newMeeting
   },
 
+  // 创建会议（使用CreateMeetingRequest）
+  async createMeetingFromRequest(request: CreateMeetingRequest): Promise<Meeting> {
+    await delay(500)
+    const now = new Date().toISOString()
+    const newMeeting: Meeting = {
+      id: Date.now().toString(),
+      name: request.name,
+      startTime: request.startTime,
+      endTime: request.endTime,
+      status: 'preparation',
+      securityLevel: request.securityLevel,
+      type: request.type,
+      hostId: '1', // 当前用户ID
+      hostName: '当前用户', // 当前用户名
+      location: request.location,
+      description: request.description,
+      participantCount: request.participants.length,
+      agendaCount: request.agendas.length,
+      materialCount: request.agendas.reduce((sum, agenda) => sum + agenda.materials.length, 0),
+      createdAt: now,
+      updatedAt: now
+    }
+    mockMeetings.unshift(newMeeting)
+    return newMeeting
+  },
+
   // 更新会议
   async updateMeeting(id: string, updates: Partial<Meeting>): Promise<Meeting | null> {
     await delay(400)

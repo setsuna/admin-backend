@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Filter, Calendar, Shield, Users } from 'lucide-react'
 import { 
   Button, 
@@ -31,6 +32,7 @@ const typeConfig = {
 }
 
 const MeetingListPage: React.FC = () => {
+  const navigate = useNavigate()
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [loading, setLoading] = useState(false)
   const [searchText, setSearchText] = useState('')
@@ -104,6 +106,11 @@ const MeetingListPage: React.FC = () => {
   const handleMeetingClick = (meeting: Meeting) => {
     // 导航到会议编辑页面
     console.log('Edit meeting:', meeting.id)
+    // 这里应该导航到编辑页面
+  }
+
+  const handleCreateMeeting = () => {
+    navigate('/meetings/create')
   }
 
   const handleDeleteMeeting = async (id: string) => {
@@ -240,7 +247,7 @@ const MeetingListPage: React.FC = () => {
             管理和查看所有会议信息
           </p>
         </div>
-        <Button>
+        <Button onClick={handleCreateMeeting}>
           <Plus className="mr-2 h-4 w-4" />
           新建会议
         </Button>

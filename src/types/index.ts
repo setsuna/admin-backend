@@ -210,3 +210,40 @@ export interface MyMeetingTab {
   label: string
   count?: number
 }
+
+// 新建会议相关类型
+export interface MeetingParticipant {
+  id: string
+  name: string
+  email?: string
+  department?: string
+}
+
+export interface MeetingMaterial {
+  id: string
+  name: string
+  size: number
+  type: string
+  securityLevel: MeetingSecurityLevel
+  uploadedAt: string
+}
+
+export interface MeetingAgenda {
+  id: string
+  name: string
+  description?: string
+  materials: MeetingMaterial[]
+  order: number
+}
+
+export interface CreateMeetingRequest {
+  name: string
+  securityLevel: MeetingSecurityLevel
+  type: MeetingType
+  startTime: string
+  endTime: string
+  description?: string
+  location?: string
+  participants: MeetingParticipant[]
+  agendas: MeetingAgenda[]
+}
