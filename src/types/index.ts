@@ -172,3 +172,41 @@ export interface LoadingState {
 export interface AsyncState<T> extends LoadingState {
   data: T | null
 }
+
+// 会议相关类型
+export type MeetingSecurityLevel = 'internal' | 'confidential' | 'secret'
+export type MeetingType = 'standard' | 'tablet'
+export type MeetingStatus = 'preparation' | 'distributable' | 'closed'
+
+export interface Meeting {
+  id: string
+  name: string
+  startTime: string
+  endTime: string
+  status: MeetingStatus
+  securityLevel: MeetingSecurityLevel
+  type: MeetingType
+  hostId: string
+  hostName: string
+  location?: string
+  description?: string
+  participantCount?: number
+  agendaCount?: number
+  materialCount?: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface MeetingFilters {
+  keyword?: string
+  type?: MeetingType
+  status?: MeetingStatus
+  securityLevel?: MeetingSecurityLevel
+  dateRange?: [string, string]
+}
+
+export interface MyMeetingTab {
+  key: 'hosted' | 'participated' | 'all'
+  label: string
+  count?: number
+}

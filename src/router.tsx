@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { MainLayout } from '@/components/layouts'
 import { PermissionGuard } from '@/components/PermissionGuard'
-import { Dashboard, LoginPage } from '@/pages'
+import { Dashboard, LoginPage, MeetingListPage, MyMeetingPage } from '@/pages'
 import { useGlobalStore } from '@/store'
 
 // 路由守卫组件
@@ -56,8 +56,7 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permissions={['meeting:view']}>
             <div className="p-6">
-              <h1 className="text-2xl font-bold mb-4">会议列表</h1>
-              <p className="text-muted-foreground">会议列表页面待开发</p>
+              <MeetingListPage />
             </div>
           </PermissionGuard>
         ),
@@ -67,8 +66,7 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permissions={['meeting:view']}>
             <div className="p-6">
-              <h1 className="text-2xl font-bold mb-4">我的会议</h1>
-              <p className="text-muted-foreground">我的会议页面待开发</p>
+              <MyMeetingPage />
             </div>
           </PermissionGuard>
         ),
