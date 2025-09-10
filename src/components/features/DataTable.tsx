@@ -19,8 +19,9 @@ export function DataTable<T = any>({
   pagination,
   onPaginationChange,
   rowKey = 'id' as keyof T,
-  className 
-}: TableProps<T>) {
+  className,
+  bordered = false
+}: TableProps<T> & { bordered?: boolean }) {
   const getRowKey = (record: T, index: number): string => {
     if (typeof rowKey === 'function') {
       return rowKey(record)
@@ -63,7 +64,7 @@ export function DataTable<T = any>({
   return (
     <div className={cn('space-y-4', className)}>
       {/* 表格 */}
-      <div className="rounded-md border">
+      <div className={cn(bordered && 'rounded-md border')}>
         <Table>
           <TableHeader>
             <TableRow>
@@ -117,7 +118,7 @@ export function DataTable<T = any>({
       
       {/* 分页 */}
       {pagination && (pagination.total ?? 0) > 0 && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>每页显示</span>
             <select

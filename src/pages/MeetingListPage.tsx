@@ -262,17 +262,14 @@ const MeetingListPage: React.FC = () => {
       </Card>
 
       {/* 会议列表 */}
-      <Card>
-        <CardContent className="p-0">
-          <DataTable
-            data={meetings}
-            columns={columns}
-            loading={loading}
-            pagination={pagination}
-            onPaginationChange={setPagination}
-          />
-        </CardContent>
-      </Card>
+      <DataTable
+        data={meetings}
+        columns={columns}
+        loading={loading}
+        pagination={pagination}
+        onPaginationChange={setPagination}
+        bordered={true}
+      />
     </div>
   )
 }
