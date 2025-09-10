@@ -9,3 +9,6 @@ export * from './features'
 
 // 权限组件
 export { PermissionGuard } from './PermissionGuard'
+
+// 主题组件
+export { ThemeSwitcher } from './ThemeSwitcher'

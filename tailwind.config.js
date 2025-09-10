@@ -41,6 +41,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // 政务红色系专用色彩
+        "gov-gold": "hsl(var(--gov-gold))",
+        "gov-dark-red": "hsl(var(--gov-dark-red))",
+        "gov-light-red": "hsl(var(--gov-light-red))",
+        "gov-gray": "hsl(var(--gov-gray))",
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -127,7 +127,7 @@ export interface Notification {
 }
 
 // 主题相关类型
-export type Theme = 'light' | 'dark' | 'system'
+export type Theme = 'light' | 'dark' | 'system' | 'gov-red'
 
 // WebSocket消息类型
 export interface WebSocketMessage {

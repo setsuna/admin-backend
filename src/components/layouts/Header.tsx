@@ -1,9 +1,9 @@
 import React from 'react'
-import { Bell, Moon, Sun, User, LogOut } from 'lucide-react'
+import { Bell, User, LogOut } from 'lucide-react'
 import { cn } from '@/utils'
 import { useGlobalStore } from '@/store'
-import { useTheme } from '@/hooks'
 import { Button } from '@/components/ui'
+import { ThemeSwitcher } from '@/components'
 
 interface HeaderProps {
   className?: string
@@ -11,11 +11,6 @@ interface HeaderProps {
 
 export function Header({ className }: HeaderProps) {
   const { user, setUser } = useGlobalStore()
-  const { theme, setTheme } = useTheme()
-  
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark')
-  }
   
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -46,13 +41,7 @@ export function Header({ className }: HeaderProps) {
         </Button>
         
         {/* 主题切换 */}
-        <Button variant="ghost" size="icon" onClick={toggleTheme}>
-          {theme === 'dark' ? (
-            <Sun className="h-4 w-4" />
-          ) : (
-            <Moon className="h-4 w-4" />
-          )}
-        </Button>
+        <ThemeSwitcher />
         
         {/* 用户菜单 */}
         <div className="flex items-center gap-3 pl-2">

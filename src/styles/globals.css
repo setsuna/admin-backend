@@ -65,6 +65,47 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 94.1%;
   }
+  
+  .gov-red {
+    /* 政务红色系主题 - 稳重、权威、专业 */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 15%;
+    
+    /* 主色：中国红 */
+    --primary: 355 85% 45%;
+    --primary-foreground: 0 0% 98%;
+    
+    /* 次要色：深红灰 */
+    --secondary: 355 15% 88%;
+    --secondary-foreground: 355 25% 25%;
+    
+    /* 静默色：温暖灰 */
+    --muted: 355 10% 92%;
+    --muted-foreground: 355 8% 45%;
+    
+    /* 强调色：深红 */
+    --accent: 355 45% 85%;
+    --accent-foreground: 355 85% 35%;
+    
+    /* 错误色：深红 */
+    --destructive: 0 85% 50%;
+    --destructive-foreground: 0 0% 98%;
+    
+    /* 边框和输入框 */
+    --border: 355 20% 85%;
+    --input: 355 20% 85%;
+    --ring: 355 85% 45%;
+    
+    /* 政务专用色彩 */
+    --gov-gold: 45 100% 50%;  /* 金色点缀 */
+    --gov-dark-red: 355 85% 35%;  /* 深红色 */
+    --gov-light-red: 355 85% 95%;  /* 浅红背景 */
+    --gov-gray: 355 5% 60%;  /* 中性灰 */
+  }
 }
 
 @layer base {
