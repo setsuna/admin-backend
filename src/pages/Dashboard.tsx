@@ -1,5 +1,4 @@
-import React from 'react'
-import { Calendar, Users, FileText, RefreshCw, AlertCircle, TrendingUp, Clock, CheckCircle } from 'lucide-react'
+import { Calendar, FileText, RefreshCw, AlertCircle, TrendingUp, Clock, CheckCircle } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components'
 
 export function Dashboard() {

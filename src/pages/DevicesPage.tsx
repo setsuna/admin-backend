@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Plus, Search, Filter, MoreHorizontal, Power, Settings2 } from 'lucide-react'
 import { 
   Button, 

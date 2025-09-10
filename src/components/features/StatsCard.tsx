@@ -1,4 +1,3 @@
-import React from 'react'
 import { LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui'
 import { cn } from '@/utils'

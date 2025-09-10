@@ -34,8 +34,6 @@ export const configService = {
   importConfig: (file: File) => {
     const formData = new FormData()
     formData.append('file', file)
-    return apiClient.post<ConfigItem>('/configs/import', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
+    return apiClient.post<ConfigItem>('/configs/import', formData)
   },
 }

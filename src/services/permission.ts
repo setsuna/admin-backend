@@ -1,5 +1,4 @@
 import type { MenuConfig, Permission, Role, User } from '@/types'
-
 // Mock数据 - 后续替换为真实API
 const mockMenuConfig: MenuConfig = {
   menus: [
@@ -317,7 +316,7 @@ export const permissionApi = {
   },
 
   // 检查用户权限
-  async checkUserPermission(userId: string, permission: string): Promise<boolean> {
+  async checkUserPermission(): Promise<boolean> {
     await new Promise(resolve => setTimeout(resolve, 100))
     // Mock实现
     return true

@@ -1,4 +1,3 @@
-import React from 'react'
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { 
   Table, 
@@ -11,7 +10,7 @@ import {
   Loading
 } from '@/components/ui'
 import { cn } from '@/utils'
-import type { TableProps, PaginationParams } from '@/types'
+import type { TableProps } from '@/types'
 
 export function DataTable<T = any>({ 
   data, 
@@ -19,7 +18,7 @@ export function DataTable<T = any>({
   loading = false,
   pagination,
   onPaginationChange,
-  rowKey = 'id',
+  rowKey = 'id' as keyof T,
   className 
 }: TableProps<T>) {
   const getRowKey = (record: T, index: number): string => {
@@ -117,7 +116,7 @@ export function DataTable<T = any>({
       </div>
       
       {/* 分页 */}
-      {pagination && pagination.total > 0 && (
+      {pagination && (pagination.total ?? 0) > 0 && (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>每页显示</span>

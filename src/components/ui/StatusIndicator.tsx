@@ -1,6 +1,4 @@
-import React from 'react'
 import { cn } from '@/utils'
-
 export interface StatusIndicatorProps {
   status: 'online' | 'offline' | 'warning' | 'error'
   label?: string

@@ -1,4 +1,3 @@
-import React from 'react'
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react'
 import { cn } from '@/utils'
 import { useNotifications } from '@/hooks'

@@ -1,8 +1,7 @@
-import React from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { MainLayout } from '@/components/layouts'
 import { PermissionGuard } from '@/components/PermissionGuard'
-import { Dashboard, DevicesPage, ConfigsPage, LoginPage } from '@/pages'
+import { Dashboard, LoginPage } from '@/pages'
 import { useGlobalStore } from '@/store'
 
 // 路由守卫组件

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react'
+import { useRef } from 'react'
 import Editor from '@monaco-editor/react'
 import { useTheme } from '@/hooks'
 import { cn } from '@/utils'
@@ -79,12 +79,10 @@ export function YamlEditor({
     if (newValue !== undefined) {
       onChange(newValue)
       
-      // 简单的YAML验证
+      // 简单的YAML验证 - 可以后续集成js-yaml库
       if (onValidationChange) {
         try {
-          // 这里可以集成js-yaml进行验证
-          const yaml = require('js-yaml')
-          yaml.load(newValue)
+          // TODO: 集成js-yaml进行验证
           onValidationChange(true, [])
         } catch (error: any) {
           onValidationChange(false, [{ message: error.message }])

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Plus, Search, FileText, Download, Upload } from 'lucide-react'
 import { 
   Button, 
@@ -108,7 +108,7 @@ export function ConfigsPage() {
       title: '操作',
       width: 120,
       align: 'center',
-      render: (_, record: ConfigItem) => (
+      render: (_) => (
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Download className="h-4 w-4" />

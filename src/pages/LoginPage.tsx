@@ -1,9 +1,8 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Server, Eye, EyeOff } from 'lucide-react'
 import { Button, Input, Card, CardHeader, CardTitle, CardContent } from '@/components'
 import { useGlobalStore } from '@/store'
-import { apiClient } from '@/services/api'
 import type { User } from '@/types'
 
 export function LoginPage() {

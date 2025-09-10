@@ -1,5 +1,4 @@
-import React from 'react'
-import { Bell, User, LogOut } from 'lucide-react'
+import { Bell, LogOut } from 'lucide-react'
 import { cn } from '@/utils'
 import { useGlobalStore } from '@/store'
 import { Button } from '@/components/ui'

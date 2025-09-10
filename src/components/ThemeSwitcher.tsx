@@ -1,4 +1,3 @@
-import React from 'react'
 import { Monitor, Moon, Sun, Building } from 'lucide-react'
 import { useTheme } from '@/hooks'
 import { Button } from '@/components/ui'
