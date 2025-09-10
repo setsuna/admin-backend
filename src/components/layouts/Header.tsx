@@ -20,7 +20,7 @@ export function Header({ className }: HeaderProps) {
   
   return (
     <header className={cn(
-      'flex h-16 items-center justify-between border-b bg-background px-6',
+      'flex h-16 items-center justify-between border-b bg-background px-6 min-h-16',
       className
     )}>
       {/* 面包屑导航 */}

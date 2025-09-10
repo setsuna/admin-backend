@@ -50,18 +50,38 @@ export function LoginPage() {
     setTimeout(() => {
       // 简单的账号密码验证
       if ((formData.username === 'admin' && formData.password === 'admin123') || 
-          (formData.username === 'user' && formData.password === 'user123')) {
+      (formData.username === 'user' && formData.password === 'user123') ||
+            (formData.username === 'meeting_admin' && formData.password === 'meeting123') ||
+            (formData.username === 'auditor' && formData.password === 'audit123')) {
         
         // 生成mock token
         const mockToken = `token_${Date.now()}_${Math.random().toString(36).substring(2)}`
         localStorage.setItem('token', mockToken)
         
         // 保存用户信息
+        const getRoleByUsername = (username: string): 'admin' | 'user' | 'meeting_admin' | 'auditor' => {
+          switch (username) {
+            case 'admin': return 'admin'
+            case 'meeting_admin': return 'meeting_admin'
+            case 'auditor': return 'auditor'
+            default: return 'user'
+          }
+        }
+        
+        const getUserId = (username: string): string => {
+          switch (username) {
+            case 'admin': return '1'
+            case 'meeting_admin': return '3'
+            case 'auditor': return '4'
+            default: return '2'
+          }
+        }
+        
         const mockUser: User = {
-          id: formData.username === 'admin' ? '1' : '2',
+          id: getUserId(formData.username),
           username: formData.username,
           email: `${formData.username}@example.com`,
-          role: formData.username === 'admin' ? 'admin' : 'user',
+          role: getRoleByUsername(formData.username),
           avatar: '',
           createdAt: new Date().toISOString(),
           // 权限信息将由usePermission钩子从API获取
@@ -149,7 +169,9 @@ export function LoginPage() {
           
           <div className="mt-6 text-center text-sm text-muted-foreground">
             <p>测试账号：</p>
-            <p>管理员：admin / admin123</p>
+            <p>系统管理员：admin / admin123</p>
+            <p>会议管理员：meeting_admin / meeting123</p>
+            <p>审计员：auditor / audit123</p>
             <p>普通用户：user / user123</p>
           </div>
         </CardContent>

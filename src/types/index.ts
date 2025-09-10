@@ -60,7 +60,7 @@ export interface User {
   id: string
   username: string
   email: string
-  role: 'admin' | 'user'
+  role: 'admin' | 'user' | 'meeting_admin' | 'auditor'
   avatar?: string
   createdAt: string
   lastLoginAt?: string

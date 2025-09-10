@@ -4,72 +4,156 @@ import type { MenuConfig, Permission, Role, User } from '@/types'
 const mockMenuConfig: MenuConfig = {
   menus: [
     {
-      key: 'general',
-      label: '通用',
+      key: 'workspace',
+      label: '工作台',
       type: 'group',
       children: [
         {
           key: 'dashboard',
           label: '仪表板',
-          icon: 'Home',
+          icon: 'BarChart3',
           path: '/',
           permissions: ['dashboard:view'],
         },
+      ],
+    },
+    {
+      key: 'meeting',
+      label: '会议管理',
+      type: 'group',
+      children: [
         {
-          key: 'devices',
-          label: '设备管理',
-          icon: 'Server',
-          path: '/devices',
-          permissions: ['device:view'],
+          key: 'meeting-list',
+          label: '会议列表',
+          icon: 'Calendar',
+          path: '/meetings',
+          permissions: ['meeting:view'],
         },
         {
-          key: 'users',
-          label: '用户',
+          key: 'my-meetings',
+          label: '我的会议',
+          icon: 'User',
+          path: '/my-meetings',
+          permissions: ['meeting:view'],
+        },
+      ],
+    },
+    {
+      key: 'sync',
+      label: '同步管理',
+      type: 'group',
+      children: [
+        {
+          key: 'sync-status',
+          label: '同步状态',
+          icon: 'RefreshCw',
+          path: '/sync-status',
+          permissions: ['sync:view'],
+        },
+      ],
+    },
+    {
+      key: 'personnel',
+      label: '人员管理',
+      type: 'group',
+      children: [
+        {
+          key: 'participants',
+          label: '参会人员',
           icon: 'Users',
-          path: '/users',
-          permissions: ['user:view'],
+          path: '/participants',
+          permissions: ['personnel:view'],
+        },
+        {
+          key: 'role-permissions',
+          label: '角色权限',
+          icon: 'Shield',
+          path: '/role-permissions',
+          permissions: ['role:manage'],
+        },
+        {
+          key: 'security-levels',
+          label: '人员密级',
+          icon: 'Lock',
+          path: '/security-levels',
+          permissions: ['security:manage'],
         },
       ],
     },
     {
-      key: 'book',
-      label: 'Book管理',
+      key: 'organization',
+      label: '组织架构',
       type: 'group',
       children: [
         {
-          key: 'projects',
-          label: '项目管理',
-          icon: 'FolderOpen',
-          path: '/projects',
-          permissions: ['project:view'],
+          key: 'departments',
+          label: '部门管理',
+          icon: 'Building',
+          path: '/departments',
+          permissions: ['org:manage'],
         },
         {
-          key: 'ansible',
-          label: 'Ansible管理',
-          icon: 'GitBranch',
-          path: '/ansible',
-          permissions: ['ansible:view'],
+          key: 'staff-management',
+          label: '人员管理',
+          icon: 'UserCheck',
+          path: '/staff',
+          permissions: ['staff:manage'],
         },
       ],
     },
     {
-      key: 'other',
-      label: '其他',
+      key: 'system',
+      label: '系统管理',
       type: 'group',
       children: [
         {
-          key: 'settings',
-          label: '设置',
+          key: 'data-dictionary',
+          label: '数据字典',
+          icon: 'Book',
+          path: '/data-dictionary',
+          permissions: ['system:dict'],
+        },
+        {
+          key: 'basic-config',
+          label: '基础配置',
           icon: 'Settings',
-          path: '/settings',
-          permissions: ['system:settings'],
+          path: '/basic-config',
+          permissions: ['system:config'],
         },
         {
-          key: 'help',
-          label: '帮助中心',
-          icon: 'HelpCircle',
-          path: '/help',
-          permissions: [], // 无权限要求，所有人可见
+          key: 'system-logs',
+          label: '系统日志',
+          icon: 'FileText',
+          path: '/system-logs',
+          permissions: ['system:logs'],
+        },
+        {
+          key: 'admin-logs',
+          label: '操作日志（系统员）',
+          icon: 'ScrollText',
+          path: '/admin-logs',
+          permissions: ['logs:admin'],
+        },
+        {
+          key: 'audit-logs',
+          label: '操作日志（审计员）',
+          icon: 'Search',
+          path: '/audit-logs',
+          permissions: ['logs:audit'],
+        },
+      ],
+    },
+    {
+      key: 'monitoring',
+      label: '监控告警',
+      type: 'group',
+      children: [
+        {
+          key: 'anomaly-alerts',
+          label: '异常行为告警',
+          icon: 'AlertTriangle',
+          path: '/anomaly-alerts',
+          permissions: ['monitor:alerts'],
         },
       ],
     },
@@ -78,48 +162,102 @@ const mockMenuConfig: MenuConfig = {
 }
 
 const mockPermissions: Permission[] = [
+  // 工作台权限
   { id: '1', name: '仪表板查看', code: 'dashboard:view', description: '查看仪表板' },
-  { id: '2', name: '设备查看', code: 'device:view', description: '查看设备列表' },
-  { id: '3', name: '设备管理', code: 'device:manage', description: '管理设备' },
-  { id: '4', name: '用户查看', code: 'user:view', description: '查看用户列表' },
-  { id: '5', name: '用户管理', code: 'user:manage', description: '管理用户' },
-  { id: '6', name: '项目查看', code: 'project:view', description: '查看项目' },
-  { id: '7', name: '项目管理', code: 'project:manage', description: '管理项目' },
-  { id: '8', name: 'Ansible查看', code: 'ansible:view', description: '查看Ansible配置' },
-  { id: '9', name: 'Ansible管理', code: 'ansible:manage', description: '管理Ansible配置' },
-  { id: '10', name: '系统设置', code: 'system:settings', description: '系统设置权限' },
+  
+  // 会议管理权限
+  { id: '2', name: '会议查看', code: 'meeting:view', description: '查看会议信息' },
+  { id: '3', name: '会议管理', code: 'meeting:manage', description: '创建、编辑、删除会议' },
+  
+  // 同步管理权限
+  { id: '4', name: '同步状态查看', code: 'sync:view', description: '查看同步状态' },
+  { id: '5', name: '同步管理', code: 'sync:manage', description: '管理同步设置' },
+  
+  // 人员管理权限
+  { id: '6', name: '人员查看', code: 'personnel:view', description: '查看参会人员' },
+  { id: '7', name: '人员管理', code: 'personnel:manage', description: '管理参会人员' },
+  { id: '8', name: '角色管理', code: 'role:manage', description: '管理角色权限' },
+  { id: '9', name: '密级管理', code: 'security:manage', description: '管理人员密级' },
+  
+  // 组织架构权限
+  { id: '10', name: '组织管理', code: 'org:manage', description: '管理组织架构' },
+  { id: '11', name: '员工管理', code: 'staff:manage', description: '管理员工信息' },
+  
+  // 系统管理权限
+  { id: '12', name: '数据字典', code: 'system:dict', description: '管理数据字典' },
+  { id: '13', name: '系统配置', code: 'system:config', description: '管理系统配置' },
+  { id: '14', name: '系统日志', code: 'system:logs', description: '查看系统日志' },
+  { id: '15', name: '管理员日志', code: 'logs:admin', description: '查看管理员操作日志' },
+  { id: '16', name: '审计日志', code: 'logs:audit', description: '查看审计日志' },
+  
+  // 监控告警权限
+  { id: '17', name: '告警监控', code: 'monitor:alerts', description: '查看和处理告警' },
 ]
 
 const mockRoles: Role[] = [
   {
     id: '1',
-    name: '超级管理员',
+    name: '系统管理员',
     code: 'admin',
     permissions: [
       'dashboard:view',
-      'device:view',
-      'device:manage', 
-      'user:view',
-      'user:manage',
-      'project:view',
-      'project:manage',
-      'ansible:view',
-      'ansible:manage',
-      'system:settings'
+      'meeting:view',
+      'meeting:manage',
+      'sync:view',
+      'sync:manage',
+      'personnel:view',
+      'personnel:manage',
+      'role:manage',
+      'security:manage',
+      'org:manage',
+      'staff:manage',
+      'system:dict',
+      'system:config',
+      'system:logs',
+      'logs:admin',
+      'logs:audit',
+      'monitor:alerts'
     ],
     description: '拥有所有权限'
   },
   {
     id: '2',
+    name: '会议管理员',
+    code: 'meeting_admin',
+    permissions: [
+      'dashboard:view',
+      'meeting:view',
+      'meeting:manage',
+      'sync:view',
+      'personnel:view',
+      'personnel:manage',
+    ],
+    description: '会议相关管理权限'
+  },
+  {
+    id: '3',
     name: '普通用户',
     code: 'user',
     permissions: [
       'dashboard:view',
-      'device:view',
-      'project:view',
-      'ansible:view'
+      'meeting:view',
+      'sync:view',
     ],
     description: '基础查看权限'
+  },
+  {
+    id: '4',
+    name: '审计员',
+    code: 'auditor',
+    permissions: [
+      'dashboard:view',
+      'meeting:view',
+      'system:logs',
+      'logs:admin',
+      'logs:audit',
+      'monitor:alerts'
+    ],
+    description: '审计和监控权限'
   }
 ]
 

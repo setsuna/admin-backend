@@ -1,20 +1,26 @@
 import React, { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { 
-  Home, 
-  Server, 
-  Settings, 
-  FileText, 
-  Users, 
   BarChart3,
+  Calendar,
+  User,
+  Users,
+  RefreshCw,
+  Shield,
+  Lock,
+  Building,
+  UserCheck,
+  Book,
+  Settings,
+  FileText,
+  ScrollText,
+  Search,
+  AlertTriangle,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  BookOpen,
-  GitBranch,
-  HelpCircle,
-  FolderOpen
+  Server
 } from 'lucide-react'
 import { cn } from '@/utils'
 import { useGlobalStore } from '@/store'
@@ -27,13 +33,21 @@ interface SidebarProps {
 
 // 图标映射
 const iconMap: Record<string, any> = {
-  Home,
-  Server,
-  Settings,
+  BarChart3,
+  Calendar,
+  User,
   Users,
-  FolderOpen,
-  GitBranch,
-  HelpCircle,
+  RefreshCw,
+  Shield,
+  Lock,
+  Building,
+  UserCheck,
+  Book,
+  Settings,
+  FileText,
+  ScrollText,
+  Search,
+  AlertTriangle,
 }
 
 // 获取图标组件
@@ -45,7 +59,7 @@ function getIconComponent(iconName?: string) {
 export function Sidebar({ className }: SidebarProps) {
   const { sidebarCollapsed, setSidebarCollapsed } = useGlobalStore()
   const { menus: menuItems, isLoading } = useMenuPermission()
-  const [expandedGroups, setExpandedGroups] = useState<string[]>(['general', 'book', 'other'])
+  const [expandedGroups, setExpandedGroups] = useState<string[]>(['workspace', 'meeting', 'sync', 'personnel', 'organization', 'system', 'monitoring'])
   
   const toggleGroup = (groupKey: string) => {
     setExpandedGroups(prev => 
@@ -62,13 +76,13 @@ export function Sidebar({ className }: SidebarProps) {
       className
     )}>
       {/* Logo区域 */}
-      <div className="flex h-16 items-center border-b px-4">
+      <div className="flex h-16 items-center justify-between border-b px-4 min-h-16">
         {!sidebarCollapsed && (
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Server className="h-4 w-4" />
             </div>
-            <span className="text-lg font-semibold">Admin</span>
+            <span className="text-lg font-semibold leading-none">Admin</span>
           </div>
         )}
         <Button
@@ -76,7 +90,7 @@ export function Sidebar({ className }: SidebarProps) {
           size="icon"
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
           className={cn(
-            'h-8 w-8',
+            'h-8 w-8 flex-shrink-0',
             sidebarCollapsed ? 'mx-auto' : 'ml-auto'
           )}
         >
