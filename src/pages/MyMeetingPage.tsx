@@ -242,9 +242,6 @@ const MyMeetingPage: React.FC = () => {
 
       {/* 会议列表 */}
       <Card>
-        <CardHeader>
-          <CardTitle>会议列表</CardTitle>
-        </CardHeader>
         <CardContent className="p-0">
           <DataTable
             data={meetings}
