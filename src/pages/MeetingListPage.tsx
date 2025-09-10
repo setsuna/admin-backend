@@ -106,6 +106,22 @@ const MeetingListPage: React.FC = () => {
     console.log('Edit meeting:', meeting.id)
   }
 
+  const handleDeleteMeeting = async (id: string) => {
+    if (window.confirm('确定要删除这个会议吗？')) {
+      try {
+        const success = await meetingApi.deleteMeeting(id)
+        if (success) {
+          loadMeetings() // 重新加载列表
+        } else {
+          alert('删除失败，只有关闭状态的会议才能删除')
+        }
+      } catch (error) {
+        console.error('Delete meeting failed:', error)
+        alert('删除失败')
+      }
+    }
+  }
+
   const formatDateTime = (dateTime: string) => {
     const date = new Date(dateTime)
     const now = new Date()
@@ -158,6 +174,12 @@ const MeetingListPage: React.FC = () => {
       ),
     },
     {
+      key: 'startTime',
+      title: '会议时间',
+      width: 150,
+      render: (startTime: string) => formatDateTime(startTime),
+    },
+    {
       key: 'type',
       title: '类型',
       width: 100,
@@ -166,12 +188,6 @@ const MeetingListPage: React.FC = () => {
           {typeConfig[type].label}
         </span>
       ),
-    },
-    {
-      key: 'startTime',
-      title: '会议时间',
-      width: 150,
-      render: (startTime: string) => formatDateTime(startTime),
     },
     {
       key: 'status',
@@ -186,9 +202,31 @@ const MeetingListPage: React.FC = () => {
       render: (level: MeetingSecurityLevel) => renderSecurityLevel(level),
     },
     {
-      key: 'hostName',
-      title: '主持人',
-      width: 100,
+      key: 'actions',
+      title: '操作',
+      width: 120,
+      align: 'center',
+      render: (_, record: Meeting) => (
+        <div className="flex items-center justify-center gap-1">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => handleMeetingClick(record)}
+          >
+            编辑
+          </Button>
+          {record.status === 'closed' && (
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => handleDeleteMeeting(record.id)}
+              className="text-red-600 hover:text-red-700"
+            >
+              删除
+            </Button>
+          )}
+        </div>
+      ),
     },
   ]
 

@@ -11,7 +11,7 @@ import {
 } from '@/components'
 import { meetingApi } from '@/services/meeting'
 import { debounce, formatDate } from '@/utils'
-import type { Meeting, MeetingFilters, MeetingStatus, MeetingSecurityLevel, MyMeetingTab, TableColumn } from '@/types'
+import type { Meeting, MeetingFilters, MeetingStatus, MeetingSecurityLevel, TableColumn } from '@/types'
 
 const statusConfig = {
   preparation: { label: '准备', color: 'text-gray-600' },
@@ -28,7 +28,6 @@ const securityLevelConfig = {
 const MyMeetingPage: React.FC = () => {
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [loading, setLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState<MyMeetingTab['key']>('all')
   const [searchText, setSearchText] = useState('')
   const [statusFilter, setStatusFilter] = useState<MeetingStatus | ''>('')
   const [pagination, setPagination] = useState({
@@ -36,12 +35,6 @@ const MyMeetingPage: React.FC = () => {
     pageSize: 20,
     total: 0
   })
-
-  const tabs: MyMeetingTab[] = [
-    { key: 'hosted', label: '我主持的' },
-    { key: 'participated', label: '我参与的' },
-    { key: 'all', label: '全部' }
-  ]
 
   // 防抖搜索
   const debouncedSearch = debounce((keyword: string) => {
@@ -57,8 +50,9 @@ const MyMeetingPage: React.FC = () => {
         keyword: searchText || undefined,
         status: statusFilter || undefined
       }
+      // 默认只显示我参与的会议
       const response = await meetingApi.getMyMeetings(
-        activeTab,
+        'participated',
         filters,
         pagination.page,
         pagination.pageSize
@@ -79,15 +73,11 @@ const MyMeetingPage: React.FC = () => {
     loadMyMeetings()
   }, [pagination.page])
 
-  // 筛选或标签页变化时重新加载
+  // 筛选变化时重新加载
   useEffect(() => {
     setPagination(prev => ({ ...prev, page: 1 }))
     loadMyMeetings()
-  }, [searchText, statusFilter, activeTab])
-
-  const handleTabChange = (tabKey: MyMeetingTab['key']) => {
-    setActiveTab(tabKey)
-  }
+  }, [searchText, statusFilter])
 
   const handleSearch = (value: string) => {
     debouncedSearch(value)
@@ -101,6 +91,22 @@ const MyMeetingPage: React.FC = () => {
   const handleMeetingClick = (meeting: Meeting) => {
     // 导航到会议编辑页面
     console.log('Edit meeting:', meeting.id)
+  }
+
+  const handleDeleteMeeting = async (id: string) => {
+    if (window.confirm('确定要删除这个会议吗？')) {
+      try {
+        const success = await meetingApi.deleteMeeting(id)
+        if (success) {
+          loadMyMeetings() // 重新加载列表
+        } else {
+          alert('删除失败，只有关闭状态的会议才能删除')
+        }
+      } catch (error) {
+        console.error('Delete meeting failed:', error)
+        alert('删除失败')
+      }
+    }
   }
 
   const formatDateTime = (dateTime: string) => {
@@ -172,6 +178,33 @@ const MyMeetingPage: React.FC = () => {
       width: 120,
       render: (level: MeetingSecurityLevel) => renderSecurityLevel(level),
     },
+    {
+      key: 'actions',
+      title: '操作',
+      width: 120,
+      align: 'center',
+      render: (_, record: Meeting) => (
+        <div className="flex items-center justify-center gap-1">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => handleMeetingClick(record)}
+          >
+            编辑
+          </Button>
+          {record.status === 'closed' && (
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => handleDeleteMeeting(record.id)}
+              className="text-red-600 hover:text-red-700"
+            >
+              删除
+            </Button>
+          )}
+        </div>
+      ),
+    },
   ]
 
   return (
@@ -179,9 +212,9 @@ const MyMeetingPage: React.FC = () => {
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">我的会议</h1>
+          <h1 className="text-3xl font-bold tracking-tight">我参与的会议</h1>
           <p className="text-muted-foreground">
-            管理我主持和参与的会议
+            查看我参与的所有会议
           </p>
         </div>
         <Button>
@@ -190,27 +223,9 @@ const MyMeetingPage: React.FC = () => {
         </Button>
       </div>
 
-      {/* 标签页和工具栏 */}
+      {/* 工具栏 */}
       <Card>
-        <CardContent className="p-6 space-y-4">
-          {/* 标签页 */}
-          <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                  activeTab === tab.key
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
-                }`}
-                onClick={() => handleTabChange(tab.key)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* 工具栏 */}
+        <CardContent className="p-6">
           <div className="flex items-center gap-4">
             <div className="flex-1 max-w-sm">
               <div className="relative">
