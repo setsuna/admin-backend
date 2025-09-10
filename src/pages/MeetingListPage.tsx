@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Search, Filter, Calendar, Shield, Users } from 'lucide-react'
+import { Plus, Search, Filter, Shield } from 'lucide-react'
 import { 
   Button, 
   Input, 
   Card,
-  CardHeader,
-  CardTitle,
   CardContent,
   DataTable 
 } from '@/components'
@@ -312,7 +310,13 @@ const MeetingListPage: React.FC = () => {
         columns={columns}
         loading={loading}
         pagination={pagination}
-        onPaginationChange={setPagination}
+        onPaginationChange={(paginationParams) => {
+          setPagination(prev => ({
+            ...prev,
+            page: paginationParams.page,
+            pageSize: paginationParams.pageSize
+          }))
+        }}
         bordered={true}
       />
     </div>

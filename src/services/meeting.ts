@@ -1,4 +1,4 @@
-import type { Meeting, MeetingFilters, PaginatedResponse } from '@/types'
+import type { Meeting, MeetingFilters, PaginatedResponse, CreateMeetingRequest, MeetingAgenda } from '@/types'
 
 // Mock数据 - 后续替换为真实API
 const mockMeetings: Meeting[] = [
@@ -215,7 +215,7 @@ export const meetingApi = {
       description: request.description,
       participantCount: request.participants.length,
       agendaCount: request.agendas.length,
-      materialCount: request.agendas.reduce((sum, agenda) => sum + agenda.materials.length, 0),
+      materialCount: request.agendas.reduce((sum: number, agenda: MeetingAgenda) => sum + agenda.materials.length, 0),
       createdAt: now,
       updatedAt: now
     }

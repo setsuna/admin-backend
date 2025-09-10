@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, Search, Filter, Calendar, Shield, Users } from 'lucide-react'
+import { Plus, Search, Filter, Shield } from 'lucide-react'
 import { 
   Button, 
   Input, 
   Card,
-  CardHeader,
-  CardTitle,
   CardContent,
   DataTable 
 } from '@/components'
@@ -261,7 +259,13 @@ const MyMeetingPage: React.FC = () => {
         columns={columns}
         loading={loading}
         pagination={pagination}
-        onPaginationChange={setPagination}
+        onPaginationChange={(paginationParams) => {
+          setPagination(prev => ({
+            ...prev,
+            page: paginationParams.page,
+            pageSize: paginationParams.pageSize
+          }))
+        }}
         bordered={true}
       />
     </div>

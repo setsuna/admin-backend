@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { meetingApi } from '@/services/meeting'
-import type { Meeting, MeetingFilters, PaginatedResponse, MyMeetingTab } from '@/types'
+import type { Meeting, MeetingFilters, MyMeetingTab } from '@/types'
 
 // 会议列表 Hook
 export function useMeetings() {

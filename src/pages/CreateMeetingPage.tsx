@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Plus, X, Upload, Calendar, Clock, Users, FileText } from 'lucide-react'
+import { ArrowLeft, Plus, X, Upload, Users, FileText } from 'lucide-react'
 import { 
   Button, 
   Input, 
@@ -244,35 +244,36 @@ const CreateMeetingPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* 面包屑 */}
-      <div className="bg-white border-b px-6 py-4">
-        <div className="flex items-center text-sm text-gray-500">
-          <button 
-            className="hover:text-gray-700"
-            onClick={() => navigate('/')}
-          >
-            首页
-          </button>
-          <span className="mx-2">/</span>
-          <button 
-            className="hover:text-gray-700"
-            onClick={() => navigate('/meetings')}
-          >
-            会议管理
-          </button>
-          <span className="mx-2">/</span>
-          <span className="text-gray-900">新建会议</span>
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-gray-50">
       {/* 页面标题 */}
       <div className="bg-white px-6 py-6 border-b">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={handleCancel}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-2xl font-bold">新建会议</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={handleCancel}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-2xl font-bold">新建会议</h1>
+          </div>
+          
+          {/* 操作按钮 */}
+          <div className="flex items-center gap-4">
+            <Button variant="outline" onClick={handleCancel}>
+              取消
+            </Button>
+            <Button 
+              variant="secondary" 
+              onClick={() => handleSubmit(true)}
+              loading={loading}
+            >
+              保存草稿
+            </Button>
+            <Button 
+              onClick={() => handleSubmit(false)}
+              loading={loading}
+            >
+              创建会议
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -387,6 +388,47 @@ const CreateMeetingPage: React.FC = () => {
                   </p>
                 </div>
 
+                {/* 参会人员 - 仅标准会议显示，移到会议类型下面 */}
+                {formData.type === 'standard' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      参会人员 <span className="text-red-500">*</span>
+                    </label>
+                    <div className="space-y-3">
+                      {/* 已添加的人员 */}
+                      <div className="flex flex-wrap gap-2">
+                        {formData.participants.map((participant) => (
+                          <span
+                            key={participant.id}
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                          >
+                            {participant.name}
+                            <button
+                              onClick={() => removeParticipant(participant.id)}
+                              className="hover:text-blue-600"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      
+                      {/* 添加人员输入框 */}
+                      <div className="flex gap-2">
+                        <Input
+                          value={participantInput}
+                          onChange={(e) => setParticipantInput(e.target.value)}
+                          onKeyPress={handleParticipantKeyPress}
+                          placeholder="输入姓名添加参会人员"
+                        />
+                        <Button onClick={addParticipant} disabled={!participantInput.trim()}>
+                          添加
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* 会议介绍 */}
                 <div>
                   <label className="block text-sm font-medium mb-2">会议介绍</label>
@@ -427,53 +469,7 @@ const CreateMeetingPage: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* 与会人员 - 仅标准会议显示 */}
-            {formData.type === 'standard' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>与会人员</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      参会人员 <span className="text-red-500">*</span>
-                    </label>
-                    <div className="space-y-3">
-                      {/* 已添加的人员 */}
-                      <div className="flex flex-wrap gap-2">
-                        {formData.participants.map((participant) => (
-                          <span
-                            key={participant.id}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                          >
-                            {participant.name}
-                            <button
-                              onClick={() => removeParticipant(participant.id)}
-                              className="hover:text-blue-600"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                      
-                      {/* 添加人员输入框 */}
-                      <div className="flex gap-2">
-                        <Input
-                          value={participantInput}
-                          onChange={(e) => setParticipantInput(e.target.value)}
-                          onKeyPress={handleParticipantKeyPress}
-                          placeholder="输入姓名添加参会人员"
-                        />
-                        <Button onClick={addParticipant} disabled={!participantInput.trim()}>
-                          添加
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+
           </div>
 
           {/* 右侧：会议议题 */}
@@ -582,27 +578,7 @@ const CreateMeetingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 底部操作栏 */}
-      <div className="bg-white border-t p-4 mt-8">
-        <div className="max-w-7xl mx-auto flex justify-center gap-4">
-          <Button variant="outline" onClick={handleCancel}>
-            取消
-          </Button>
-          <Button 
-            variant="secondary" 
-            onClick={() => handleSubmit(true)}
-            loading={loading}
-          >
-            保存草稿
-          </Button>
-          <Button 
-            onClick={() => handleSubmit(false)}
-            loading={loading}
-          >
-            创建会议
-          </Button>
-        </div>
-      </div>
+
 
       {/* 会议密码弹窗 */}
       {showPasswordModal && (
