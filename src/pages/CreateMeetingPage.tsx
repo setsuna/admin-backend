@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Plus, X, Upload, Users, FileText } from 'lucide-react'
 import { 
@@ -60,6 +60,100 @@ const CreateMeetingPage: React.FC = () => {
   const [participantInput, setParticipantInput] = useState('')
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [showExpiryModal, setShowExpiryModal] = useState(false)
+  const [leftWidth, setLeftWidth] = useState(50) // 左侧宽度百分比
+  const [isDragging, setIsDragging] = useState(false)
+  const [showOrgModal, setShowOrgModal] = useState(false)
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true)
+    e.preventDefault()
+  }
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging) {
+      const container = document.querySelector('.resizable-container') as HTMLElement
+      if (container) {
+        const rect = container.getBoundingClientRect()
+        const newLeftWidth = ((e.clientX - rect.left) / rect.width) * 100
+        if (newLeftWidth > 20 && newLeftWidth < 80) { // 限制最小最大宽度
+          setLeftWidth(newLeftWidth)
+        }
+      }
+    }
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [isDragging])
+
+  // 模拟组织架构数据
+  const mockOrgData = [
+    {
+      id: '1',
+      name: '研发部',
+      type: 'department',
+      children: [
+        { id: '1-1', name: '前端组', type: 'group', children: [
+          { id: '1-1-1', name: '张三', type: 'user' },
+          { id: '1-1-2', name: '李四', type: 'user' }
+        ]},
+        { id: '1-2', name: '后端组', type: 'group', children: [
+          { id: '1-2-1', name: '王五', type: 'user' },
+          { id: '1-2-2', name: '赵六', type: 'user' }
+        ]}
+      ]
+    },
+    {
+      id: '2',
+      name: '产品部',
+      type: 'department',
+      children: [
+        { id: '2-1', name: '产品经理', type: 'user' },
+        { id: '2-2', name: '设计师', type: 'user' }
+      ]
+    }
+  ]
+
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
+  const [expandedNodes, setExpandedNodes] = useState<string[]>(['1', '2'])
+
+  const handleOrgNodeToggle = (nodeId: string) => {
+    setExpandedNodes(prev => 
+      prev.includes(nodeId) 
+        ? prev.filter(id => id !== nodeId)
+        : [...prev, nodeId]
+    )
+  }
+
+  const handleUserSelect = (userId: string, userName: string) => {
+    if (!selectedUsers.includes(userId)) {
+      setSelectedUsers(prev => [...prev, userId])
+      const newParticipant: MeetingParticipant = {
+        id: userId,
+        name: userName
+      }
+      setFormData(prev => ({
+        ...prev,
+        participants: [...prev.participants, newParticipant]
+      }))
+    }
+  }
+
+  const confirmOrgSelection = () => {
+    setShowOrgModal(false)
+    setSelectedUsers([])
+  }
 
   const handleInputChange = (field: keyof MeetingFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -277,11 +371,11 @@ const CreateMeetingPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        {/* 左右布局 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="max-w-full mx-auto px-6 py-6">
+        {/* 可调整大小的左右布局 */}
+        <div className="resizable-container flex relative" style={{ height: 'calc(100vh - 200px)' }}>
           {/* 左侧：基本信息 */}
-          <div className="space-y-6">
+          <div className="space-y-6 overflow-y-auto pr-3" style={{ width: `${leftWidth}%` }}>
             {/* 基本信息 */}
             <Card>
               <CardHeader>
@@ -305,12 +399,12 @@ const CreateMeetingPage: React.FC = () => {
                   <label className="block text-sm font-medium mb-2">
                     会议密级 <span className="text-red-500">*</span>
                   </label>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2">
                     {(Object.entries(securityLevelConfig) as [MeetingSecurityLevel, typeof securityLevelConfig.internal][]).map(([level, config]) => (
                       <button
                         key={level}
                         onClick={() => handleSecurityLevelChange(level)}
-                        className={`px-4 py-2 rounded-md text-white transition-colors ${config.color} ${
+                        className={`px-3 py-1.5 text-sm rounded-md text-white transition-colors ${config.color} ${
                           formData.securityLevel === level ? 'ring-2 ring-offset-2 ring-gray-400' : ''
                         }`}
                       >
@@ -361,20 +455,20 @@ const CreateMeetingPage: React.FC = () => {
                   <label className="block text-sm font-medium mb-2">
                     会议类型 <span className="text-red-500">*</span>
                   </label>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2">
                     {(Object.entries(typeConfig) as [MeetingType, typeof typeConfig.standard][]).map(([type, config]) => {
                       const IconComponent = config.icon
                       return (
                         <button
                           key={type}
                           onClick={() => handleTypeChange(type)}
-                          className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-colors ${
+                          className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg border transition-colors ${
                             formData.type === type
                               ? 'border-blue-500 bg-blue-50 text-blue-700'
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
                         >
-                          <IconComponent className="h-5 w-5" />
+                          <IconComponent className="h-4 w-4" />
                           {config.label}
                         </button>
                       )
@@ -413,17 +507,12 @@ const CreateMeetingPage: React.FC = () => {
                         ))}
                       </div>
                       
-                      {/* 添加人员输入框 */}
-                      <div className="flex gap-2">
-                        <Input
-                          value={participantInput}
-                          onChange={(e) => setParticipantInput(e.target.value)}
-                          onKeyPress={handleParticipantKeyPress}
-                          placeholder="输入姓名添加参会人员"
-                        />
-                        <Button onClick={addParticipant} disabled={!participantInput.trim()}>
-                          添加
-                        </Button>
+                      {/* 添加人员输入框 - 点击弹出组织架构 */}
+                      <div 
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer hover:border-gray-400 transition-colors bg-white"
+                        onClick={() => setShowOrgModal(true)}
+                      >
+                        <span className="text-gray-500">点击选择参会人员...</span>
                       </div>
                     </div>
                   </div>
@@ -468,12 +557,22 @@ const CreateMeetingPage: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+          </div>
 
-
+          {/* 分割器 */}
+          <div 
+            className={`w-1 bg-gray-200 hover:bg-gray-300 cursor-col-resize flex-shrink-0 ${
+              isDragging ? 'bg-blue-400' : ''
+            }`}
+            onMouseDown={handleMouseDown}
+          >
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="w-0.5 h-8 bg-gray-400 rounded"></div>
+            </div>
           </div>
 
           {/* 右侧：会议议题 */}
-          <div>
+          <div className="overflow-y-auto pl-3" style={{ width: `${100 - leftWidth}%` }}>
             <Card className="h-fit">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -580,7 +679,92 @@ const CreateMeetingPage: React.FC = () => {
 
 
 
-      {/* 会议密码弹窗 */}
+      {/* 组织架构选择弹窗 */}
+      {showOrgModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-96 max-h-96 flex flex-col">
+            <div className="p-4 border-b">
+              <h3 className="text-lg font-semibold">选择参会人员</h3>
+            </div>
+            
+            <div className="flex-1 p-4 overflow-y-auto">
+              {mockOrgData.map(dept => (
+                <div key={dept.id} className="mb-2">
+                  <div 
+                    className="flex items-center gap-2 p-2 hover:bg-gray-50 cursor-pointer rounded"
+                    onClick={() => handleOrgNodeToggle(dept.id)}
+                  >
+                    <span className="text-lg">
+                      {expandedNodes.includes(dept.id) ? '▼' : '▶'}
+                    </span>
+                    <span className="font-medium">{dept.name}</span>
+                  </div>
+                  
+                  {expandedNodes.includes(dept.id) && dept.children && (
+                    <div className="ml-6">
+                      {dept.children.map((item: any) => (
+                        <div key={item.id} className="mb-1">
+                          {item.type === 'group' ? (
+                            <div>
+                              <div 
+                                className="flex items-center gap-2 p-1 hover:bg-gray-50 cursor-pointer rounded"
+                                onClick={() => handleOrgNodeToggle(item.id)}
+                              >
+                                <span className="text-sm">
+                                  {expandedNodes.includes(item.id) ? '▼' : '▶'}
+                                </span>
+                                <span className="text-sm">{item.name}</span>
+                              </div>
+                              
+                              {expandedNodes.includes(item.id) && item.children && (
+                                <div className="ml-4">
+                                  {item.children.map((user: any) => (
+                                    <div 
+                                      key={user.id}
+                                      className="flex items-center gap-2 p-1 hover:bg-blue-50 cursor-pointer rounded"
+                                      onClick={() => handleUserSelect(user.id, user.name)}
+                                    >
+                                      <span className="text-blue-600">👤</span>
+                                      <span className="text-sm">{user.name}</span>
+                                      {formData.participants.some(p => p.id === user.id) && (
+                                        <span className="text-xs text-green-600">✓ 已选择</span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div 
+                              className="flex items-center gap-2 p-1 hover:bg-blue-50 cursor-pointer rounded"
+                              onClick={() => handleUserSelect(item.id, item.name)}
+                            >
+                              <span className="text-blue-600">👤</span>
+                              <span className="text-sm">{item.name}</span>
+                              {formData.participants.some(p => p.id === item.id) && (
+                                <span className="text-xs text-green-600">✓ 已选择</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            <div className="p-4 border-t flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowOrgModal(false)}>
+                取消
+              </Button>
+              <Button onClick={confirmOrgSelection}>
+                确定
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       {showPasswordModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96">

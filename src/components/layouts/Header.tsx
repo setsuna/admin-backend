@@ -1,4 +1,5 @@
 import { Bell, LogOut } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import { cn } from '@/utils'
 import { useGlobalStore } from '@/store'
 import { Button } from '@/components/ui'
@@ -10,11 +11,43 @@ interface HeaderProps {
 
 export function Header({ className }: HeaderProps) {
   const { user, setUser } = useGlobalStore()
+  const location = useLocation()
   
   const handleLogout = () => {
     localStorage.removeItem('token')
     setUser(null)
     window.location.href = '/login'
+  }
+  
+  // 根据路径获取面包屑导航
+  const getBreadcrumb = () => {
+    const path = location.pathname
+    const pathMap: Record<string, { module: string; parent?: string; page: string }> = {
+      '/': { module: '工作台', page: '仪表板' },
+      '/meetings': { module: '会议管理', page: '会议列表' },
+      '/meetings/create': { module: '会议管理', parent: '会议列表', page: '新建会议' },
+      '/my-meetings': { module: '会议管理', page: '我的会议' },
+      '/sync-status': { module: '同步管理', page: '同步状态' },
+      '/participants': { module: '人员管理', page: '参会人员' },
+      '/role-permissions': { module: '权限管理', page: '角色权限' },
+      '/security-levels': { module: '权限管理', page: '人员密级' },
+      '/departments': { module: '组织管理', page: '部门管理' },
+      '/staff': { module: '组织管理', page: '人员管理' },
+      '/data-dictionary': { module: '系统配置', page: '数据字典' },
+      '/basic-config': { module: '系统配置', page: '基础配置' },
+      '/system-logs': { module: '系统监控', page: '系统日志' },
+      '/admin-logs': { module: '系统监控', page: '操作日志（系统员）' },
+      '/audit-logs': { module: '系统监控', page: '操作日志（审计员）' },
+      '/anomaly-alerts': { module: '系统监控', page: '异常行为告警' },
+    }
+    
+    // 处理动态路由（如编辑页面）
+    if (path.startsWith('/meetings/') && path !== '/meetings/create') {
+      // 会议编辑页面：/meetings/:id
+      return { module: '会议管理', parent: '会议列表', page: '编辑会议' }
+    }
+    
+    return pathMap[path] || { module: '工作台', page: '仪表板' }
   }
   
   return (
@@ -25,9 +58,15 @@ export function Header({ className }: HeaderProps) {
       {/* 面包屑导航 */}
       <div className="flex items-center gap-2">
         <nav className="flex items-center space-x-1 text-sm text-muted-foreground">
-          <span>管理后台</span>
+          <span>{getBreadcrumb().module}</span>
           <span>/</span>
-          <span className="text-foreground">仪表板</span>
+          {getBreadcrumb().parent && (
+            <>
+              <span>{getBreadcrumb().parent}</span>
+              <span>/</span>
+            </>
+          )}
+          <span className="text-foreground">{getBreadcrumb().page}</span>
         </nav>
       </div>
       
