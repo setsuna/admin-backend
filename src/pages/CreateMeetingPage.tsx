@@ -205,21 +205,19 @@ const CreateMeetingPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-full mx-auto p-6">
+    <div className="p-2">
         {/* 使用 Allotment 创建可调节的左右布局 */}
         <Allotment 
           defaultSizes={[45, 55]} 
-          className="h-[calc(100vh-220px)]"
+          className="h-[calc(100vh-120px)]"
           separator={true}
         >
           {/* 左侧：基本信息 */}
-          <Allotment.Pane minSize={350} maxSize={600} className="bg-white rounded-lg border overflow-hidden">
-            <div className="p-4 border-b bg-gray-50">
+          <Allotment.Pane minSize={350} maxSize={600} className="bg-white rounded-lg border flex flex-col">
+            <div className="p-4 border-b bg-gray-50 flex-shrink-0">
               <h2 className="text-lg font-semibold text-gray-900">基本信息</h2>
-              <p className="text-sm text-gray-600">设置会议的基本配置信息</p>
             </div>
-            <div className="flex-1 p-6 overflow-y-auto">
+            <div className="flex-1 p-4 overflow-y-auto">
               <BasicInfoForm
                 formData={formData}
                 onFormDataChange={handleFormDataChange}
@@ -230,12 +228,11 @@ const CreateMeetingPage: React.FC = () => {
           </Allotment.Pane>
 
           {/* 右侧：会议议题 */}
-          <Allotment.Pane minSize={400} className="bg-white rounded-lg border overflow-hidden">
-            <div className="p-4 border-b bg-gray-50">
+          <Allotment.Pane minSize={400} className="bg-white rounded-lg border flex flex-col">
+            <div className="p-4 border-b bg-gray-50 flex-shrink-0">
               <h2 className="text-lg font-semibold text-gray-900">会议议题</h2>
-              <p className="text-sm text-gray-600">添加议题和相关材料</p>
             </div>
-            <div className="flex-1 p-6 overflow-y-auto">
+            <div className="flex-1 p-4 overflow-y-auto">
               <AgendaForm
                 agendas={formData.agendas}
                 onAddAgenda={addAgenda}
@@ -248,7 +245,7 @@ const CreateMeetingPage: React.FC = () => {
             </div>
             
             {/* 操作按钮 - 固定在底部 */}
-            <div className="p-6 border-t bg-gray-50">
+            <div className="p-4 border-t bg-gray-50 flex-shrink-0">
               <div className="flex justify-end gap-3">
                 <Button variant="outline" onClick={handleCancel}>
                   取消
@@ -270,7 +267,6 @@ const CreateMeetingPage: React.FC = () => {
             </div>
           </Allotment.Pane>
         </Allotment>
-      </div>
 
       {/* 组织架构选择弹窗 */}
       <OrganizationSelector
