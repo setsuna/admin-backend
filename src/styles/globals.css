@@ -1,3 +1,6 @@
+/* Allotment - 可调节面板组件样式 */
+@import 'allotment/dist/style.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -119,6 +122,24 @@
 }
 
 @layer components {
+  /* Allotment 自定义样式 */
+  .allotment {
+    @apply h-full;
+  }
+  
+  .allotment > .allotment-separator {
+    @apply bg-border hover:bg-muted-foreground/20 transition-colors;
+  }
+  
+  .allotment > .allotment-separator:hover {
+    @apply bg-primary/20;
+  }
+  
+  /* 分割线样式优化 */
+  .allotment > .allotment-separator::before {
+    @apply bg-primary/30;
+  }
+  
   /* 状态指示器 */
   .status-online {
     @apply inline-flex h-2 w-2 rounded-full bg-green-500;

@@ -123,7 +123,7 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
         </div>
 
         {/* 显示被拒绝的文件 */}
-        {rejectedFiles.length > 0 && (
+        {rejectedFiles && rejectedFiles.length > 0 && (
           <div className="mt-2 p-2 bg-red-50 rounded text-sm text-red-600">
             {rejectedFiles.map(({ file, errors }) => (
               <div key={file.name}>

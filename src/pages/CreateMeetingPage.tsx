@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components'
 import { Allotment } from "allotment"
-import "allotment/dist/style.css"
 import { meetingApi } from '@/services/meeting'
 import type { 
   MeetingSecurityLevel, 
@@ -208,12 +207,6 @@ const CreateMeetingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-full mx-auto p-6">
-        {/* 页面标题 */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">创建会议</h1>
-          <p className="text-gray-600">填写会议基本信息和议题安排</p>
-        </div>
-
         {/* 使用 Allotment 创建可调节的左右布局 */}
         <Allotment 
           defaultSizes={[45, 55]} 
