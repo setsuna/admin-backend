@@ -3,8 +3,6 @@ import { Plus, Search, Filter, Shield } from 'lucide-react'
 import { 
   Button, 
   Input, 
-  Card,
-  CardContent,
   DataTable 
 } from '@/components'
 import { meetingApi } from '@/services/meeting'
@@ -206,68 +204,53 @@ const MyMeetingPage: React.FC = () => {
   ]
 
   return (
-    <div className="space-y-6">
-      {/* 页面标题 */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">我参与的会议</h1>
-          <p className="text-muted-foreground">
-            查看我参与的所有会议
-          </p>
+    <div className="space-y-4">
+      {/* 工具栏 */}
+      <div className="flex items-center gap-4 p-4">
+        <div className="flex-1 max-w-sm">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="搜索会议名称..."
+              onChange={(e) => handleSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          新建会议
-        </Button>
+        
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <select
+            value={statusFilter}
+            onChange={(e) => handleStatusFilter(e.target.value)}
+            className="rounded-md border bg-background px-3 py-2 text-sm"
+          >
+            <option value="">状态筛选</option>
+            <option value="preparation">准备</option>
+            <option value="distributable">可下发</option>
+            <option value="closed">关闭</option>
+          </select>
+        </div>
       </div>
 
-      {/* 工具栏 */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="flex-1 max-w-sm">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="搜索会议名称..."
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <select
-                value={statusFilter}
-                onChange={(e) => handleStatusFilter(e.target.value)}
-                className="rounded-md border bg-background px-3 py-2 text-sm"
-              >
-                <option value="">状态筛选</option>
-                <option value="preparation">准备</option>
-                <option value="distributable">可下发</option>
-                <option value="closed">关闭</option>
-              </select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* 会议列表 */}
-      <DataTable
-        data={meetings}
-        columns={columns}
-        loading={loading}
-        pagination={pagination}
-        onPaginationChange={(paginationParams) => {
-          setPagination(prev => ({
-            ...prev,
-            page: paginationParams.page,
-            pageSize: paginationParams.pageSize
-          }))
-        }}
-        bordered={true}
-      />
+      <div className="px-4">
+        <DataTable
+          data={meetings}
+          columns={columns}
+          loading={loading}
+          pagination={pagination}
+          onPaginationChange={(paginationParams) => {
+            setPagination(prev => ({
+              ...prev,
+              page: paginationParams.page,
+              pageSize: paginationParams.pageSize
+            }))
+          }}
+          bordered={true}
+          compact={true}
+        />
+      </div>
     </div>
   )
 }

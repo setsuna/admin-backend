@@ -20,8 +20,9 @@ export function DataTable<T = any>({
   onPaginationChange,
   rowKey = 'id' as keyof T,
   className,
-  bordered = false
-}: TableProps<T> & { bordered?: boolean }) {
+  bordered = false,
+  compact = false
+}: TableProps<T> & { bordered?: boolean; compact?: boolean }) {
   const getRowKey = (record: T, index: number): string => {
     if (typeof rowKey === 'function') {
       return rowKey(record)
@@ -97,13 +98,14 @@ export function DataTable<T = any>({
               </TableRow>
             ) : (
               data.map((record, index) => (
-                <TableRow key={getRowKey(record, index)}>
+                <TableRow key={getRowKey(record, index)} className={cn(compact && 'h-12')}>
                   {columns.map((column) => (
                     <TableCell 
                       key={column.key.toString()}
                       className={cn(
                         column.align === 'center' && 'text-center',
-                        column.align === 'right' && 'text-right'
+                        column.align === 'right' && 'text-right',
+                        compact && 'py-2'
                       )}
                     >
                       {renderCell(column, record, index)}

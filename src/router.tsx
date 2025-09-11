@@ -71,9 +71,7 @@ export const router = createBrowserRouter([
         path: 'my-meetings',
         element: (
           <PermissionGuard permissions={['meeting:view']}>
-            <div className="p-6">
-              <MyMeetingPage />
-            </div>
+            <MyMeetingPage />
           </PermissionGuard>
         ),
       },
