@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components'
 import { Allotment } from "allotment"
+import { Plus } from 'lucide-react'
 import { meetingApi } from '@/services/meeting'
 import type { 
   MeetingSecurityLevel, 
@@ -327,13 +328,16 @@ const CreateMeetingPage: React.FC = () => {
         {/* 使用 Allotment 创建可调节的左右布局 */}
         <Allotment 
           defaultSizes={[45, 55]} 
-          className="h-[calc(100vh-120px)]"
+          className="h-[calc(100vh-200px)]"
           separator={true}
         >
           {/* 左侧：基本信息 */}
           <Allotment.Pane minSize={350} maxSize={600} className="bg-white rounded-lg border flex flex-col">
-            <div className="p-4 border-b bg-gray-50 flex-shrink-0">
-              <h2 className="text-lg font-semibold text-gray-900">基本信息</h2>
+            <div className="p-4 border-b bg-gray-50 flex-shrink-0 h-[72px]">
+              <div className="flex items-center justify-between h-full">
+                <h2 className="text-lg font-semibold text-gray-900">基本信息</h2>
+                <div></div>
+              </div>
             </div>
             <div className="flex-1 p-4 overflow-y-auto">
               <BasicInfoForm
@@ -347,13 +351,18 @@ const CreateMeetingPage: React.FC = () => {
 
           {/* 右侧：会议议题 */}
           <Allotment.Pane minSize={400} className="bg-white rounded-lg border flex flex-col">
-            <div className="p-4 border-b bg-gray-50 flex-shrink-0">
-              <h2 className="text-lg font-semibold text-gray-900">会议议题</h2>
+            <div className="p-4 border-b bg-gray-50 flex-shrink-0 h-[72px]">
+              <div className="flex items-center justify-between h-full">
+                <h2 className="text-lg font-semibold text-gray-900">会议议题</h2>
+                <Button variant="outline" size="sm" onClick={addAgenda}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  添加议题
+                </Button>
+              </div>
             </div>
             <div className="flex-1 p-4 overflow-y-auto">
               <AgendaForm
                 agendas={formData.agendas}
-                onAddAgenda={addAgenda}
                 onRemoveAgenda={removeAgenda}
                 onUpdateAgendaName={updateAgendaName}
                 onFileUpload={handleFileUpload}
@@ -361,30 +370,30 @@ const CreateMeetingPage: React.FC = () => {
                 onUpdateMaterialSecurity={updateMaterialSecurity}
               />
             </div>
-            
-            {/* 操作按钮 - 固定在底部 */}
-            <div className="p-4 border-t bg-gray-50 flex-shrink-0">
-              <div className="flex justify-end gap-3">
-                <Button variant="outline" onClick={handleCancel}>
-                  取消
-                </Button>
-                <Button 
-                  variant="secondary" 
-                  onClick={() => handleSubmit(true)}
-                  loading={loading}
-                >
-                  保存草稿
-                </Button>
-                <Button 
-                  onClick={() => handleSubmit(false)}
-                  loading={loading}
-                >
-                  创建会议
-                </Button>
-              </div>
-            </div>
           </Allotment.Pane>
         </Allotment>
+
+        {/* 操作按钮 - 固定在底部 */}
+        <div className="mt-4 p-4 bg-white rounded-lg border">
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={handleCancel}>
+              取消
+            </Button>
+            <Button 
+              variant="secondary" 
+              onClick={() => handleSubmit(true)}
+              loading={loading}
+            >
+              保存草稿
+            </Button>
+            <Button 
+              onClick={() => handleSubmit(false)}
+              loading={loading}
+            >
+              创建会议
+            </Button>
+          </div>
+        </div>
 
       {/* 组织架构选择弹窗 */}
       <OrganizationSelector

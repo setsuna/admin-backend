@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react'
 import { Input, Button } from '@/components'
-import { Plus, X, FileText, File, Image } from 'lucide-react'
+import { X, FileText, File, Image } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import type { MeetingAgenda, MeetingMaterial, MeetingSecurityLevel } from '@/types'
 
@@ -12,7 +12,6 @@ const securityLevelOptions = [
 
 interface AgendaFormProps {
   agendas: MeetingAgenda[]
-  onAddAgenda: () => void
   onRemoveAgenda: (agendaId: string) => void
   onUpdateAgendaName: (agendaId: string, name: string) => void
   onFileUpload: (agendaId: string, files: File[]) => void
@@ -22,7 +21,6 @@ interface AgendaFormProps {
 
 const AgendaForm: React.FC<AgendaFormProps> = ({
   agendas,
-  onAddAgenda,
   onRemoveAgenda,
   onUpdateAgendaName,
   onFileUpload,
@@ -138,14 +136,6 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">会议议题</h3>
-        <Button variant="outline" size="sm" onClick={onAddAgenda}>
-          <Plus className="h-4 w-4 mr-2" />
-          添加议题
-        </Button>
-      </div>
-
       {agendas.map((agenda, index) => (
         <div key={agenda.id} className="border rounded-lg p-4 space-y-4">
           <div className="flex items-center gap-3">
