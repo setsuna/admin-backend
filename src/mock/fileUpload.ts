@@ -112,7 +112,7 @@ export const mockUpdateAgendaOrder = async (
 }
 
 // 获取文件信息（用于恢复上传状态）
-export const mockGetFileInfo = async (fileId: string): Promise<MockUploadedFile | null> => {
+export const mockGetFileInfo = async (_fileId: string): Promise<MockUploadedFile | null> => {
   await simulateDelay(200)
   
   // 这里实际应用中会从服务器获取文件信息

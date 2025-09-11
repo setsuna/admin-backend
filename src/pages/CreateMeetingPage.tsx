@@ -5,6 +5,8 @@ import { Allotment } from "allotment"
 import { Plus } from 'lucide-react'
 import { meetingApi } from '@/services/meeting'
 import { getFormattedExtensions } from '@/mock/fileFormats'
+import { useDialog, useNotifications } from '@/hooks'
+import { DialogComponents } from '@/components/ui/DialogComponents'
 import type { 
   MeetingSecurityLevel, 
   MeetingType, 
@@ -41,6 +43,9 @@ interface MeetingFormData {
 
 const CreateMeetingPage: React.FC = () => {
   const navigate = useNavigate()
+  const dialog = useDialog()
+  const { alert, confirm } = dialog
+  const { addNotification } = useNotifications()
   const [loading, setLoading] = useState(false)
   const [showOrgModal, setShowOrgModal] = useState(false)
   const [draftMeetingId, setDraftMeetingId] = useState<string | null>(null)
@@ -86,7 +91,11 @@ const CreateMeetingPage: React.FC = () => {
       console.log('草稿会议创建成功:', draftMeeting.id)
     } catch (error) {
       console.error('创建草稿会议失败:', error)
-      alert('初始化失败，请刷新页面重试')
+      await alert({
+        type: 'error',
+        title: '初始化失败',
+        message: '请刷新页面重试'
+      })
     } finally {
       setIsInitialized(true)
     }
@@ -178,9 +187,18 @@ const CreateMeetingPage: React.FC = () => {
       }))
       
       console.log(`成功上传 ${newMaterials.length} 个文件`)
+      addNotification({
+        type: 'success',
+        title: '上传成功',
+        message: `成功上传 ${newMaterials.length} 个文件`
+      })
     } catch (error) {
       console.error('文件上传失败:', error)
-      alert('文件上传失败，请重试')
+      addNotification({
+        type: 'error',
+        title: '上传失败',
+        message: '文件上传失败，请重试'
+      })
     }
   }
 
@@ -205,7 +223,11 @@ const CreateMeetingPage: React.FC = () => {
       console.log(`删除文件: ${materialId}`)
     } catch (error) {
       console.error('删除文件失败:', error)
-      alert('删除文件失败，请重试')
+      addNotification({
+        type: 'error',
+        title: '删除失败',
+        message: '删除文件失败，请重试'
+      })
     }
   }
 
@@ -275,17 +297,29 @@ const CreateMeetingPage: React.FC = () => {
   }
 
   // 表单验证
-  const validateForm = (): boolean => {
+  const validateForm = async (): Promise<boolean> => {
     if (!formData.name.trim()) {
-      alert('请输入会议名称')
+      await alert({
+        type: 'warning',
+        title: '请填写会议名称',
+        message: '会议名称不能为空'
+      })
       return false
     }
     if (formData.type === 'standard' && formData.participants.length === 0) {
-      alert('标准会议需要添加参会人员')
+      await alert({
+        type: 'warning',
+        title: '请添加参会人员',
+        message: '标准会议需要添加参会人员'
+      })
       return false
     }
     if (new Date(formData.startTime) >= new Date(formData.endTime)) {
-      alert('结束时间必须晚于开始时间')
+      await alert({
+        type: 'warning',
+        title: '时间设置有误',
+        message: '结束时间必须晚于开始时间'
+      })
       return false
     }
     return true
@@ -294,7 +328,11 @@ const CreateMeetingPage: React.FC = () => {
   // 保存草稿
   const handleSaveDraft = async () => {
     if (!draftMeetingId) {
-      alert('草稿会议未初始化')
+      await alert({
+        type: 'error',
+        title: '保存失败',
+        message: '草稿会议未初始化'
+      })
       return
     }
 
@@ -308,11 +346,19 @@ const CreateMeetingPage: React.FC = () => {
       }
 
       await meetingApi.saveDraftMeeting(draftMeetingId, draftData)
-      alert('草稿已保存')
+      addNotification({
+        type: 'success',
+        title: '保存成功',
+        message: '草稿已保存'
+      })
       console.log('草稿保存成功')
     } catch (error) {
       console.error('保存草稿失败:', error)
-      alert('保存失败，请重试')
+      addNotification({
+        type: 'error',
+        title: '保存失败',
+        message: '保存失败，请重试'
+      })
     } finally {
       setLoading(false)
     }
@@ -325,7 +371,7 @@ const CreateMeetingPage: React.FC = () => {
       return
     }
 
-    if (!validateForm() || !draftMeetingId) return
+    if (!(await validateForm()) || !draftMeetingId) return
 
     try {
       setLoading(true)
@@ -343,19 +389,35 @@ const CreateMeetingPage: React.FC = () => {
       }
 
       const meeting = await meetingApi.submitDraftMeeting(draftMeetingId, meetingRequest)
-      alert('会议创建成功')
+      addNotification({
+        type: 'success',
+        title: '创建成功',
+        message: '会议创建成功'
+      })
       console.log('会议创建成功:', meeting)
       navigate('/meetings')
     } catch (error) {
       console.error('提交失败:', error)
-      alert('提交失败，请重试')
+      addNotification({
+        type: 'error',
+        title: '提交失败',
+        message: '提交失败，请重试'
+      })
     } finally {
       setLoading(false)
     }
   }
 
-  const handleCancel = () => {
-    if (window.confirm('确定要取消吗？未保存的内容将丢失。')) {
+  const handleCancel = async () => {
+    const confirmed = await confirm({
+      title: '确定要取消吗？',
+      message: '未保存的内容将丢失。',
+      type: 'warning',
+      confirmText: '确定取消',
+      cancelText: '继续编辑'
+    })
+    
+    if (confirmed) {
       // 清理草稿数据（可选）
       if (draftMeetingId) {
         // 这里可以调用删除草稿的API
@@ -465,6 +527,9 @@ const CreateMeetingPage: React.FC = () => {
         selectedParticipants={formData.participants}
         onParticipantsChange={handleParticipantsChange}
       />
+      
+      {/* 对话框组件 */}
+      <DialogComponents dialog={dialog} />
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import type { Meeting, MeetingFilters, PaginatedResponse, CreateMeetingRequest, MeetingAgenda, MeetingMaterial } from '@/types'
+import type { Meeting, MeetingFilters, PaginatedResponse, CreateMeetingRequest, MeetingAgenda } from '@/types'
 
 // 草稿会议接口
 interface DraftMeeting {
@@ -187,7 +187,7 @@ export const meetingApi = {
   },
 
   // 上传文件到会议
-  async uploadMeetingFile(meetingId: string, file: File, agendaId?: string): Promise<FileUploadResponse> {
+  async uploadMeetingFile(meetingId: string, file: File, _agendaId?: string): Promise<FileUploadResponse> {
     await delay(1000) // 模拟文件上传时间
     
     const fileResponse: FileUploadResponse = {

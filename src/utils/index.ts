@@ -77,3 +77,6 @@ export function downloadFile(data: string, filename: string, type: string = 'tex
   document.body.removeChild(link)
   URL.revokeObjectURL(url)
 }
+
+// 导出对话框工具类
+export { Dialog, alert, confirm } from './dialog'

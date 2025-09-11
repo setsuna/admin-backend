@@ -6,3 +6,6 @@ export { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableC
 export { StatusIndicator } from './StatusIndicator'
 export { Loading, LoadingScreen } from './Loading'
 export { NotificationContainer } from './Notification'
+export { Modal, AlertModal, ConfirmModal } from './Modal'
+export { DialogProvider, useGlobalDialog, showAlert, showConfirm } from './DialogProvider'
+export { DialogComponents } from './DialogComponents'

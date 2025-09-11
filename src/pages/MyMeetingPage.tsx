@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, Search, Filter, Shield } from 'lucide-react'
+import { Search, Filter, Shield } from 'lucide-react'
 import { 
   Button, 
   Input, 

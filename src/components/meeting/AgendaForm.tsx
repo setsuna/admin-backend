@@ -1,16 +1,9 @@
 import React, { useCallback, useState } from 'react'
-import { Input, Button } from '@/components'
-import { X, FileText, File, Image, Edit2, Trash2, MoreHorizontal, Upload } from 'lucide-react'
+import { FileText, File, Image, Upload } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { getDropzoneAccept, isFileSupported } from '@/mock/fileFormats'
 import SortableAgendaList from './SortableAgendaList'
 import type { MeetingAgenda, MeetingMaterial, MeetingSecurityLevel } from '@/types'
-
-const securityLevelOptions = [
-  { value: 'internal', label: '内部' },
-  { value: 'confidential', label: '秘密' },
-  { value: 'secret', label: '机密' }
-]
 
 interface AgendaFormProps {
   agendas: MeetingAgenda[]
@@ -34,14 +27,7 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
   onReorderAgendas
 }) => {
   const [editingAgenda, setEditingAgenda] = useState<string | null>(null)
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes'
-    const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
-  }
-
+  
   const getFileIcon = (fileName: string) => {
     const ext = fileName.split('.').pop()?.toLowerCase()
     switch (ext) {
@@ -86,7 +72,7 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
       getInputProps,
       isDragActive,
       isDragReject,
-      rejectedFiles
+      fileRejections
     } = useDropzone({
       onDrop,
       accept: getDropzoneAccept(),
@@ -124,11 +110,11 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
         </div>
 
         {/* 显示被拒绝的文件 */}
-        {rejectedFiles && rejectedFiles.length > 0 && (
+        {fileRejections && fileRejections.length > 0 && (
           <div className="mt-2 p-2 bg-red-50 rounded text-sm text-red-600">
-            {rejectedFiles.map(({ file, errors }) => (
+            {fileRejections.map(({ file, errors }) => (
               <div key={file.name}>
-                {file.name} - {errors.map(e => e.message).join(', ')}
+                {file.name} - {errors.map((e: any) => e.message).join(', ')}
               </div>
             ))}
           </div>
@@ -146,7 +132,6 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
       onUpdateAgendaName={onUpdateAgendaName}
       onStartEditAgenda={setEditingAgenda}
       onStopEditAgenda={() => setEditingAgenda(null)}
-      onFileUpload={onFileUpload}
       onRemoveMaterial={onRemoveMaterial}
       onUpdateMaterialSecurity={onUpdateMaterialSecurity}
       onReorderMaterials={onReorderMaterials || (() => {})}

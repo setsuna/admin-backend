@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { GripVertical, X, Edit2, Trash2 } from 'lucide-react'
+import { GripVertical, Edit2, Trash2 } from 'lucide-react'
 import { Input, Button } from '@/components'
 import SimpleSortableMaterialList from './SimpleSortableMaterialList'
 import type { MeetingAgenda, MeetingMaterial, MeetingSecurityLevel } from '@/types'
@@ -15,7 +15,6 @@ interface SortableAgendaItemProps {
   onUpdateName: (id: string, name: string) => void
   onStartEdit: (id: string) => void
   onStopEdit: () => void
-  onFileUpload: (agendaId: string, files: File[]) => void
   onRemoveMaterial: (agendaId: string, materialId: string) => void
   onUpdateMaterialSecurity: (agendaId: string, materialId: string, securityLevel: MeetingSecurityLevel) => void
   onReorderMaterials: (agendaId: string, materials: MeetingMaterial[]) => void
@@ -37,7 +36,6 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
   onUpdateName,
   onStartEdit,
   onStopEdit,
-  onFileUpload,
   onRemoveMaterial,
   onUpdateMaterialSecurity,
   onReorderMaterials,
@@ -163,7 +161,6 @@ interface SortableAgendaListProps {
   onUpdateAgendaName: (agendaId: string, name: string) => void
   onStartEditAgenda: (agendaId: string) => void
   onStopEditAgenda: () => void
-  onFileUpload: (agendaId: string, files: File[]) => void
   onRemoveMaterial: (agendaId: string, materialId: string) => void
   onUpdateMaterialSecurity: (agendaId: string, materialId: string, securityLevel: MeetingSecurityLevel) => void
   onReorderMaterials: (agendaId: string, materials: MeetingMaterial[]) => void
@@ -179,7 +176,6 @@ const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
   onUpdateAgendaName,
   onStartEditAgenda,
   onStopEditAgenda,
-  onFileUpload,
   onRemoveMaterial,
   onUpdateMaterialSecurity,
   onReorderMaterials,
@@ -229,7 +225,6 @@ const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
           onUpdateName={onUpdateAgendaName}
           onStartEdit={onStartEditAgenda}
           onStopEdit={onStopEditAgenda}
-          onFileUpload={onFileUpload}
           onRemoveMaterial={onRemoveMaterial}
           onUpdateMaterialSecurity={onUpdateMaterialSecurity}
           onReorderMaterials={onReorderMaterials}
