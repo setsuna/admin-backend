@@ -42,21 +42,29 @@ const CreateMeetingPage: React.FC = () => {
   const [draftMeetingId, setDraftMeetingId] = useState<string | null>(null)
   const [isInitialized, setIsInitialized] = useState(false)
   
-  const [formData, setFormData] = useState<MeetingFormData>({
-    name: '',
-    securityLevel: 'internal',
-    category: '部门例会',
-    startTime: new Date().toISOString().slice(0, 16),
-    endTime: new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16),
-    type: 'standard',
-    description: '',
-    participants: [],
-    agendas: [{ id: '1', name: '', description: '', materials: [], order: 1 }],
-    password: '',
-    expiryType: 'none',
-    expiryDate: '',
-    signInType: 'none',
-    location: ''
+  const [formData, setFormData] = useState<MeetingFormData>(() => {
+    const now = new Date()
+    // 开始时间设为当前时间后1小时
+    const startTime = new Date(now.getTime() + 60 * 60 * 1000)
+    // 结束时间设为开始时间后1小时
+    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000)
+    
+    return {
+      name: '',
+      securityLevel: 'internal',
+      category: '部门例会',
+      startTime: startTime.toISOString().slice(0, 16),
+      endTime: endTime.toISOString().slice(0, 16),
+      type: 'standard',
+      description: '',
+      participants: [],
+      agendas: [{ id: '1', name: '', description: '', materials: [], order: 1 }],
+      password: '',
+      expiryType: 'none',
+      expiryDate: '',
+      signInType: 'none',
+      location: ''
+    }
   })
 
   // 初始化草稿会议

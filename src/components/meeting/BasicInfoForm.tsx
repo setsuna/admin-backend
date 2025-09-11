@@ -104,55 +104,60 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
       </div>
 
       {/* 会议时间 */}
-      <div className="space-y-3">
-        <div>
-        <label className="block text-sm font-medium mb-1">开始时间</label>
-          <div className="flex gap-2">
-            <Input
-              type="date"
-              value={formData.startTime.split('T')[0]}
-              onChange={(e) => {
-                const date = e.target.value
-                const time = formData.startTime.split('T')[1] || '09:00'
-                onFormDataChange('startTime', `${date}T${time}`)
-              }}
-              className="flex-1"
-            />
-            <Input
-              type="time"
-              value={formData.startTime.split('T')[1] || '09:00'}
-              onChange={(e) => {
-                const date = formData.startTime.split('T')[0]
-                const time = e.target.value
-                onFormDataChange('startTime', `${date}T${time}`)
-              }}
-              className="w-32"
-            />
+      <div>
+        <div className="grid grid-cols-2 gap-3">
+          {/* 开始时间 */}
+          <div>
+            <div className="text-xs text-gray-500 mb-1">开始时间</div>
+            <div className="flex gap-1">
+              <Input
+                type="date"
+                value={formData.startTime.split('T')[0]}
+                onChange={(e) => {
+                  const date = e.target.value
+                  const time = formData.startTime.split('T')[1] || '09:00'
+                  onFormDataChange('startTime', `${date}T${time}`)
+                }}
+                className="flex-1 text-xs"
+              />
+              <Input
+                type="time"
+                value={formData.startTime.split('T')[1] || '09:00'}
+                onChange={(e) => {
+                  const date = formData.startTime.split('T')[0]
+                  const time = e.target.value
+                  onFormDataChange('startTime', `${date}T${time}`)
+                }}
+                className="w-20 text-xs"
+              />
+            </div>
           </div>
-        </div>
-        <div>
-        <label className="block text-sm font-medium mb-1">结束时间</label>
-          <div className="flex gap-2">
-            <Input
-              type="date"
-              value={formData.endTime.split('T')[0]}
-              onChange={(e) => {
-                const date = e.target.value
-                const time = formData.endTime.split('T')[1] || '10:00'
-                onFormDataChange('endTime', `${date}T${time}`)
-              }}
-              className="flex-1"
-            />
-            <Input
-              type="time"
-              value={formData.endTime.split('T')[1] || '10:00'}
-              onChange={(e) => {
-                const date = formData.endTime.split('T')[0]
-                const time = e.target.value
-                onFormDataChange('endTime', `${date}T${time}`)
-              }}
-              className="w-32"
-            />
+          
+          {/* 结束时间 */}
+          <div>
+            <div className="text-xs text-gray-500 mb-1">结束时间</div>
+            <div className="flex gap-1">
+              <Input
+                type="date"
+                value={formData.endTime.split('T')[0]}
+                onChange={(e) => {
+                  const date = e.target.value
+                  const time = formData.endTime.split('T')[1] || '10:00'
+                  onFormDataChange('endTime', `${date}T${time}`)
+                }}
+                className="flex-1 text-xs"
+              />
+              <Input
+                type="time"
+                value={formData.endTime.split('T')[1] || '10:00'}
+                onChange={(e) => {
+                  const date = formData.endTime.split('T')[0]
+                  const time = e.target.value
+                  onFormDataChange('endTime', `${date}T${time}`)
+                }}
+                className="w-20 text-xs"
+              />
+            </div>
           </div>
         </div>
       </div>
