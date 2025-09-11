@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components'
 import { Allotment } from "allotment"
@@ -39,6 +39,8 @@ const CreateMeetingPage: React.FC = () => {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [showOrgModal, setShowOrgModal] = useState(false)
+  const [draftMeetingId, setDraftMeetingId] = useState<string | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
   
   const [formData, setFormData] = useState<MeetingFormData>({
     name: '',
@@ -56,6 +58,25 @@ const CreateMeetingPage: React.FC = () => {
     signInType: 'none',
     location: ''
   })
+
+  // 初始化草稿会议
+  useEffect(() => {
+    initializeDraftMeeting()
+  }, [])
+
+  const initializeDraftMeeting = async () => {
+    try {
+      console.log('创建草稿会议...')
+      const draftMeeting = await meetingApi.createDraftMeeting()
+      setDraftMeetingId(draftMeeting.id)
+      console.log('草稿会议创建成功:', draftMeeting.id)
+    } catch (error) {
+      console.error('创建草稿会议失败:', error)
+      alert('初始化失败，请刷新页面重试')
+    } finally {
+      setIsInitialized(true)
+    }
+  }
 
   // 表单数据更新
   const handleFormDataChange = (field: string, value: any) => {
@@ -105,39 +126,69 @@ const CreateMeetingPage: React.FC = () => {
     }))
   }
 
-  // 材料上传处理 - 更新为接收 File[] 而不是 FileList
-  const handleFileUpload = (agendaId: string, files: File[]) => {
-    if (!files || files.length === 0) return
+  // 文件上传处理 - 更新为接收 File[] 而不是 FileList
+  const handleFileUpload = async (agendaId: string, files: File[]) => {
+    if (!files || files.length === 0 || !draftMeetingId) return
 
-    const now = new Date().toISOString()
-    const newMaterials: MeetingMaterial[] = files.map(file => ({
-      id: Date.now().toString() + Math.random(),
-      name: file.name,
-      size: file.size,
-      type: file.name.split('.').pop() || 'unknown',
-      securityLevel: formData.securityLevel,
-      uploadedAt: now
-    }))
+    try {
+      const uploadPromises = files.map(async (file) => {
+        console.log(`上传文件: ${file.name} 到会议: ${draftMeetingId}`)
+        const uploadedFile = await meetingApi.uploadMeetingFile(draftMeetingId, file, agendaId)
+        
+        // 转换为 MeetingMaterial 格式
+        const material: MeetingMaterial = {
+          id: uploadedFile.id,
+          name: uploadedFile.name,
+          size: uploadedFile.size,
+          type: uploadedFile.type,
+          securityLevel: formData.securityLevel,
+          uploadedAt: uploadedFile.uploadedAt
+        }
+        
+        return material
+      })
 
-    setFormData(prev => ({
-      ...prev,
-      agendas: prev.agendas.map(agenda => 
-        agenda.id === agendaId 
-          ? { ...agenda, materials: [...agenda.materials, ...newMaterials] }
-          : agenda
-      )
-    }))
+      const newMaterials = await Promise.all(uploadPromises)
+      
+      // 更新议题材料
+      setFormData(prev => ({
+        ...prev,
+        agendas: prev.agendas.map(agenda => 
+          agenda.id === agendaId 
+            ? { ...agenda, materials: [...agenda.materials, ...newMaterials] }
+            : agenda
+        )
+      }))
+      
+      console.log(`成功上传 ${newMaterials.length} 个文件`)
+    } catch (error) {
+      console.error('文件上传失败:', error)
+      alert('文件上传失败，请重试')
+    }
   }
 
-  const removeMaterial = (agendaId: string, materialId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      agendas: prev.agendas.map(agenda => 
-        agenda.id === agendaId 
-          ? { ...agenda, materials: agenda.materials.filter(m => m.id !== materialId) }
-          : agenda
-      )
-    }))
+  const removeMaterial = async (agendaId: string, materialId: string) => {
+    if (!draftMeetingId) return
+    
+    try {
+      // 删除服务器上的文件
+      await meetingApi.deleteMeetingFile(draftMeetingId, materialId)
+      
+      // 更新本地状态
+      setFormData(prev => ({
+        ...prev,
+        agendas: prev.agendas.map(agenda => 
+          agenda.id === agendaId 
+            ? { ...agenda, materials: agenda.materials.filter(m => m.id !== materialId) }
+            : agenda
+        )
+      }))
+      
+      console.log(`删除文件: ${materialId}`)
+    } catch (error) {
+      console.error('删除文件失败:', error)
+      alert('删除文件失败，请重试')
+    }
   }
 
   const updateMaterialSecurity = (agendaId: string, materialId: string, securityLevel: MeetingSecurityLevel) => {
@@ -173,9 +224,41 @@ const CreateMeetingPage: React.FC = () => {
     return true
   }
 
+  // 保存草稿
+  const handleSaveDraft = async () => {
+    if (!draftMeetingId) {
+      alert('草稿会议未初始化')
+      return
+    }
+
+    try {
+      setLoading(true)
+      
+      const draftData: Partial<CreateMeetingRequest> = {
+        name: formData.name,
+        description: formData.description,
+        // 可以根据需要添加更多字段
+      }
+
+      await meetingApi.saveDraftMeeting(draftMeetingId, draftData)
+      alert('草稿已保存')
+      console.log('草稿保存成功')
+    } catch (error) {
+      console.error('保存草稿失败:', error)
+      alert('保存失败，请重试')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // 提交会议
   const handleSubmit = async (isDraft: boolean = false) => {
-    if (!validateForm()) return
+    if (isDraft) {
+      await handleSaveDraft()
+      return
+    }
+
+    if (!validateForm() || !draftMeetingId) return
 
     try {
       setLoading(true)
@@ -186,16 +269,18 @@ const CreateMeetingPage: React.FC = () => {
         type: formData.type,
         startTime: new Date(formData.startTime).toISOString(),
         endTime: new Date(formData.endTime).toISOString(),
+        location: formData.location,
         description: formData.description,
         participants: formData.participants,
         agendas: formData.agendas
       }
 
-      await meetingApi.createMeetingFromRequest(meetingRequest)
-      alert(isDraft ? '会议草稿已保存' : '会议创建成功')
+      const meeting = await meetingApi.submitDraftMeeting(draftMeetingId, meetingRequest)
+      alert('会议创建成功')
+      console.log('会议创建成功:', meeting)
       navigate('/meetings')
     } catch (error) {
-      console.error('Submit failed:', error)
+      console.error('提交失败:', error)
       alert('提交失败，请重试')
     } finally {
       setLoading(false)
@@ -204,8 +289,25 @@ const CreateMeetingPage: React.FC = () => {
 
   const handleCancel = () => {
     if (window.confirm('确定要取消吗？未保存的内容将丢失。')) {
+      // 清理草稿数据（可选）
+      if (draftMeetingId) {
+        // 这里可以调用删除草稿的API
+        console.log('取消创建，草稿会议ID:', draftMeetingId)
+      }
       navigate('/meetings')
     }
+  }
+
+  // 显示加载状态
+  if (!isInitialized) {
+    return (
+      <div className="p-2 flex items-center justify-center h-[calc(100vh-120px)]">
+        <div className="text-center">
+          <div className="text-lg text-gray-500 mb-2">正在初始化...</div>
+          <div className="text-sm text-gray-400">创建会议草稿中，请稍候</div>
+        </div>
+      </div>
+    )
   }
 
   return (

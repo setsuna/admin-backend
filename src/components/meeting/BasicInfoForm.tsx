@@ -72,10 +72,10 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 会议名称 */}
       <div>
-        <label className="block text-sm font-medium mb-2">
+        <label className="block text-sm font-medium mb-1">
           会议名称 <span className="text-red-500">*</span>
         </label>
         <Input
@@ -87,9 +87,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
 
       {/* 会议密级 */}
       <div>
-        <label className="block text-sm font-medium mb-2">
-          会议密级 <span className="text-red-500">*</span>
-        </label>
+        <label className="block text-sm font-medium mb-1">会议密级 <span className="text-red-500">*</span></label>
         <div className="flex gap-2">
           {securityLevels.map((level) => (
             <button
@@ -106,9 +104,9 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
       </div>
 
       {/* 会议时间 */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div>
-          <label className="block text-sm font-medium mb-2">开始时间</label>
+        <label className="block text-sm font-medium mb-1">开始时间</label>
           <div className="flex gap-2">
             <Input
               type="date"
@@ -133,7 +131,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-2">结束时间</label>
+        <label className="block text-sm font-medium mb-1">结束时间</label>
           <div className="flex gap-2">
             <Input
               type="date"
@@ -177,7 +175,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
 
       {/* 会议地点 */}
       <div>
-        <label className="block text-sm font-medium mb-2">会议地点</label>
+        <label className="block text-sm font-medium mb-1">会议地点</label>
         <Input
           value={formData.location || ''}
           onChange={(e) => onFormDataChange('location', e.target.value)}
@@ -198,7 +196,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
 
       {/* 会议类别 */}
       <div>
-        <label className="block text-sm font-medium mb-2">会议类别</label>
+        <label className="block text-sm font-medium mb-1">会议类别</label>
         <Select
           value={formData.category}
           onChange={(e) => onFormDataChange('category', e.target.value)}
@@ -213,7 +211,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
 
       {/* 会议介绍 */}
       <div>
-        <label className="block text-sm font-medium mb-2">会议介绍</label>
+        <label className="block text-sm font-medium mb-1">会议介绍</label>
         <textarea
           value={formData.description}
           onChange={(e) => onFormDataChange('description', e.target.value)}

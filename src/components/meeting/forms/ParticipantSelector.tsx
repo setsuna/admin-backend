@@ -19,13 +19,13 @@ const ParticipantSelector: React.FC<ParticipantSelectorProps> = ({
 
   return (
     <div>
-      <label className="block text-sm font-medium mb-2">
+      <label className="block text-sm font-medium mb-1">
         参会人员 <span className="text-red-500">*</span>
       </label>
-      <div className="space-y-3">
+      <div className="space-y-2">
         {/* 已添加的人员 */}
         <div 
-          className="min-h-[60px] max-h-[200px] overflow-y-auto p-3 border border-gray-300 rounded-md bg-gray-50 cursor-pointer hover:border-gray-400 transition-colors"
+          className="min-h-[50px] max-h-[160px] overflow-y-auto p-2 border border-gray-300 rounded-md bg-gray-50 cursor-pointer hover:border-gray-400 transition-colors"
           onClick={onOpenSelector}
         >
           {participants.length > 0 ? (

@@ -27,13 +27,13 @@ const MeetingTypeSelect: React.FC<MeetingTypeSelectProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-6">
+    <div className="grid grid-cols-2 gap-4">
       {/* 会议类型 */}
       <div>
-        <label className="block text-sm font-medium mb-2">
+        <label className="block text-sm font-medium mb-1">
           会议类型 <span className="text-red-500">*</span>
         </label>
-        <div className="space-y-2">
+        <div className="space-y-1">
           <div className="flex gap-2">
             {(Object.entries(typeConfig) as [MeetingType, typeof typeConfig.standard][]).map(([type, config]) => (
               <button
@@ -50,7 +50,7 @@ const MeetingTypeSelect: React.FC<MeetingTypeSelectProps> = ({
               </button>
             ))}
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 leading-tight">
             {value === 'standard' 
               ? '需要指定与会人员，材料按人员权限分发'
               : '所有平板显示相同材料，无需指定与会人员'
@@ -61,7 +61,7 @@ const MeetingTypeSelect: React.FC<MeetingTypeSelectProps> = ({
       
       {/* 签到方式 */}
       <div>
-        <label className="block text-sm font-medium mb-2">签到方式</label>
+        <label className="block text-sm font-medium mb-1">签到方式</label>
         <button
           onClick={handleSignInTypeToggle}
           className={`px-2 py-1 text-xs rounded-lg border transition-colors ${
