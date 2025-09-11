@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Card, CardHeader, CardTitle, CardContent } from '@/components'
+import { Button } from '@/components'
+import { Allotment } from "allotment"
+import "allotment/dist/style.css"
 import { meetingApi } from '@/services/meeting'
 import type { 
   MeetingSecurityLevel, 
@@ -15,7 +17,6 @@ import type {
 import BasicInfoForm from '@/components/meeting/BasicInfoForm'
 import AgendaForm from '@/components/meeting/AgendaForm'
 import OrganizationSelector from '@/components/meeting/OrganizationSelector'
-import ResizablePanel from '@/components/meeting/ResizablePanel'
 
 // 表单数据类型
 interface MeetingFormData {
@@ -101,12 +102,12 @@ const CreateMeetingPage: React.FC = () => {
     }))
   }
 
-  // 材料上传处理
-  const handleFileUpload = (agendaId: string, files: FileList | null) => {
-    if (!files) return
+  // 材料上传处理 - 更新为接收 File[] 而不是 FileList
+  const handleFileUpload = (agendaId: string, files: File[]) => {
+    if (!files || files.length === 0) return
 
     const now = new Date().toISOString()
-    const newMaterials: MeetingMaterial[] = Array.from(files).map(file => ({
+    const newMaterials: MeetingMaterial[] = files.map(file => ({
       id: Date.now().toString() + Math.random(),
       name: file.name,
       size: file.size,
@@ -207,60 +208,79 @@ const CreateMeetingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-full mx-auto p-6">
-        <ResizablePanel 
-          defaultLeftWidth={50}
-          className="h-[calc(100vh-200px)]"
+        {/* 页面标题 */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">创建会议</h1>
+          <p className="text-gray-600">填写会议基本信息和议题安排</p>
+        </div>
+
+        {/* 使用 Allotment 创建可调节的左右布局 */}
+        <Allotment 
+          defaultSizes={[45, 55]} 
+          className="h-[calc(100vh-220px)]"
+          separator={true}
         >
           {/* 左侧：基本信息 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>基本信息</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <BasicInfoForm
-                formData={formData}
-                onFormDataChange={handleFormDataChange}
-                onOpenOrgSelector={() => setShowOrgModal(true)}
-                onRemoveParticipant={removeParticipant}
-              />
-            </CardContent>
-          </Card>
+          <Allotment.Pane minSize={350} maxSize={600}>
+            <div className="bg-white rounded-lg border h-full flex flex-col">
+              <div className="p-4 border-b bg-gray-50">
+                <h2 className="text-lg font-semibold text-gray-900">基本信息</h2>
+                <p className="text-sm text-gray-600">设置会议的基本配置信息</p>
+              </div>
+              <div className="flex-1 p-6 overflow-y-auto">
+                <BasicInfoForm
+                  formData={formData}
+                  onFormDataChange={handleFormDataChange}
+                  onOpenOrgSelector={() => setShowOrgModal(true)}
+                  onRemoveParticipant={removeParticipant}
+                />
+              </div>
+            </div>
+          </Allotment.Pane>
 
           {/* 右侧：会议议题 */}
-          <Card className="h-fit">
-            <CardContent className="pt-6">
-              <AgendaForm
-                agendas={formData.agendas}
-                onAddAgenda={addAgenda}
-                onRemoveAgenda={removeAgenda}
-                onUpdateAgendaName={updateAgendaName}
-                onFileUpload={handleFileUpload}
-                onRemoveMaterial={removeMaterial}
-                onUpdateMaterialSecurity={updateMaterialSecurity}
-              />
-              
-              {/* 操作按钮 */}
-              <div className="flex justify-end gap-4 pt-6 border-t mt-6">
-                <Button variant="outline" onClick={handleCancel}>
-                  取消
-                </Button>
-                <Button 
-                  variant="secondary" 
-                  onClick={() => handleSubmit(true)}
-                  loading={loading}
-                >
-                  保存草稿
-                </Button>
-                <Button 
-                  onClick={() => handleSubmit(false)}
-                  loading={loading}
-                >
-                  创建会议
-                </Button>
+          <Allotment.Pane minSize={400}>
+            <div className="bg-white rounded-lg border h-full flex flex-col">
+              <div className="p-4 border-b bg-gray-50">
+                <h2 className="text-lg font-semibold text-gray-900">会议议题</h2>
+                <p className="text-sm text-gray-600">添加议题和相关材料</p>
               </div>
-            </CardContent>
-          </Card>
-        </ResizablePanel>
+              <div className="flex-1 p-6 overflow-y-auto">
+                <AgendaForm
+                  agendas={formData.agendas}
+                  onAddAgenda={addAgenda}
+                  onRemoveAgenda={removeAgenda}
+                  onUpdateAgendaName={updateAgendaName}
+                  onFileUpload={handleFileUpload}
+                  onRemoveMaterial={removeMaterial}
+                  onUpdateMaterialSecurity={updateMaterialSecurity}
+                />
+              </div>
+              
+              {/* 操作按钮 - 固定在底部 */}
+              <div className="p-6 border-t bg-gray-50">
+                <div className="flex justify-end gap-3">
+                  <Button variant="outline" onClick={handleCancel}>
+                    取消
+                  </Button>
+                  <Button 
+                    variant="secondary" 
+                    onClick={() => handleSubmit(true)}
+                    loading={loading}
+                  >
+                    保存草稿
+                  </Button>
+                  <Button 
+                    onClick={() => handleSubmit(false)}
+                    loading={loading}
+                  >
+                    创建会议
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Allotment.Pane>
+        </Allotment>
       </div>
 
       {/* 组织架构选择弹窗 */}
