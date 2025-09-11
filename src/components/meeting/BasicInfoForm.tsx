@@ -22,6 +22,8 @@ interface BasicInfoFormProps {
     password: string
     expiryType: 'none' | 'today' | 'custom'
     expiryDate: string
+    signInType: 'none' | 'manual' | 'password'
+    location: string
   }
   onFormDataChange: (field: string, value: any) => void
   onOpenOrgSelector: () => void
@@ -100,7 +102,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
             <button
               key={level.value}
               onClick={() => handleSecurityLevelChange(level.value as MeetingSecurityLevel)}
-              className={`px-3 py-1.5 text-sm rounded-md text-white transition-colors ${level.color} ${
+              className={`px-2 py-1 text-xs rounded-md text-white transition-colors ${level.color} ${
                 formData.securityLevel === level.value ? 'ring-2 ring-offset-2 ring-gray-400' : ''
               }`}
             >
@@ -130,42 +132,103 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-2">开始时间</label>
-          <Input
-            type="datetime-local"
-            value={formData.startTime}
-            onChange={(e) => onFormDataChange('startTime', e.target.value)}
-          />
+          <div className="flex gap-2">
+            <Input
+              type="date"
+              value={formData.startTime.split('T')[0]}
+              onChange={(e) => {
+                const date = e.target.value
+                const time = formData.startTime.split('T')[1] || '09:00'
+                onFormDataChange('startTime', `${date}T${time}`)
+              }}
+              className="flex-1"
+            />
+            <Input
+              type="time"
+              value={formData.startTime.split('T')[1] || '09:00'}
+              onChange={(e) => {
+                const date = formData.startTime.split('T')[0]
+                const time = e.target.value
+                onFormDataChange('startTime', `${date}T${time}`)
+              }}
+              className="w-32"
+            />
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium mb-2">结束时间</label>
-          <Input
-            type="datetime-local"
-            value={formData.endTime}
-            onChange={(e) => onFormDataChange('endTime', e.target.value)}
-          />
+          <div className="flex gap-2">
+            <Input
+              type="date"
+              value={formData.endTime.split('T')[0]}
+              onChange={(e) => {
+                const date = e.target.value
+                const time = formData.endTime.split('T')[1] || '10:00'
+                onFormDataChange('endTime', `${date}T${time}`)
+              }}
+              className="flex-1"
+            />
+            <Input
+              type="time"
+              value={formData.endTime.split('T')[1] || '10:00'}
+              onChange={(e) => {
+                const date = formData.endTime.split('T')[0]
+                const time = e.target.value
+                onFormDataChange('endTime', `${date}T${time}`)
+              }}
+              className="w-32"
+            />
+          </div>
         </div>
       </div>
 
-      {/* 会议类型 */}
+      {/* 会议类型和签到方式 */}
       <div>
         <label className="block text-sm font-medium mb-2">
           会议类型 <span className="text-red-500">*</span>
         </label>
-        <div className="flex gap-2">
-          {(Object.entries(typeConfig) as [MeetingType, typeof typeConfig.standard][]).map(([type, config]) => (
+        <div className="flex justify-between">
+          <div>
+            <div className="flex gap-2">
+              {(Object.entries(typeConfig) as [MeetingType, typeof typeConfig.standard][]).map(([type, config]) => (
+                <button
+                  key={type}
+                  onClick={() => handleTypeChange(type)}
+                  className={`flex items-center gap-1.5 px-2 py-1 text-xs rounded-lg border transition-colors ${
+                    formData.type === type
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <span>{config.icon}</span>
+                  {config.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          <div>
+            <div className="text-sm font-medium text-gray-900 mb-1 text-right">签到方式</div>
             <button
-              key={type}
-              onClick={() => handleTypeChange(type)}
-              className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg border transition-colors ${
-                formData.type === type
+              onClick={() => {
+                const signInTypes = ['none', 'manual', 'password'] as const
+                const currentIndex = signInTypes.indexOf(formData.signInType as any)
+                const nextIndex = (currentIndex + 1) % signInTypes.length
+                onFormDataChange('signInType', signInTypes[nextIndex])
+              }}
+              className={`px-2 py-1 text-xs rounded-lg border transition-colors ${
+                formData.signInType === 'none'
+                  ? 'border-green-500 bg-green-50 text-green-700'
+                  : formData.signInType === 'manual'
                   ? 'border-blue-500 bg-blue-50 text-blue-700'
-                  : 'border-gray-200 hover:border-gray-300'
+                  : 'border-orange-500 bg-orange-50 text-orange-700'
               }`}
             >
-              <span>{config.icon}</span>
-              {config.label}
+              {formData.signInType === 'none' && '免签'}
+              {formData.signInType === 'manual' && '手写签到'}
+              {formData.signInType === 'password' && '密码签到'}
             </button>
-          ))}
+          </div>
         </div>
         <p className="text-sm text-gray-500 mt-2">
           {formData.type === 'standard' 
@@ -183,43 +246,45 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           </label>
           <div className="space-y-3">
             {/* 已添加的人员 */}
-            <div className="flex flex-wrap gap-2">
-              {formData.participants.map((participant) => (
-                <span
-                  key={participant.id}
-                  className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                >
-                  {participant.name}
-                  <button
-                    onClick={() => onRemoveParticipant(participant.id)}
-                    className="hover:text-blue-600"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-            </div>
-            
-            {/* 添加人员按钮 */}
             <div 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer hover:border-gray-400 transition-colors bg-white"
+              className="min-h-[60px] max-h-[200px] overflow-y-auto p-3 border border-gray-300 rounded-md bg-gray-50 cursor-pointer hover:border-gray-400 transition-colors"
               onClick={onOpenOrgSelector}
             >
-              <span className="text-gray-500">点击选择参会人员...</span>
+              {formData.participants.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {formData.participants.map((participant) => (
+                    <span
+                      key={participant.id}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                    >
+                      {participant.name}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onRemoveParticipant(participant.id)
+                        }}
+                        className="hover:text-blue-600"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-gray-500 text-sm">点击选择参会人员...</span>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* 会议介绍 */}
+      {/* 会议地点 */}
       <div>
-        <label className="block text-sm font-medium mb-2">会议介绍</label>
-        <textarea
-          value={formData.description}
-          onChange={(e) => onFormDataChange('description', e.target.value)}
-          placeholder="请输入会议介绍..."
-          rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        <label className="block text-sm font-medium mb-2">会议地点</label>
+        <Input
+          value={formData.location || ''}
+          onChange={(e) => onFormDataChange('location', e.target.value)}
+          placeholder="请输入会议地点"
         />
       </div>
 
@@ -247,6 +312,18 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                  formData.expiryType === 'today' ? '当天过期' : formData.expiryDate}
           </Button>
         </div>
+      </div>
+
+      {/* 会议介绍 */}
+      <div>
+        <label className="block text-sm font-medium mb-2">会议介绍</label>
+        <textarea
+          value={formData.description}
+          onChange={(e) => onFormDataChange('description', e.target.value)}
+          placeholder="请输入会议介绍..."
+          rows={3}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
       </div>
 
       {/* 密码设置弹窗 */}

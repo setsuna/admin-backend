@@ -31,6 +31,8 @@ interface MeetingFormData {
   password: string
   expiryType: 'none' | 'today' | 'custom'
   expiryDate: string
+  signInType: 'none' | 'manual' | 'password'
+  location: string
 }
 
 const CreateMeetingPage: React.FC = () => {
@@ -50,7 +52,9 @@ const CreateMeetingPage: React.FC = () => {
     agendas: [{ id: '1', name: '', description: '', materials: [], order: 1 }],
     password: '',
     expiryType: 'none',
-    expiryDate: ''
+    expiryDate: '',
+    signInType: 'none',
+    location: ''
   })
 
   // 表单数据更新
