@@ -23,6 +23,8 @@ interface BasicInfoFormProps {
     expiryDate: string
     signInType: 'none' | 'manual' | 'password'
     location: string
+    organizer: string  // 新增
+    host: string       // 新增
   }
   onFormDataChange: (field: string, value: any) => void
   onOpenOrgSelector: () => void
@@ -178,14 +180,30 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         isVisible={formData.type === 'standard'}
       />
 
-      {/* 会议地点 */}
-      <div>
-        <label className="block text-sm font-medium mb-1">会议地点</label>
-        <Input
-          value={formData.location || ''}
-          onChange={(e) => onFormDataChange('location', e.target.value)}
-          placeholder="请输入会议地点"
-        />
+      {/* 会议地点和组织单位 */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">会议地点</label>
+          <Input
+            value={formData.location || ''}
+            onChange={(e) => onFormDataChange('location', e.target.value)}
+            placeholder="请输入会议地点"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">组织单位</label>
+          <Input
+            value={formData.organizer || ''}
+            onChange={(e) => {
+              const value = e.target.value
+              if (value.length <= 15) {
+                onFormDataChange('organizer', value)
+              }
+            }}
+            placeholder="请输入组织单位"
+            maxLength={15}
+          />
+        </div>
       </div>
 
       {/* 会议设置 */}
@@ -199,19 +217,35 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         onExpiryDateChange={(expiryDate) => onFormDataChange('expiryDate', expiryDate)}
       />
 
-      {/* 会议类别 */}
-      <div>
-        <label className="block text-sm font-medium mb-1">会议类别</label>
-        <Select
-          value={formData.category}
-          onChange={(e) => onFormDataChange('category', e.target.value)}
-          options={categories.map(category => ({
-            value: category.name,
-            label: category.name
-          }))}
-          size="sm"
-          className="w-40"
-        />
+      {/* 会议类别和会议主持 */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">会议类别</label>
+          <Select
+            value={formData.category}
+            onChange={(e) => onFormDataChange('category', e.target.value)}
+            options={categories.map(category => ({
+              value: category.name,
+              label: category.name
+            }))}
+            size="sm"
+            className="w-full"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">会议主持</label>
+          <Input
+            value={formData.host || ''}
+            onChange={(e) => {
+              const value = e.target.value
+              if (value.length <= 10) {
+                onFormDataChange('host', value)
+              }
+            }}
+            placeholder="请输入主持人"
+            maxLength={10}
+          />
+        </div>
       </div>
 
       {/* 会议介绍 */}

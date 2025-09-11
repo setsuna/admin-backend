@@ -33,6 +33,8 @@ interface MeetingFormData {
   expiryDate: string
   signInType: 'none' | 'manual' | 'password'
   location: string
+  organizer: string  // 新增：组织单位
+  host: string       // 新增：会议主持
 }
 
 const CreateMeetingPage: React.FC = () => {
@@ -63,7 +65,9 @@ const CreateMeetingPage: React.FC = () => {
       expiryType: 'none',
       expiryDate: '',
       signInType: 'none',
-      location: ''
+      location: '',
+      organizer: '',  // 新增字段
+      host: ''        // 新增字段
     }
   })
 
