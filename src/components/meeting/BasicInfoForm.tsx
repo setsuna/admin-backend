@@ -228,7 +228,6 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
               value: category.name,
               label: category.name
             }))}
-            size="sm"
             className="w-full"
           />
         </div>
