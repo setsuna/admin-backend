@@ -214,62 +214,58 @@ const CreateMeetingPage: React.FC = () => {
           separator={true}
         >
           {/* 左侧：基本信息 */}
-          <Allotment.Pane minSize={350} maxSize={600}>
-            <div className="bg-white rounded-lg border h-full flex flex-col">
-              <div className="p-4 border-b bg-gray-50">
-                <h2 className="text-lg font-semibold text-gray-900">基本信息</h2>
-                <p className="text-sm text-gray-600">设置会议的基本配置信息</p>
-              </div>
-              <div className="flex-1 p-6 overflow-y-auto">
-                <BasicInfoForm
-                  formData={formData}
-                  onFormDataChange={handleFormDataChange}
-                  onOpenOrgSelector={() => setShowOrgModal(true)}
-                  onRemoveParticipant={removeParticipant}
-                />
-              </div>
+          <Allotment.Pane minSize={350} maxSize={600} className="bg-white rounded-lg border overflow-hidden">
+            <div className="p-4 border-b bg-gray-50">
+              <h2 className="text-lg font-semibold text-gray-900">基本信息</h2>
+              <p className="text-sm text-gray-600">设置会议的基本配置信息</p>
+            </div>
+            <div className="flex-1 p-6 overflow-y-auto">
+              <BasicInfoForm
+                formData={formData}
+                onFormDataChange={handleFormDataChange}
+                onOpenOrgSelector={() => setShowOrgModal(true)}
+                onRemoveParticipant={removeParticipant}
+              />
             </div>
           </Allotment.Pane>
 
           {/* 右侧：会议议题 */}
-          <Allotment.Pane minSize={400}>
-            <div className="bg-white rounded-lg border h-full flex flex-col">
-              <div className="p-4 border-b bg-gray-50">
-                <h2 className="text-lg font-semibold text-gray-900">会议议题</h2>
-                <p className="text-sm text-gray-600">添加议题和相关材料</p>
-              </div>
-              <div className="flex-1 p-6 overflow-y-auto">
-                <AgendaForm
-                  agendas={formData.agendas}
-                  onAddAgenda={addAgenda}
-                  onRemoveAgenda={removeAgenda}
-                  onUpdateAgendaName={updateAgendaName}
-                  onFileUpload={handleFileUpload}
-                  onRemoveMaterial={removeMaterial}
-                  onUpdateMaterialSecurity={updateMaterialSecurity}
-                />
-              </div>
-              
-              {/* 操作按钮 - 固定在底部 */}
-              <div className="p-6 border-t bg-gray-50">
-                <div className="flex justify-end gap-3">
-                  <Button variant="outline" onClick={handleCancel}>
-                    取消
-                  </Button>
-                  <Button 
-                    variant="secondary" 
-                    onClick={() => handleSubmit(true)}
-                    loading={loading}
-                  >
-                    保存草稿
-                  </Button>
-                  <Button 
-                    onClick={() => handleSubmit(false)}
-                    loading={loading}
-                  >
-                    创建会议
-                  </Button>
-                </div>
+          <Allotment.Pane minSize={400} className="bg-white rounded-lg border overflow-hidden">
+            <div className="p-4 border-b bg-gray-50">
+              <h2 className="text-lg font-semibold text-gray-900">会议议题</h2>
+              <p className="text-sm text-gray-600">添加议题和相关材料</p>
+            </div>
+            <div className="flex-1 p-6 overflow-y-auto">
+              <AgendaForm
+                agendas={formData.agendas}
+                onAddAgenda={addAgenda}
+                onRemoveAgenda={removeAgenda}
+                onUpdateAgendaName={updateAgendaName}
+                onFileUpload={handleFileUpload}
+                onRemoveMaterial={removeMaterial}
+                onUpdateMaterialSecurity={updateMaterialSecurity}
+              />
+            </div>
+            
+            {/* 操作按钮 - 固定在底部 */}
+            <div className="p-6 border-t bg-gray-50">
+              <div className="flex justify-end gap-3">
+                <Button variant="outline" onClick={handleCancel}>
+                  取消
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  onClick={() => handleSubmit(true)}
+                  loading={loading}
+                >
+                  保存草稿
+                </Button>
+                <Button 
+                  onClick={() => handleSubmit(false)}
+                  loading={loading}
+                >
+                  创建会议
+                </Button>
               </div>
             </div>
           </Allotment.Pane>
