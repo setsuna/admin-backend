@@ -4,6 +4,7 @@ import { Button } from '@/components'
 import { Allotment } from "allotment"
 import { Plus } from 'lucide-react'
 import { meetingApi } from '@/services/meeting'
+import { getFormattedExtensions } from '@/mock/fileFormats'
 import type { 
   MeetingSecurityLevel, 
   MeetingType, 
@@ -144,9 +145,12 @@ const CreateMeetingPage: React.FC = () => {
     if (!files || files.length === 0 || !draftMeetingId) return
 
     try {
+      // 使用 mock 文件上传
+      const { mockFileUpload } = await import('@/mock/fileUpload')
+      
       const uploadPromises = files.map(async (file) => {
         console.log(`上传文件: ${file.name} 到会议: ${draftMeetingId}`)
-        const uploadedFile = await meetingApi.uploadMeetingFile(draftMeetingId, file, agendaId)
+        const uploadedFile = await mockFileUpload(draftMeetingId, file, agendaId)
         
         // 转换为 MeetingMaterial 格式
         const material: MeetingMaterial = {
@@ -184,8 +188,9 @@ const CreateMeetingPage: React.FC = () => {
     if (!draftMeetingId) return
     
     try {
-      // 删除服务器上的文件
-      await meetingApi.deleteMeetingFile(draftMeetingId, materialId)
+      // 使用 mock 文件删除
+      const { mockFileDelete } = await import('@/mock/fileUpload')
+      await mockFileDelete(draftMeetingId, materialId)
       
       // 更新本地状态
       setFormData(prev => ({
@@ -218,6 +223,55 @@ const CreateMeetingPage: React.FC = () => {
           : agenda
       )
     }))
+  }
+
+  const reorderMaterials = async (agendaId: string, newMaterials: MeetingMaterial[]) => {
+    if (!draftMeetingId) return
+    
+    try {
+      // 先更新本地状态
+      setFormData(prev => ({
+        ...prev,
+        agendas: prev.agendas.map(agenda => 
+          agenda.id === agendaId 
+            ? { ...agenda, materials: newMaterials }
+            : agenda
+        )
+      }))
+      
+      // 调用 API 更新服务器排序
+      const { mockUpdateMaterialOrder } = await import('@/mock/fileUpload')
+      const materialIds = newMaterials.map(m => m.id)
+      await mockUpdateMaterialOrder(draftMeetingId, agendaId, materialIds)
+      
+      console.log('材料排序更新成功')
+    } catch (error) {
+      console.error('材料排序更新失败:', error)
+      // 如果 API 失败，可以选择显示错误信息但保持本地状态
+      // 或者回滚本地状态
+    }
+  }
+
+  const reorderAgendas = async (newAgendas: MeetingAgenda[]) => {
+    if (!draftMeetingId) return
+    
+    try {
+      // 先更新本地状态
+      setFormData(prev => ({
+        ...prev,
+        agendas: newAgendas
+      }))
+      
+      // 调用 API 更新服务器排序
+      const { mockUpdateAgendaOrder } = await import('@/mock/fileUpload')
+      const agendaIds = newAgendas.map(a => a.id)
+      await mockUpdateAgendaOrder(draftMeetingId, agendaIds)
+      
+      console.log('议题排序更新成功')
+    } catch (error) {
+      console.error('议题排序更新失败:', error)
+      // 如果 API 失败，可以选择显示错误信息但保持本地状态
+    }
   }
 
   // 表单验证
@@ -361,6 +415,13 @@ const CreateMeetingPage: React.FC = () => {
               </div>
             </div>
             <div className="flex-1 p-4 overflow-y-auto">
+              {/* 支持格式提示 */}
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <p className="text-sm text-yellow-800">
+                  议题材料支持格式：{getFormattedExtensions()}
+                </p>
+              </div>
+              
               <AgendaForm
                 agendas={formData.agendas}
                 onRemoveAgenda={removeAgenda}
@@ -368,6 +429,8 @@ const CreateMeetingPage: React.FC = () => {
                 onFileUpload={handleFileUpload}
                 onRemoveMaterial={removeMaterial}
                 onUpdateMaterialSecurity={updateMaterialSecurity}
+                onReorderMaterials={reorderMaterials}
+                onReorderAgendas={reorderAgendas}
               />
             </div>
           </Allotment.Pane>
