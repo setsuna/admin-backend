@@ -5,7 +5,7 @@ import { Button, Input, Card, CardHeader, CardTitle, CardContent } from '@/compo
 import { useGlobalStore } from '@/store'
 import type { User } from '@/types'
 
-export function LoginPage() {
+const LoginPage = () => {
   const navigate = useNavigate()
   const { setUser } = useGlobalStore()
   const [loading, setLoading] = useState(false)
@@ -178,3 +178,5 @@ export function LoginPage() {
     </div>
   )
 }
+
+export default LoginPage

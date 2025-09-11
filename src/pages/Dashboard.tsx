@@ -1,7 +1,7 @@
 import { Calendar, FileText, RefreshCw, AlertCircle, TrendingUp, Clock, CheckCircle } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components'
 
-export function Dashboard() {
+const Dashboard = () => {
   // Mock数据 - 后续替换为真实API
   const meetingStats = {
     total: 156,
@@ -239,3 +239,5 @@ export function Dashboard() {
     </div>
   )
 }
+
+export default Dashboard
