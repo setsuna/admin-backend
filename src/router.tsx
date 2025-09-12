@@ -11,6 +11,7 @@ const LoginPage = lazy(() => import('@/pages/LoginPage'))
 const MeetingListPage = lazy(() => import('@/pages/MeetingListPage'))
 const MyMeetingPage = lazy(() => import('@/pages/MyMeetingPage'))
 const CreateMeetingPage = lazy(() => import('@/pages/CreateMeetingPage'))
+const DataDictionaryPage = lazy(() => import('@/pages/DataDictionaryPage'))
 
 // 未来页面的懒加载（占位符）
 const SyncStatusPage = lazy(() => 
@@ -79,16 +80,7 @@ const StaffPage = lazy(() =>
   })
 )
 
-const DataDictionaryPage = lazy(() => 
-  Promise.resolve({
-    default: () => (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">数据字典</h1>
-        <p className="text-muted-foreground">数据字典页面待开发</p>
-      </div>
-    )
-  })
-)
+
 
 const BasicConfigPage = lazy(() => 
   Promise.resolve({

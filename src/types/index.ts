@@ -247,3 +247,50 @@ export interface CreateMeetingRequest {
   participants: MeetingParticipant[]
   agendas: MeetingAgenda[]
 }
+
+// 数据字典相关类型
+export type DictStatus = 'enabled' | 'disabled'
+
+export interface DictItem {
+  id: string
+  code: string
+  name: string
+  value: string | number
+  status: DictStatus
+  sort: number
+  remark?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DataDict {
+  id: string
+  dictCode: string
+  dictName: string
+  dictType: string
+  status: DictStatus
+  itemCount: number
+  remark?: string
+  items: DictItem[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DictFilters {
+  keyword?: string
+  dictType?: string
+  status?: DictStatus
+}
+
+export interface CreateDictRequest {
+  dictCode: string
+  dictName: string
+  dictType: string
+  status: DictStatus
+  remark?: string
+  items: Omit<DictItem, 'id' | 'createdAt' | 'updatedAt'>[]
+}
+
+export interface UpdateDictRequest extends Partial<CreateDictRequest> {
+  id: string
+}
