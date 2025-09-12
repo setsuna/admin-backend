@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Input, Button } from '@/components'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
 import { X } from 'lucide-react'
 import { mockApi, type OrgDepartment, type OrgUser } from '@/services/mockApi'
 import type { MeetingParticipant } from '@/types'

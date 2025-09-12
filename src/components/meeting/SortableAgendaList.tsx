@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { GripVertical, Edit2, Trash2 } from 'lucide-react'
-import { Input, Button } from '@/components'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
 import SimpleSortableMaterialList from './SimpleSortableMaterialList'
 import type { MeetingAgenda, MeetingMaterial, MeetingSecurityLevel } from '@/types'
 

@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Server, Eye, EyeOff } from 'lucide-react'
-import { Button, Input, Card, CardHeader, CardTitle, CardContent } from '@/components'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { useGlobalStore } from '@/store'
 import type { User } from '@/types'
 

@@ -1,5 +1,5 @@
 import { Calendar, FileText, RefreshCw, AlertCircle, TrendingUp, Clock, CheckCircle } from 'lucide-react'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 
 const Dashboard = () => {
   // Mock数据 - 后续替换为真实API

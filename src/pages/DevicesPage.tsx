@@ -1,15 +1,10 @@
 import { useState } from 'react'
 import { Plus, Search, Filter, MoreHorizontal, Power, Settings2 } from 'lucide-react'
-import { 
-  Button, 
-  Input, 
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  StatusIndicator,
-  DataTable 
-} from '@/components'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
+import { StatusIndicator } from '@/components/ui/StatusIndicator'
+import { DataTable } from '@/components/features/DataTable'
 import { useDevices, useDeviceOperations } from '@/hooks'
 import { formatDate } from '@/utils'
 import type { Device, PaginationParams, TableColumn } from '@/types'

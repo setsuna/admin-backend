@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { Input, Button } from '@/components'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
 
 interface MeetingSettingsProps {
   password: string

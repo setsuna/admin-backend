@@ -115,24 +115,9 @@ export const errorInterceptor = async (error: AxiosError<ApiResponse>): Promise<
     
     switch (status) {
       case HTTP_STATUS.UNAUTHORIZED:
-        // Token过期或无效，尝试刷新
-        if (authService.canRefreshToken()) {
-          try {
-            await authService.refreshToken()
-            // 重新发起请求
-            if (config) {
-              // 避免循环依赖，直接使用axios实例
-              const { httpClient } = await import('./http.client')
-              return httpClient.getInstance()(config as any)
-            }
-          } catch (refreshError) {
-            authService.logout()
-            window.location.href = '/login'
-          }
-        } else {
-          authService.logout()
-          window.location.href = '/login'
-        }
+        // Token过期或无效，直接登出
+        authService.logout()
+        window.location.href = '/login'
         break
 
       case HTTP_STATUS.FORBIDDEN:

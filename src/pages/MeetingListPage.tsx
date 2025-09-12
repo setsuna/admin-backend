@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Filter, Shield } from 'lucide-react'
-import { 
-  Button, 
-  Input, 
-  DataTable 
-} from '@/components'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { DataTable } from '@/components/features/DataTable'
 import { meetingApi } from '@/services/meeting'
 import { debounce, formatDate } from '@/utils'
 import type { Meeting, MeetingFilters, MeetingStatus, MeetingSecurityLevel, MeetingType, TableColumn } from '@/types'

@@ -1,14 +1,7 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
-import { 
-  Table, 
-  TableHeader, 
-  TableBody, 
-  TableRow, 
-  TableHead, 
-  TableCell,
-  Button,
-  Loading
-} from '@/components/ui'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table'
+import { Button } from '@/components/ui/Button'
+import { Loading } from '@/components/ui/Loading'
 import { cn } from '@/utils'
 import type { TableProps } from '@/types'
 

@@ -2,8 +2,8 @@ import { Bell, LogOut } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { cn } from '@/utils'
 import { useGlobalStore } from '@/store'
-import { Button } from '@/components/ui'
-import { ThemeSwitcher } from '@/components'
+import { Button } from '@/components/ui/Button'
+import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 
 interface HeaderProps {
   className?: string

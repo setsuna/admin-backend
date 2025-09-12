@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { X, Plus, Trash2, Save } from 'lucide-react'
-import { Button, Input, Card, CardContent, CardHeader, CardTitle } from '@/components'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import type { DataDict, DictItem, DictStatus, CreateDictRequest } from '@/types'
 
 interface DictEditModalProps {

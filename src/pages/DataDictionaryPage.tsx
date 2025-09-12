@@ -12,13 +12,10 @@ import {
   PowerOff,
   X
 } from 'lucide-react'
-import { 
-  Button, 
-  Input, 
-  DataTable,
-  Card,
-  CardContent
-} from '@/components'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { DataTable } from '@/components/features/DataTable'
+import { Card, CardContent } from '@/components/ui/Card'
 import DictEditModal from '@/components/features/DictEditModal'
 import { dictApi } from '@/services/dict'
 import { debounce } from '@/utils'

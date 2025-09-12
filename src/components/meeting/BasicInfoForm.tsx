@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Input, Select } from '@/components'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import { mockApi, type MeetingCategory, type SecurityLevel } from '@/services/mockApi'
 import type { MeetingSecurityLevel, MeetingType, MeetingParticipant } from '@/types'
 

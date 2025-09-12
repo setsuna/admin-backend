@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components'
+import { Button } from '@/components/ui/Button'
 import { Allotment } from "allotment"
 import { Plus } from 'lucide-react'
 import { meetingApi } from '@/services/meeting'

@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
-import { NotificationContainer } from '@/components/ui'
+import { NotificationContainer } from '@/components/ui/Notification'
 import { usePermission } from '@/hooks'
 
 export function MainLayout() {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { GripVertical, X } from 'lucide-react'
-import { Button } from '@/components'
+import { Button } from '@/components/ui/Button'
 import type { MeetingMaterial, MeetingSecurityLevel } from '@/types'
 
 interface SimpleSortableItemProps {
