@@ -3,173 +3,13 @@
  * 保持原有接口不变，内部切换到新的API架构
  */
 
-import type { MenuConfig, Permission, Role, User } from '@/types'
+import type { MenuConfig, Permission, Role, User, MenuItem, MenuItemConfig } from '@/types'
 import { permissionApiService } from './api/user.api'
+import { dictApi } from './dict'
 import { envConfig } from '@/config/env.config'
 
-// Mock数据（保留用于开发环境）
-const mockMenuConfig: MenuConfig = {
-  menus: [
-    {
-      key: 'workspace',
-      label: '工作台',
-      type: 'group',
-      children: [
-        {
-          key: 'dashboard',
-          label: '仪表板',
-          icon: 'BarChart3',
-          path: '/',
-          permissions: ['dashboard:view'],
-        },
-      ],
-    },
-    {
-      key: 'meeting',
-      label: '会议管理',
-      type: 'group',
-      children: [
-        {
-          key: 'meeting-list',
-          label: '会议列表',
-          icon: 'Calendar',
-          path: '/meetings',
-          permissions: ['meeting:view'],
-        },
-        {
-          key: 'my-meetings',
-          label: '我的会议',
-          icon: 'User',
-          path: '/my-meetings',
-          permissions: ['meeting:view'],
-        },
-      ],
-    },
-    {
-      key: 'sync',
-      label: '同步管理',
-      type: 'group',
-      children: [
-        {
-          key: 'sync-status',
-          label: '同步状态',
-          icon: 'RefreshCw',
-          path: '/sync-status',
-          permissions: ['sync:view'],
-        },
-      ],
-    },
-    {
-      key: 'personnel',
-      label: '人员管理',
-      type: 'group',
-      children: [
-        {
-          key: 'participants',
-          label: '参会人员',
-          icon: 'Users',
-          path: '/participants',
-          permissions: ['personnel:view'],
-        },
-        {
-          key: 'role-permissions',
-          label: '角色权限',
-          icon: 'Shield',
-          path: '/role-permissions',
-          permissions: ['role:manage'],
-        },
-        {
-          key: 'security-levels',
-          label: '人员密级',
-          icon: 'Lock',
-          path: '/security-levels',
-          permissions: ['security:manage'],
-        },
-      ],
-    },
-    {
-      key: 'organization',
-      label: '组织架构',
-      type: 'group',
-      children: [
-        {
-          key: 'departments',
-          label: '部门管理',
-          icon: 'Building',
-          path: '/departments',
-          permissions: ['org:manage'],
-        },
-        {
-          key: 'staff-management',
-          label: '人员管理',
-          icon: 'UserCheck',
-          path: '/staff',
-          permissions: ['staff:manage'],
-        },
-      ],
-    },
-    {
-      key: 'system',
-      label: '系统管理',
-      type: 'group',
-      children: [
-        {
-          key: 'data-dictionary',
-          label: '数据字典',
-          icon: 'Book',
-          path: '/data-dictionary',
-          permissions: ['system:dict'],
-        },
-        {
-          key: 'basic-config',
-          label: '基础配置',
-          icon: 'Settings',
-          path: '/basic-config',
-          permissions: ['system:config'],
-        },
-        {
-          key: 'system-logs',
-          label: '系统日志',
-          icon: 'FileText',
-          path: '/system-logs',
-          permissions: ['system:logs'],
-        },
-        {
-          key: 'admin-logs',
-          label: '操作日志（系统员）',
-          icon: 'ScrollText',
-          path: '/admin-logs',
-          permissions: ['logs:admin'],
-        },
-        {
-          key: 'audit-logs',
-          label: '操作日志（审计员）',
-          icon: 'Search',
-          path: '/audit-logs',
-          permissions: ['logs:audit'],
-        },
-      ],
-    },
-    {
-      key: 'monitoring',
-      label: '监控告警',
-      type: 'group',
-      children: [
-        {
-          key: 'anomaly-alerts',
-          label: '异常行为告警',
-          icon: 'AlertTriangle',
-          path: '/anomaly-alerts',
-          permissions: ['monitor:alerts'],
-        },
-      ],
-    },
-  ],
-  userPermissions: []
-}
-
+// Mock权限数据
 const mockPermissions: Permission[] = [
-  // 工作台权限
   { id: '1', name: '仪表板查看', code: 'dashboard:view', description: '查看仪表板' },
   
   // 会议管理权限
@@ -276,6 +116,130 @@ class MockPermissionService {
     return role ? role.permissions : []
   }
 
+  // 从数据字典构建菜单配置
+  async buildMenuFromDict(userPermissions: string[]): Promise<MenuItem[]> {
+    try {
+      // 获取菜单分组和菜单项字典
+      const [groupsResult, itemsResult] = await Promise.all([
+        dictApi.getDictionaries({ keyword: 'MENU_GROUPS' }, 1, 100),
+        dictApi.getDictionaries({ keyword: 'MENU_ITEMS' }, 1, 100)
+      ])
+      
+      // 查找对应的字典数据
+      const groupsDict = groupsResult.items.find(dict => dict.dictCode === 'MENU_GROUPS')
+      const itemsDict = itemsResult.items.find(dict => dict.dictCode === 'MENU_ITEMS')
+      
+      const groupsData = groupsDict?.items || []
+      const itemsData = itemsDict?.items || []
+      
+      if (groupsData.length === 0 || itemsData.length === 0) {
+        console.warn('Menu dict data is empty, falling back to minimal config')
+        return this.getMinimalMenu(userPermissions)
+      }
+      
+      // 按分组构建菜单结构
+      const menuGroups: MenuItem[] = []
+      
+      // 处理启用的分组
+      const enabledGroups = groupsData
+        .filter(group => group.status === 'enabled')
+        .sort((a, b) => a.sort - b.sort)
+      
+      for (const group of enabledGroups) {
+        // 获取该分组下的菜单项
+        const groupItems: MenuItem[] = []
+        
+        const enabledItems = itemsData
+          .filter(item => {
+            if (item.status !== 'enabled') return false
+            
+            try {
+              const menuConfig: MenuItemConfig = JSON.parse(item.value as string)
+              return menuConfig.group === group.value
+            } catch {
+              return false
+            }
+          })
+          .sort((a, b) => a.sort - b.sort)
+        
+        for (const item of enabledItems) {
+          try {
+            const menuConfig: MenuItemConfig = JSON.parse(item.value as string)
+            
+            // 检查权限
+            const hasPermission = !menuConfig.permissions?.length || 
+              menuConfig.permissions.some(permission => userPermissions.includes(permission))
+            
+            if (hasPermission) {
+              groupItems.push({
+                key: menuConfig.key,
+                label: menuConfig.label,
+                icon: menuConfig.icon,
+                path: menuConfig.path,
+                permissions: menuConfig.permissions,
+                group: menuConfig.group
+              })
+            }
+          } catch (error) {
+            console.warn(`Failed to parse menu item config:`, item, error)
+          }
+        }
+        
+        // 只有当分组下有菜单项时才添加该分组
+        if (groupItems.length > 0) {
+          menuGroups.push({
+            key: group.value as string,
+            label: group.name,
+            type: 'group',
+            children: groupItems
+          })
+        }
+      }
+      
+      return menuGroups
+    } catch (error) {
+      console.error('Failed to build menu from dict:', error)
+      // 降级到最小化菜单
+      return this.getMinimalMenu(userPermissions)
+    }
+  }
+
+  // 获取最小化降级菜单
+  private getMinimalMenu(userPermissions: string[]): MenuItem[] {
+    const minimalMenus: MenuItem[] = [
+      {
+        key: 'workspace',
+        label: '工作台',
+        type: 'group',
+        children: [
+          {
+            key: 'dashboard',
+            label: '仪表板',
+            icon: 'BarChart3',
+            path: '/',
+            permissions: ['dashboard:view']
+          }
+        ]
+      },
+      {
+        key: 'system',
+        label: '系统管理',
+        type: 'group',
+        children: [
+          {
+            key: 'data-dictionary',
+            label: '数据字典',
+            icon: 'Book',
+            path: '/data-dictionary',
+            permissions: ['system:dict']
+          }
+        ]
+      }
+    ]
+    
+    return this.filterMenuByPermissions(minimalMenus, userPermissions)
+  }
+
   // 根据权限过滤菜单
   filterMenuByPermissions(menus: any[], userPermissions: string[]): any[] {
     return menus.filter(menu => {
@@ -298,10 +262,12 @@ class MockPermissionService {
     await new Promise(resolve => setTimeout(resolve, 300))
     
     const userPermissions = user.permissions || this.getPermissionsByRole(user.role)
-    const filteredMenus = this.filterMenuByPermissions([...mockMenuConfig.menus], userPermissions)
+    
+    // 优先从数据字典获取菜单配置
+    const menus = await this.buildMenuFromDict(userPermissions)
     
     return {
-      menus: filteredMenus,
+      menus,
       userPermissions
     }
   }
@@ -323,6 +289,25 @@ class MockPermissionService {
     await new Promise(resolve => setTimeout(resolve, 100))
     return true
   }
+
+  // 测试方法：验证菜单是否从字典读取
+  async testMenuFromDict(): Promise<{ success: boolean, menuCount: number, source: string }> {
+    try {
+      const testPermissions = ['dashboard:view', 'meeting:view', 'system:dict']
+      const menus = await this.buildMenuFromDict(testPermissions)
+      return {
+        success: true,
+        menuCount: menus.length,
+        source: 'dictionary'
+      }
+    } catch (error) {
+      return {
+        success: false,
+        menuCount: 0,
+        source: 'fallback'
+      }
+    }
+  }
 }
 
 // 决定使用哪个服务实现
@@ -340,23 +325,36 @@ const createPermissionApi = () => {
     // 适配器模式，将新API服务包装成旧接口
     return {
       async getUserMenuConfig(user: User) {
-        // 将前端 User 类型转换为后端API所需的类型
-        const apiUser = {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          role: user.role,
-          avatar: user.avatar,
-          department: user.department,
-          position: user.position,
-          phone: user.phone,
-          status: user.status,
-          lastLoginAt: user.lastLoginAt,
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt,
-          permissions: user.permissions
+        // 尝试从数据字典构建菜单
+        const mockService = new MockPermissionService()
+        const userPermissions = user.permissions || mockService.getPermissionsByRole(user.role)
+        
+        try {
+          const menus = await mockService.buildMenuFromDict(userPermissions)
+          return {
+            menus,
+            userPermissions
+          }
+        } catch (error) {
+          console.error('Failed to build menu from dict in real API, falling back to API service:', error)
+          // 如果字典方式失败，降级到原有API服务
+          const apiUser = {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            avatar: user.avatar,
+            department: user.department,
+            position: user.position,
+            phone: user.phone,
+            status: user.status,
+            lastLoginAt: user.lastLoginAt,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+            permissions: user.permissions
+          }
+          return permissionApiService.getUserMenuConfig(apiUser)
         }
-        return permissionApiService.getUserMenuConfig(apiUser)
       },
 
       async getAllPermissions() {

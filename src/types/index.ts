@@ -155,17 +155,44 @@ export interface RouteItem {
 export interface MenuItem {
   key: string
   label: string
-  icon?: React.ReactNode
+  icon?: React.ReactNode | string
   path?: string
   children?: MenuItem[]
   type?: 'group' | 'item'
   permissions?: string[] // 需要的权限码
   visible?: boolean // 是否可见
+  group?: string // 所属分组
 }
 
 export interface MenuConfig {
   menus: MenuItem[]
   userPermissions: string[]
+}
+
+// 菜单字典相关类型
+export interface MenuItemConfig {
+  key: string
+  label: string
+  icon: string
+  path: string
+  permissions: string[]
+  group: string
+}
+
+export interface MenuGroupConfig {
+  key: string
+  label: string
+  value: string
+  status: 'enabled' | 'disabled'
+  sort: number
+}
+
+export interface MenuIconConfig {
+  key: string
+  label: string
+  value: string
+  status: 'enabled' | 'disabled'
+  sort: number
 }
 
 // 通用状态类型

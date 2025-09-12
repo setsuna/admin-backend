@@ -62,6 +62,62 @@ const mockDictItems: Record<string, DictItem[]> = {
     { id: '33', code: 'USER', name: '普通用户', value: 'user', status: 'enabled', sort: 4, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
     { id: '34', code: 'GUEST', name: '访客用户', value: 'guest', status: 'disabled', sort: 5, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
     { id: '35', code: 'VIP', name: 'VIP用户', value: 'vip', status: 'enabled', sort: 6, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+  ],
+  'MENU_GROUPS': [
+    { id: '36', code: 'WORKSPACE', name: '工作台', value: 'workspace', status: 'enabled', sort: 1, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '37', code: 'MEETING', name: '会议管理', value: 'meeting', status: 'enabled', sort: 2, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '38', code: 'SYNC', name: '同步管理', value: 'sync', status: 'enabled', sort: 3, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '39', code: 'PERSONNEL', name: '人员管理', value: 'personnel', status: 'enabled', sort: 4, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '40', code: 'ORGANIZATION', name: '组织架构', value: 'organization', status: 'enabled', sort: 5, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '41', code: 'SYSTEM', name: '系统管理', value: 'system', status: 'enabled', sort: 6, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '42', code: 'MONITORING', name: '监控告警', value: 'monitoring', status: 'enabled', sort: 7, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+  ],
+  'MENU_ITEMS': [
+    // 工作台分组
+    { id: '43', code: 'DASHBOARD', name: '仪表板', value: JSON.stringify({ key: 'dashboard', label: '仪表板', icon: 'BarChart3', path: '/', permissions: ['dashboard:view'], group: 'workspace' }), status: 'enabled', sort: 1, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    
+    // 会议管理分组
+    { id: '44', code: 'MEETING_LIST', name: '会议列表', value: JSON.stringify({ key: 'meeting-list', label: '会议列表', icon: 'Calendar', path: '/meetings', permissions: ['meeting:view'], group: 'meeting' }), status: 'enabled', sort: 2, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '45', code: 'MY_MEETINGS', name: '我的会议', value: JSON.stringify({ key: 'my-meetings', label: '我的会议', icon: 'User', path: '/my-meetings', permissions: ['meeting:view'], group: 'meeting' }), status: 'enabled', sort: 3, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    
+    // 同步管理分组
+    { id: '46', code: 'SYNC_STATUS', name: '同步状态', value: JSON.stringify({ key: 'sync-status', label: '同步状态', icon: 'RefreshCw', path: '/sync-status', permissions: ['sync:view'], group: 'sync' }), status: 'enabled', sort: 4, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    
+    // 人员管理分组
+    { id: '47', code: 'PARTICIPANTS', name: '参会人员', value: JSON.stringify({ key: 'participants', label: '参会人员', icon: 'Users', path: '/participants', permissions: ['personnel:view'], group: 'personnel' }), status: 'enabled', sort: 5, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '48', code: 'ROLE_PERMISSIONS', name: '角色权限', value: JSON.stringify({ key: 'role-permissions', label: '角色权限', icon: 'Shield', path: '/role-permissions', permissions: ['role:manage'], group: 'personnel' }), status: 'enabled', sort: 6, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '49', code: 'SECURITY_LEVELS', name: '人员密级', value: JSON.stringify({ key: 'security-levels', label: '人员密级', icon: 'Lock', path: '/security-levels', permissions: ['security:manage'], group: 'personnel' }), status: 'enabled', sort: 7, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    
+    // 组织架构分组
+    { id: '50', code: 'DEPARTMENTS', name: '部门管理', value: JSON.stringify({ key: 'departments', label: '部门管理', icon: 'Building', path: '/departments', permissions: ['org:manage'], group: 'organization' }), status: 'enabled', sort: 8, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '51', code: 'STAFF_MANAGEMENT', name: '人员管理', value: JSON.stringify({ key: 'staff-management', label: '人员管理', icon: 'UserCheck', path: '/staff', permissions: ['staff:manage'], group: 'organization' }), status: 'enabled', sort: 9, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    
+    // 系统管理分组
+    { id: '52', code: 'DATA_DICTIONARY', name: '数据字典', value: JSON.stringify({ key: 'data-dictionary', label: '数据字典', icon: 'Book', path: '/data-dictionary', permissions: ['system:dict'], group: 'system' }), status: 'enabled', sort: 10, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '53', code: 'BASIC_CONFIG', name: '基础配置', value: JSON.stringify({ key: 'basic-config', label: '基础配置', icon: 'Settings', path: '/basic-config', permissions: ['system:config'], group: 'system' }), status: 'enabled', sort: 11, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '54', code: 'SYSTEM_LOGS', name: '系统日志', value: JSON.stringify({ key: 'system-logs', label: '系统日志', icon: 'FileText', path: '/system-logs', permissions: ['system:logs'], group: 'system' }), status: 'enabled', sort: 12, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '55', code: 'ADMIN_LOGS', name: '操作日志（系统员）', value: JSON.stringify({ key: 'admin-logs', label: '操作日志（系统员）', icon: 'ScrollText', path: '/admin-logs', permissions: ['logs:admin'], group: 'system' }), status: 'enabled', sort: 13, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '56', code: 'AUDIT_LOGS', name: '操作日志（审计员）', value: JSON.stringify({ key: 'audit-logs', label: '操作日志（审计员）', icon: 'Search', path: '/audit-logs', permissions: ['logs:audit'], group: 'system' }), status: 'enabled', sort: 14, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    
+    // 监控告警分组
+    { id: '57', code: 'ANOMALY_ALERTS', name: '异常行为告警', value: JSON.stringify({ key: 'anomaly-alerts', label: '异常行为告警', icon: 'AlertTriangle', path: '/anomaly-alerts', permissions: ['monitor:alerts'], group: 'monitoring' }), status: 'enabled', sort: 15, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+  ],
+  'MENU_ICONS': [
+    { id: '58', code: 'BAR_CHART_3', name: '条形图3', value: 'BarChart3', status: 'enabled', sort: 1, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '59', code: 'CALENDAR', name: '日历', value: 'Calendar', status: 'enabled', sort: 2, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '60', code: 'USER', name: '用户', value: 'User', status: 'enabled', sort: 3, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '61', code: 'USERS', name: '用户组', value: 'Users', status: 'enabled', sort: 4, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '62', code: 'REFRESH_CW', name: '刷新', value: 'RefreshCw', status: 'enabled', sort: 5, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '63', code: 'SHIELD', name: '盾牌', value: 'Shield', status: 'enabled', sort: 6, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '64', code: 'LOCK', name: '锁', value: 'Lock', status: 'enabled', sort: 7, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '65', code: 'BUILDING', name: '建筑', value: 'Building', status: 'enabled', sort: 8, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '66', code: 'USER_CHECK', name: '用户检查', value: 'UserCheck', status: 'enabled', sort: 9, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '67', code: 'BOOK', name: '书本', value: 'Book', status: 'enabled', sort: 10, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '68', code: 'SETTINGS', name: '设置', value: 'Settings', status: 'enabled', sort: 11, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '69', code: 'FILE_TEXT', name: '文件文本', value: 'FileText', status: 'enabled', sort: 12, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '70', code: 'SCROLL_TEXT', name: '滚动文本', value: 'ScrollText', status: 'enabled', sort: 13, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '71', code: 'SEARCH', name: '搜索', value: 'Search', status: 'enabled', sort: 14, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '72', code: 'ALERT_TRIANGLE', name: '警告三角', value: 'AlertTriangle', status: 'enabled', sort: 15, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
   ]
 }
 
@@ -123,6 +179,42 @@ const mockDataDicts: DataDict[] = [
     itemCount: 6,
     remark: '系统用户角色权限定义',
     items: mockDictItems['USER_ROLE'],
+    createdAt: '2024-01-01T10:00:00Z',
+    updatedAt: '2024-01-01T10:00:00Z',
+  },
+  {
+    id: '6',
+    dictCode: 'MENU_GROUPS',
+    dictName: '菜单分组',
+    dictType: 'menu',
+    status: 'enabled',
+    itemCount: 7,
+    remark: '系统菜单分组定义',
+    items: mockDictItems['MENU_GROUPS'],
+    createdAt: '2024-01-01T10:00:00Z',
+    updatedAt: '2024-01-01T10:00:00Z',
+  },
+  {
+    id: '7',
+    dictCode: 'MENU_ITEMS',
+    dictName: '菜单项',
+    dictType: 'menu',
+    status: 'enabled',
+    itemCount: 15,
+    remark: '系统菜单项配置',
+    items: mockDictItems['MENU_ITEMS'],
+    createdAt: '2024-01-01T10:00:00Z',
+    updatedAt: '2024-01-01T10:00:00Z',
+  },
+  {
+    id: '8',
+    dictCode: 'MENU_ICONS',
+    dictName: '可用图标',
+    dictType: 'menu',
+    status: 'enabled',
+    itemCount: 15,
+    remark: '菜单可用图标列表',
+    items: mockDictItems['MENU_ICONS'],
     createdAt: '2024-01-01T10:00:00Z',
     updatedAt: '2024-01-01T10:00:00Z',
   }

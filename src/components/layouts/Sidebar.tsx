@@ -51,9 +51,17 @@ const iconMap: Record<string, any> = {
 }
 
 // 获取图标组件
-function getIconComponent(iconName?: string) {
+function getIconComponent(iconName?: string | React.ReactNode): React.ComponentType<any> | null {
   if (!iconName) return null
-  return iconMap[iconName] || null
+  
+  // 如果已经是React组件，直接返回
+  if (typeof iconName !== 'string') {
+    return null // 对于非字符串类型，返回null，让调用方处理
+  }
+  
+  // 如果是字符串，查找对应的图标组件
+  const IconComponent = iconMap[iconName]
+  return IconComponent || null
 }
 
 export function Sidebar({ className }: SidebarProps) {
@@ -115,8 +123,8 @@ export function Sidebar({ className }: SidebarProps) {
               if (item.type === 'group' && item.children) {
                 // 对于分组，显示其所有子项
                 return item.children.map((child) => {
-                  const Icon = getIconComponent(child.icon as string)
-                  if (!Icon || !child.path) return null
+                  const IconComponent = getIconComponent(child.icon)
+                  if (!IconComponent || !child.path) return null
                   return (
                     <NavLink
                       key={child.key}
@@ -131,14 +139,14 @@ export function Sidebar({ className }: SidebarProps) {
                       }
                       title={child.label}
                     >
-                      <Icon className="h-4 w-4 flex-shrink-0" />
+                      <IconComponent className="h-4 w-4 flex-shrink-0" />
                     </NavLink>
                   )
                 })
               } else if (item.icon && item.path) {
                 // 普通菜单项
-                const Icon = getIconComponent(item.icon as string)
-                if (!Icon) return null
+                const IconComponent = getIconComponent(item.icon)
+                if (!IconComponent) return null
                 return (
                   <NavLink
                     key={item.key}
@@ -153,7 +161,7 @@ export function Sidebar({ className }: SidebarProps) {
                     }
                     title={item.label}
                   >
-                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    <IconComponent className="h-4 w-4 flex-shrink-0" />
                   </NavLink>
                 )
               }
@@ -185,8 +193,8 @@ export function Sidebar({ className }: SidebarProps) {
                     {isExpanded && item.children && (
                       <div className="ml-2 space-y-1">
                         {item.children.map((child) => {
-                          const Icon = getIconComponent(child.icon as string)
-                          if (!Icon || !child.path) return null
+                          const IconComponent = getIconComponent(child.icon)
+                          if (!IconComponent || !child.path) return null
                           return (
                             <NavLink
                               key={child.key}
@@ -200,7 +208,7 @@ export function Sidebar({ className }: SidebarProps) {
                                 )
                               }
                             >
-                              <Icon className="h-4 w-4 flex-shrink-0" />
+                              <IconComponent className="h-4 w-4 flex-shrink-0" />
                               <span className="truncate">{child.label}</span>
                             </NavLink>
                           )
@@ -211,8 +219,8 @@ export function Sidebar({ className }: SidebarProps) {
                 )
               } else {
                 // 普通菜单项
-                const Icon = getIconComponent(item.icon as string)
-                if (!Icon || !item.path) return null
+                const IconComponent = getIconComponent(item.icon)
+                if (!IconComponent || !item.path) return null
                 return (
                   <NavLink
                     key={item.key}
@@ -226,7 +234,7 @@ export function Sidebar({ className }: SidebarProps) {
                       )
                     }
                   >
-                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    <IconComponent className="h-4 w-4 flex-shrink-0" />
                     <span className="truncate">{item.label}</span>
                   </NavLink>
                 )
