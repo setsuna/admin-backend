@@ -1,3 +1,8 @@
+/**
+ * 数据字典服务 - 重构版本
+ * 保持原有接口不变，内部切换到新的API架构
+ */
+
 import type { 
   DataDict, 
   DictItem,
@@ -7,7 +12,11 @@ import type {
   PaginatedResponse 
 } from '@/types'
 
-// Mock 数据
+// 导入新的API服务
+import { dictApiService } from './api/dict.api'
+import { envConfig } from '@/config/env.config'
+
+// Mock数据（保留用于开发环境）
 const mockDictItems: Record<string, DictItem[]> = {
   'DEVICE_TYPE': [
     { id: '1', code: 'TABLET', name: '平板设备', value: 1, status: 'enabled', sort: 1, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
@@ -116,75 +125,14 @@ const mockDataDicts: DataDict[] = [
     items: mockDictItems['USER_ROLE'],
     createdAt: '2024-01-01T10:00:00Z',
     updatedAt: '2024-01-01T10:00:00Z',
-  },
-  // 新增系统配置相关字典
-  {
-    id: '6',
-    dictCode: 'MENU_ICONS',
-    dictName: '菜单图标',
-    dictType: 'system',
-    status: 'enabled',
-    itemCount: 10,
-    remark: '系统菜单可用图标配置',
-    items: mockDictItems['MENU_ICONS'],
-    createdAt: '2024-01-01T10:00:00Z',
-    updatedAt: '2024-01-01T10:00:00Z',
-  },
-  {
-    id: '7',
-    dictCode: 'MENU_GROUPS',
-    dictName: '菜单分组',
-    dictType: 'system',
-    status: 'enabled',
-    itemCount: 7,
-    remark: '系统菜单分组配置',
-    items: mockDictItems['MENU_GROUPS'],
-    createdAt: '2024-01-01T10:00:00Z',
-    updatedAt: '2024-01-01T10:00:00Z',
-  },
-  {
-    id: '8',
-    dictCode: 'PERMISSION_CODES',
-    dictName: '权限代码',
-    dictType: 'permission',
-    status: 'enabled',
-    itemCount: 8,
-    remark: '系统权限代码配置',
-    items: mockDictItems['PERMISSION_CODES'],
-    createdAt: '2024-01-01T10:00:00Z',
-    updatedAt: '2024-01-01T10:00:00Z',
-  },
-  {
-    id: '9',
-    dictCode: 'THEME_CONFIG',
-    dictName: '主题配置',
-    dictType: 'system',
-    status: 'enabled',
-    itemCount: 4,
-    remark: '系统界面主题配置',
-    items: mockDictItems['THEME_CONFIG'],
-    createdAt: '2024-01-01T10:00:00Z',
-    updatedAt: '2024-01-01T10:00:00Z',
-  },
-  {
-    id: '10',
-    dictCode: 'LANGUAGE_CONFIG',
-    dictName: '语言配置',
-    dictType: 'system',
-    status: 'enabled',
-    itemCount: 4,
-    remark: '系统多语言支持配置',
-    items: mockDictItems['LANGUAGE_CONFIG'],
-    createdAt: '2024-01-01T10:00:00Z',
-    updatedAt: '2024-01-01T10:00:00Z',
   }
 ]
 
 // 模拟网络延迟
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-export const dictApi = {
-  // 获取数据字典列表
+// Mock服务实现
+class MockDictService {
   async getDictionaries(
     filters: DictFilters = {},
     page: number = 1,
@@ -194,7 +142,6 @@ export const dictApi = {
     
     let filteredData = [...mockDataDicts]
     
-    // 关键词搜索
     if (filters.keyword) {
       const keyword = filters.keyword.toLowerCase()
       filteredData = filteredData.filter(dict =>
@@ -203,12 +150,10 @@ export const dictApi = {
       )
     }
     
-    // 字典类型筛选
     if (filters.dictType) {
       filteredData = filteredData.filter(dict => dict.dictType === filters.dictType)
     }
     
-    // 状态筛选
     if (filters.status) {
       filteredData = filteredData.filter(dict => dict.status === filters.status)
     }
@@ -218,7 +163,7 @@ export const dictApi = {
     const items = filteredData.slice(start, start + pageSize)
       .map(dict => ({
         ...dict,
-        items: dict.items || [] // 确保 items 不为 undefined
+        items: dict.items || []
       }))
     
     return {
@@ -230,22 +175,19 @@ export const dictApi = {
         totalPages: Math.ceil(total / pageSize)
       }
     }
-  },
-  
-  // 获取单个数据字典详情
+  }
+
   async getDictionary(id: string): Promise<DataDict | null> {
     await delay(200)
     const found = mockDataDicts.find(dict => dict.id === id)
     if (!found) return null
     
-    // 确保 items 不为 undefined
     return {
       ...found,
       items: found.items || []
     }
-  },
-  
-  // 创建数据字典
+  }
+
   async createDictionary(data: CreateDictRequest): Promise<DataDict> {
     await delay(500)
     
@@ -270,9 +212,8 @@ export const dictApi = {
     
     mockDataDicts.push(newDict)
     return newDict
-  },
-  
-  // 更新数据字典
+  }
+
   async updateDictionary(id: string, data: Partial<UpdateDictRequest>): Promise<DataDict | null> {
     await delay(500)
     
@@ -299,9 +240,8 @@ export const dictApi = {
     
     mockDataDicts[dictIndex] = updatedDict
     return updatedDict
-  },
-  
-  // 删除数据字典
+  }
+
   async deleteDictionary(id: string): Promise<boolean> {
     await delay(300)
     
@@ -310,9 +250,8 @@ export const dictApi = {
     
     mockDataDicts.splice(dictIndex, 1)
     return true
-  },
-  
-  // 批量删除数据字典
+  }
+
   async deleteDictionaries(ids: string[]): Promise<boolean> {
     await delay(500)
     
@@ -323,9 +262,8 @@ export const dictApi = {
       }
     }
     return true
-  },
-  
-  // 更新字典状态
+  }
+
   async updateDictionaryStatus(id: string, status: 'enabled' | 'disabled'): Promise<boolean> {
     await delay(300)
     
@@ -335,9 +273,8 @@ export const dictApi = {
     dict.status = status
     dict.updatedAt = new Date().toISOString()
     return true
-  },
-  
-  // 获取字典类型列表（用于筛选）
+  }
+
   async getDictTypes(): Promise<{ label: string; value: string }[]> {
     await delay(100)
     
@@ -346,16 +283,14 @@ export const dictApi = {
       label: type,
       value: type
     }))
-  },
-  
-  // 同步字典到设备
+  }
+
   async syncToDevices(dictIds: string[]): Promise<boolean> {
-    await delay(1000) // 模拟同步耗时
-    console.log('Syncing dictionaries to devices:', dictIds)
+    await delay(1000)
+    console.log('Mock: Syncing dictionaries to devices:', dictIds)
     return true
-  },
-  
-  // 导出数据字典
+  }
+
   async exportDictionaries(dictIds?: string[]): Promise<Blob> {
     await delay(500)
     
@@ -376,3 +311,65 @@ export const dictApi = {
     return blob
   }
 }
+
+// 决定使用哪个服务实现
+const shouldUseMock = () => {
+  return envConfig.ENABLE_MOCK || envConfig.DEV
+}
+
+// 创建统一的API接口
+const createDictApi = () => {
+  if (shouldUseMock()) {
+    console.log('📝 Dict API: Using Mock Service')
+    return new MockDictService()
+  } else {
+    console.log('🌐 Dict API: Using Real Service')
+    // 适配器模式，将新API服务包装成旧接口
+    return {
+      async getDictionaries(filters: DictFilters = {}, page = 1, pageSize = 20) {
+        return dictApiService.getDictionaries(filters, page, pageSize)
+      },
+
+      async getDictionary(id: string) {
+        return dictApiService.getDictionary(id)
+      },
+
+      async createDictionary(data: CreateDictRequest) {
+        return dictApiService.createDictionary(data)
+      },
+
+      async updateDictionary(id: string, data: Partial<UpdateDictRequest>) {
+        return dictApiService.updateDictionary(id, data)
+      },
+
+      async deleteDictionary(id: string) {
+        const result = await dictApiService.deleteDictionary(id)
+        return result.success
+      },
+
+      async deleteDictionaries(ids: string[]) {
+        const result = await dictApiService.deleteDictionaries(ids)
+        return result.successCount === ids.length
+      },
+
+      async updateDictionaryStatus(id: string, status: 'enabled' | 'disabled') {
+        const result = await dictApiService.updateDictionaryStatus(id, status)
+        return result.success
+      },
+
+      async getDictTypes() {
+        return dictApiService.getDictTypes()
+      },
+
+      async syncToDevices(dictIds: string[]) {
+        return dictApiService.syncToDevices(dictIds)
+      },
+
+      async exportDictionaries(dictIds?: string[]) {
+        return dictApiService.exportDictionaries(dictIds)
+      }
+    }
+  }
+}
+
+export const dictApi = createDictApi()

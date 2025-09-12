@@ -1,5 +1,13 @@
+/**
+ * 权限服务 - 重构版本
+ * 保持原有接口不变，内部切换到新的API架构
+ */
+
 import type { MenuConfig, Permission, Role, User } from '@/types'
-// Mock数据 - 后续替换为真实API
+import { permissionApiService } from './api/user.api'
+import { envConfig } from '@/config/env.config'
+
+// Mock数据（保留用于开发环境）
 const mockMenuConfig: MenuConfig = {
   menus: [
     {
@@ -260,65 +268,97 @@ const mockRoles: Role[] = [
   }
 ]
 
-// 根据用户角色获取权限
-function getPermissionsByRole(userRole: string): string[] {
-  const role = mockRoles.find(r => r.code === userRole)
-  return role ? role.permissions : []
-}
+// Mock服务实现
+class MockPermissionService {
+  // 根据用户角色获取权限
+  getPermissionsByRole(userRole: string): string[] {
+    const role = mockRoles.find(r => r.code === userRole)
+    return role ? role.permissions : []
+  }
 
-// 根据权限过滤菜单
-function filterMenuByPermissions(menus: any[], userPermissions: string[]): any[] {
-  return menus.filter(menu => {
-    if (menu.type === 'group' && menu.children) {
-      // 过滤分组的子菜单
-      menu.children = filterMenuByPermissions(menu.children, userPermissions)
-      // 如果分组下没有可见的子菜单，隐藏整个分组
-      return menu.children.length > 0
-    } else {
-      // 检查菜单项权限
-      if (!menu.permissions || menu.permissions.length === 0) {
-        return true // 无权限要求，所有人可见
+  // 根据权限过滤菜单
+  filterMenuByPermissions(menus: any[], userPermissions: string[]): any[] {
+    return menus.filter(menu => {
+      if (menu.type === 'group' && menu.children) {
+        menu.children = this.filterMenuByPermissions(menu.children, userPermissions)
+        return menu.children.length > 0
+      } else {
+        if (!menu.permissions || menu.permissions.length === 0) {
+          return true
+        }
+        return menu.permissions.some((permission: string) => 
+          userPermissions.includes(permission)
+        )
       }
-      // 用户需要拥有至少一个所需权限
-      return menu.permissions.some((permission: string) => 
-        userPermissions.includes(permission)
-      )
-    }
-  })
-}
+    })
+  }
 
-// API函数
-export const permissionApi = {
   // 获取用户菜单配置
   async getUserMenuConfig(user: User): Promise<MenuConfig> {
-    // 模拟API调用延迟
     await new Promise(resolve => setTimeout(resolve, 300))
     
-    const userPermissions = user.permissions || getPermissionsByRole(user.role)
-    const filteredMenus = filterMenuByPermissions([...mockMenuConfig.menus], userPermissions)
+    const userPermissions = user.permissions || this.getPermissionsByRole(user.role)
+    const filteredMenus = this.filterMenuByPermissions([...mockMenuConfig.menus], userPermissions)
     
     return {
       menus: filteredMenus,
       userPermissions
     }
-  },
+  }
 
   // 获取所有权限
   async getAllPermissions(): Promise<Permission[]> {
     await new Promise(resolve => setTimeout(resolve, 200))
     return [...mockPermissions]
-  },
+  }
 
   // 获取所有角色
   async getAllRoles(): Promise<Role[]> {
     await new Promise(resolve => setTimeout(resolve, 200))
     return [...mockRoles]
-  },
+  }
 
   // 检查用户权限
   async checkUserPermission(): Promise<boolean> {
     await new Promise(resolve => setTimeout(resolve, 100))
-    // Mock实现
     return true
   }
 }
+
+// 决定使用哪个服务实现
+const shouldUseMock = () => {
+  return envConfig.ENABLE_MOCK || envConfig.DEV
+}
+
+// 创建统一的API接口
+const createPermissionApi = () => {
+  if (shouldUseMock()) {
+    console.log('🔐 Permission API: Using Mock Service')
+    return new MockPermissionService()
+  } else {
+    console.log('🌐 Permission API: Using Real Service')
+    // 适配器模式，将新API服务包装成旧接口
+    return {
+      async getUserMenuConfig(user: User) {
+        return permissionApiService.getUserMenuConfig(user)
+      },
+
+      async getAllPermissions() {
+        return permissionApiService.getAllPermissions()
+      },
+
+      async getAllRoles() {
+        return permissionApiService.getAllRoles()
+      },
+
+      async checkUserPermission(userId?: string, permission?: string) {
+        if (userId && permission) {
+          return permissionApiService.checkUserPermission(userId, permission)
+        }
+        return true // Mock实现
+      }
+    }
+  }
+}
+
+export const permissionApi = createPermissionApi()

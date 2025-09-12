@@ -1,6 +1,13 @@
-import type { Meeting, MeetingFilters, PaginatedResponse, CreateMeetingRequest, MeetingAgenda } from '@/types'
+/**
+ * 会议服务 - 重构版本
+ * 保持原有接口不变，内部切换到新的API架构
+ */
 
-// 草稿会议接口
+import type { Meeting, MeetingFilters, PaginatedResponse, CreateMeetingRequest, MeetingAgenda } from '@/types'
+import { meetingApiService } from './api/meeting.api'
+import { envConfig } from '@/config/env.config'
+
+// 草稿会议接口（保持向后兼容）
 interface DraftMeeting {
   id: string
   status: 'draft'
@@ -9,7 +16,7 @@ interface DraftMeeting {
   updatedAt: string
 }
 
-// 文件上传响应
+// 文件上传响应（保持向后兼容）
 interface FileUploadResponse {
   id: string
   name: string
@@ -19,10 +26,7 @@ interface FileUploadResponse {
   uploadedAt: string
 }
 
-// 导出类型
-export type { DraftMeeting, FileUploadResponse }
-
-// Mock数据存储
+// Mock数据存储（保留用于开发环境）
 const mockMeetings: Meeting[] = [
   {
     id: '1',
@@ -119,7 +123,7 @@ const mockMeetings: Meeting[] = [
 // 草稿会议存储
 const mockDraftMeetings: Map<string, DraftMeeting> = new Map()
 
-// 会议文件存储 (meetingId -> files[])
+// 会议文件存储
 const mockMeetingFiles: Map<string, FileUploadResponse[]> = new Map()
 
 // 模拟API延迟
@@ -169,7 +173,8 @@ function paginateMeetings(meetings: Meeting[], page: number, pageSize: number): 
   }
 }
 
-export const meetingApi = {
+// Mock服务实现
+class MockMeetingService {
   // 创建草稿会议
   async createDraftMeeting(): Promise<DraftMeeting> {
     await delay(300)
@@ -184,35 +189,34 @@ export const meetingApi = {
     mockDraftMeetings.set(draftMeeting.id, draftMeeting)
     console.log('Created draft meeting:', draftMeeting.id)
     return draftMeeting
-  },
+  }
 
   // 上传文件到会议
   async uploadMeetingFile(meetingId: string, file: File, _agendaId?: string): Promise<FileUploadResponse> {
-    await delay(1000) // 模拟文件上传时间
+    await delay(1000)
     
     const fileResponse: FileUploadResponse = {
       id: `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       name: file.name,
       size: file.size,
       type: file.name.split('.').pop() || 'unknown',
-      url: `http://localhost:3000/files/${file.name}`, // Mock URL
+      url: `http://localhost:3000/files/${file.name}`,
       uploadedAt: new Date().toISOString()
     }
     
-    // 存储文件信息
     const existingFiles = mockMeetingFiles.get(meetingId) || []
     existingFiles.push(fileResponse)
     mockMeetingFiles.set(meetingId, existingFiles)
     
     console.log(`Uploaded file ${file.name} to meeting ${meetingId}`)
     return fileResponse
-  },
+  }
 
   // 获取会议文件列表
   async getMeetingFiles(meetingId: string): Promise<FileUploadResponse[]> {
     await delay(200)
     return mockMeetingFiles.get(meetingId) || []
-  },
+  }
 
   // 删除会议文件
   async deleteMeetingFile(meetingId: string, fileId: string): Promise<boolean> {
@@ -223,13 +227,12 @@ export const meetingApi = {
     
     console.log(`Deleted file ${fileId} from meeting ${meetingId}`)
     return true
-  },
+  }
 
-  // 提交草稿会议（发布）
+  // 提交草稿会议
   async submitDraftMeeting(meetingId: string, meetingData: CreateMeetingRequest): Promise<Meeting> {
     await delay(500)
     
-    // 检查是否是草稿会议
     const draftMeeting = mockDraftMeetings.get(meetingId)
     if (!draftMeeting) {
       throw new Error('Draft meeting not found')
@@ -238,17 +241,16 @@ export const meetingApi = {
     const now = new Date().toISOString()
     const files = mockMeetingFiles.get(meetingId) || []
     
-    // 创建正式会议
     const newMeeting: Meeting = {
-      id: meetingId, // 保持同一个ID
+      id: meetingId,
       name: meetingData.name,
       startTime: meetingData.startTime,
       endTime: meetingData.endTime,
       status: 'preparation',
       securityLevel: meetingData.securityLevel,
       type: meetingData.type,
-      hostId: '1', // 当前用户ID
-      hostName: '当前用户', // 当前用户名
+      hostId: '1',
+      hostName: '当前用户',
       location: meetingData.location || '',
       description: meetingData.description,
       participantCount: meetingData.participants.length,
@@ -258,15 +260,12 @@ export const meetingApi = {
       updatedAt: now
     }
     
-    // 添加到正式会议列表
     mockMeetings.unshift(newMeeting)
-    
-    // 清理草稿数据
     mockDraftMeetings.delete(meetingId)
     
     console.log('Published draft meeting:', meetingId)
     return newMeeting
-  },
+  }
 
   // 保存草稿会议数据
   async saveDraftMeeting(meetingId: string, meetingData: Partial<CreateMeetingRequest>): Promise<boolean> {
@@ -277,7 +276,6 @@ export const meetingApi = {
       throw new Error('Draft meeting not found')
     }
     
-    // 更新草稿数据（这里可以扩展存储更多信息）
     const updatedDraft = {
       ...draftMeeting,
       name: meetingData.name,
@@ -287,7 +285,7 @@ export const meetingApi = {
     mockDraftMeetings.set(meetingId, updatedDraft)
     console.log('Saved draft meeting data:', meetingId)
     return true
-  },
+  }
 
   // 获取会议列表
   async getMeetings(
@@ -298,7 +296,7 @@ export const meetingApi = {
     await delay(300)
     const filteredMeetings = filterMeetings(mockMeetings, filters)
     return paginateMeetings(filteredMeetings, page, pageSize)
-  },
+  }
 
   // 获取我的会议
   async getMyMeetings(
@@ -312,23 +310,21 @@ export const meetingApi = {
     
     let meetings = [...mockMeetings]
     
-    // 根据标签页过滤
     if (tabType === 'hosted') {
       meetings = meetings.filter(meeting => meeting.hostId === currentUserId)
     } else if (tabType === 'participated') {
-      // 这里应该根据参会人员信息过滤，暂时mock处理
       meetings = meetings.filter(meeting => meeting.hostId !== currentUserId)
     }
     
     const filteredMeetings = filterMeetings(meetings, filters)
     return paginateMeetings(filteredMeetings, page, pageSize)
-  },
+  }
 
   // 获取单个会议详情
   async getMeetingById(id: string): Promise<Meeting | null> {
     await delay(200)
     return mockMeetings.find(meeting => meeting.id === id) || null
-  },
+  }
 
   // 创建会议
   async createMeeting(meetingData: Omit<Meeting, 'id' | 'createdAt' | 'updatedAt'>): Promise<Meeting> {
@@ -342,7 +338,7 @@ export const meetingApi = {
     }
     mockMeetings.unshift(newMeeting)
     return newMeeting
-  },
+  }
 
   // 创建会议（使用CreateMeetingRequest）
   async createMeetingFromRequest(request: CreateMeetingRequest): Promise<Meeting> {
@@ -356,8 +352,8 @@ export const meetingApi = {
       status: 'preparation',
       securityLevel: request.securityLevel,
       type: request.type,
-      hostId: '1', // 当前用户ID
-      hostName: '当前用户', // 当前用户名
+      hostId: '1',
+      hostName: '当前用户',
       location: request.location,
       description: request.description,
       participantCount: request.participants.length,
@@ -368,7 +364,7 @@ export const meetingApi = {
     }
     mockMeetings.unshift(newMeeting)
     return newMeeting
-  },
+  }
 
   // 更新会议
   async updateMeeting(id: string, updates: Partial<Meeting>): Promise<Meeting | null> {
@@ -383,9 +379,9 @@ export const meetingApi = {
     }
     
     return mockMeetings[index]
-  },
+  }
 
-  // 删除会议（仅关闭状态可删除）
+  // 删除会议
   async deleteMeeting(id: string): Promise<boolean> {
     await delay(300)
     const meeting = mockMeetings.find(m => m.id === id)
@@ -400,7 +396,7 @@ export const meetingApi = {
     }
     
     return false
-  },
+  }
 
   // 批量操作
   async batchUpdateMeetings(ids: string[], updates: Partial<Meeting>): Promise<Meeting[]> {
@@ -422,3 +418,93 @@ export const meetingApi = {
     return updatedMeetings
   }
 }
+
+// 决定使用哪个服务实现
+const shouldUseMock = () => {
+  return envConfig.ENABLE_MOCK || envConfig.DEV
+}
+
+// 创建统一的API接口
+const createMeetingApi = () => {
+  if (shouldUseMock()) {
+    console.log('📅 Meeting API: Using Mock Service')
+    return new MockMeetingService()
+  } else {
+    console.log('🌐 Meeting API: Using Real Service')
+    // 适配器模式，将新API服务包装成旧接口
+    return {
+      async getMeetings(filters: MeetingFilters = {}, page = 1, pageSize = 10) {
+        return meetingApiService.getMeetings(filters, page, pageSize)
+      },
+
+      async getMyMeetings(
+        tabType: 'hosted' | 'participated' | 'all' = 'all',
+        filters: MeetingFilters = {},
+        page = 1,
+        pageSize = 10,
+        currentUserId = '1'
+      ) {
+        return meetingApiService.getMyMeetings(tabType, filters, page, pageSize)
+      },
+
+      async getMeetingById(id: string) {
+        return meetingApiService.getMeetingById(id)
+      },
+
+      async createMeeting(meetingData: Omit<Meeting, 'id' | 'createdAt' | 'updatedAt'>) {
+        return meetingApiService.createMeeting(meetingData)
+      },
+
+      async createMeetingFromRequest(request: CreateMeetingRequest) {
+        return meetingApiService.createMeetingFromRequest(request)
+      },
+
+      async updateMeeting(id: string, updates: Partial<Meeting>) {
+        return meetingApiService.updateMeeting(id, updates)
+      },
+
+      async deleteMeeting(id: string) {
+        const result = await meetingApiService.deleteMeeting(id)
+        return result.success
+      },
+
+      async batchUpdateMeetings(ids: string[], updates: Partial<Meeting>) {
+        const result = await meetingApiService.batchUpdateMeetings(ids, updates)
+        return result.success
+      },
+
+      // 草稿会议相关
+      async createDraftMeeting() {
+        return meetingApiService.createDraftMeeting()
+      },
+
+      async saveDraftMeeting(meetingId: string, meetingData: Partial<CreateMeetingRequest>) {
+        const result = await meetingApiService.saveDraftMeeting(meetingId, meetingData)
+        return result.success
+      },
+
+      async submitDraftMeeting(meetingId: string, meetingData: CreateMeetingRequest) {
+        return meetingApiService.submitDraftMeeting(meetingId, meetingData)
+      },
+
+      // 文件管理相关
+      async uploadMeetingFile(meetingId: string, file: File, agendaId?: string) {
+        return meetingApiService.uploadMeetingFile(meetingId, file, agendaId)
+      },
+
+      async getMeetingFiles(meetingId: string) {
+        return meetingApiService.getMeetingFiles(meetingId)
+      },
+
+      async deleteMeetingFile(meetingId: string, fileId: string) {
+        const result = await meetingApiService.deleteMeetingFile(meetingId, fileId)
+        return result.success
+      }
+    }
+  }
+}
+
+export const meetingApi = createMeetingApi()
+
+// 导出类型以保持向后兼容
+export type { DraftMeeting, FileUploadResponse }
