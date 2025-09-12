@@ -26,7 +26,7 @@ export const envConfig: EnvConfig = {
 export const appConfig = {
   name: 'Admin Backend',
   version: '1.0.0',
-  description: '会议管理系统后台',
+  description: '涉密会议文档综合管控系统',
   
   // 分页默认配置
   pagination: {
