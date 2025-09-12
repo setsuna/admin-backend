@@ -256,7 +256,7 @@ const DataDictionaryPage: React.FC = () => {
     )
   }
 
-  const renderDictItems = (items: DictItem[]) => {
+  const renderDictItems = (items: DictItem[] = []) => {
     if (!items || items.length === 0) return null
 
     return (
@@ -575,7 +575,7 @@ const DataDictionaryPage: React.FC = () => {
                       </div>
                     )}
                     
-                    {renderDictItems(dict.items)}
+                    {renderDictItems(dict.items || [])}
                   </CardContent>
                 </Card>
               )

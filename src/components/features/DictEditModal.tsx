@@ -35,7 +35,9 @@ const DictEditModal: React.FC<DictEditModalProps> = ({
         status: dict.status,
         remark: dict.remark || ''
       })
-      setItems(dict.items.map(item => ({
+      // 安全处理 dict.items，防止 undefined 错误
+      const dictItems = dict.items || []
+      setItems(dictItems.map(item => ({
         code: item.code,
         name: item.name,
         value: item.value,

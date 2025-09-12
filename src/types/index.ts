@@ -271,7 +271,7 @@ export interface DataDict {
   status: DictStatus
   itemCount: number
   remark?: string
-  items: DictItem[]
+  items?: DictItem[] // 使 items 变为可选的，以防止 undefined 错误
   createdAt: string
   updatedAt: string
 }

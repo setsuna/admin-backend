@@ -116,6 +116,67 @@ const mockDataDicts: DataDict[] = [
     items: mockDictItems['USER_ROLE'],
     createdAt: '2024-01-01T10:00:00Z',
     updatedAt: '2024-01-01T10:00:00Z',
+  },
+  // 新增系统配置相关字典
+  {
+    id: '6',
+    dictCode: 'MENU_ICONS',
+    dictName: '菜单图标',
+    dictType: 'system',
+    status: 'enabled',
+    itemCount: 10,
+    remark: '系统菜单可用图标配置',
+    items: mockDictItems['MENU_ICONS'],
+    createdAt: '2024-01-01T10:00:00Z',
+    updatedAt: '2024-01-01T10:00:00Z',
+  },
+  {
+    id: '7',
+    dictCode: 'MENU_GROUPS',
+    dictName: '菜单分组',
+    dictType: 'system',
+    status: 'enabled',
+    itemCount: 7,
+    remark: '系统菜单分组配置',
+    items: mockDictItems['MENU_GROUPS'],
+    createdAt: '2024-01-01T10:00:00Z',
+    updatedAt: '2024-01-01T10:00:00Z',
+  },
+  {
+    id: '8',
+    dictCode: 'PERMISSION_CODES',
+    dictName: '权限代码',
+    dictType: 'permission',
+    status: 'enabled',
+    itemCount: 8,
+    remark: '系统权限代码配置',
+    items: mockDictItems['PERMISSION_CODES'],
+    createdAt: '2024-01-01T10:00:00Z',
+    updatedAt: '2024-01-01T10:00:00Z',
+  },
+  {
+    id: '9',
+    dictCode: 'THEME_CONFIG',
+    dictName: '主题配置',
+    dictType: 'system',
+    status: 'enabled',
+    itemCount: 4,
+    remark: '系统界面主题配置',
+    items: mockDictItems['THEME_CONFIG'],
+    createdAt: '2024-01-01T10:00:00Z',
+    updatedAt: '2024-01-01T10:00:00Z',
+  },
+  {
+    id: '10',
+    dictCode: 'LANGUAGE_CONFIG',
+    dictName: '语言配置',
+    dictType: 'system',
+    status: 'enabled',
+    itemCount: 4,
+    remark: '系统多语言支持配置',
+    items: mockDictItems['LANGUAGE_CONFIG'],
+    createdAt: '2024-01-01T10:00:00Z',
+    updatedAt: '2024-01-01T10:00:00Z',
   }
 ]
 
@@ -155,6 +216,10 @@ export const dictApi = {
     const total = filteredData.length
     const start = (page - 1) * pageSize
     const items = filteredData.slice(start, start + pageSize)
+      .map(dict => ({
+        ...dict,
+        items: dict.items || [] // 确保 items 不为 undefined
+      }))
     
     return {
       items,
@@ -170,7 +235,14 @@ export const dictApi = {
   // 获取单个数据字典详情
   async getDictionary(id: string): Promise<DataDict | null> {
     await delay(200)
-    return mockDataDicts.find(dict => dict.id === id) || null
+    const found = mockDataDicts.find(dict => dict.id === id)
+    if (!found) return null
+    
+    // 确保 items 不为 undefined
+    return {
+      ...found,
+      items: found.items || []
+    }
   },
   
   // 创建数据字典
