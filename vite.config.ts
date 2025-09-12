@@ -8,6 +8,8 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, './src'),
     },
+    // 强制去重，解决状态管理库可能的冲突
+    dedupe: ['react', 'react-dom', 'zustand']
   },
   server: {
     port: 3000,
@@ -26,49 +28,25 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        // 移除 Monaco 后，可以尝试更精细的分包
-        manualChunks: (id) => {
+        // 优化的分包策略：避免状态管理库被分散导致运行时错误
+        manualChunks: {
           // React 核心
-          if (id.includes('react') && !id.includes('react-router') && 
-              !id.includes('react-hook-form') && !id.includes('react-dropzone')) {
-            return 'react'
-          }
-          
-          // React 生态系统
-          if (id.includes('react-router') || id.includes('react-hook-form') || 
-              id.includes('react-dropzone') || id.includes('@tanstack')) {
-            return 'react-eco'
-          }
-          
-          // 状态管理
-          if (id.includes('zustand')) {
-            return 'state'
-          }
-          
-          // UI 和图标库
-          if (id.includes('lucide-react') || id.includes('@dnd-kit') || 
-              id.includes('allotment')) {
-            return 'ui-libs'
-          }
-          
+          'react-vendor': ['react', 'react-dom'],
+          // 状态管理（关键：单独分包避免冲突）
+          'state-management': ['zustand'],
+          // 路由
+          'router': ['react-router-dom'],
+          // UI 组件库
+          'ui-libs': ['lucide-react', 'allotment'],
+          // 表单相关
+          'form-libs': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          // 表格和数据查询
+          'table-libs': ['@tanstack/react-table', '@tanstack/react-query'],
           // 工具库
-          if (id.includes('axios') || id.includes('zod') || 
-              id.includes('js-yaml') || id.includes('clsx') || 
-              id.includes('tailwind-merge')) {
-            return 'utils'
-          }
-          
-          // 其他第三方库
-          if (id.includes('node_modules')) {
-            return 'vendor'
-          }
-          
-          // 应用代码
-          return 'app'
+          'utils': ['axios', 'clsx', 'js-yaml', 'tailwind-merge', 'react-dropzone']
         }
       }
     },
-    
     minify: 'esbuild',
     sourcemap: false,
     target: 'es2020'
@@ -77,8 +55,11 @@ export default defineConfig({
   optimizeDeps: {
     include: [
       'react',
-      'react-dom',
-      'react-router-dom'
-    ]
+      'react-dom', 
+      'react-router-dom',
+      'zustand'
+    ],
+    // 强制预构建，确保开发和生产环境一致性
+    force: false
   }
 })
