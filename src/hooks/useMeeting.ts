@@ -72,7 +72,7 @@ export function useMyMeetings() {
   const [currentPage, setCurrentPage] = useState(1)
   const [total, setTotal] = useState(0)
   const pageSize = 10
-  const currentUserId = '1' // TODO: 从用户上下文获取
+  // const currentUserId = '1' // TODO: 从用户上下文获取
 
   const loadMyMeetings = useCallback(async () => {
     try {
@@ -81,8 +81,7 @@ export function useMyMeetings() {
         activeTab,
         filters,
         currentPage,
-        pageSize,
-        currentUserId
+        pageSize
       )
       setMeetings(response.items)
       setTotal(response.pagination.total)
@@ -93,7 +92,7 @@ export function useMyMeetings() {
     } finally {
       setLoading(false)
     }
-  }, [activeTab, filters, currentPage, pageSize, currentUserId])
+  }, [activeTab, filters, currentPage, pageSize])
 
   useEffect(() => {
     loadMyMeetings()

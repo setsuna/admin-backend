@@ -450,8 +450,8 @@ const createMeetingApi = () => {
         tabType: 'hosted' | 'participated' | 'all' = 'all',
         filters: MeetingFilters = {},
         page = 1,
-        pageSize = 10,
-        currentUserId = '1' // TODO: 从用户上下文获取
+        pageSize = 10
+        // currentUserId = '1' // TODO: 从用户上下文获取
       ) {
         return meetingApiService.getMyMeetings(tabType, filters, page, pageSize)
       },

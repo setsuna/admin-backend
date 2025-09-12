@@ -246,7 +246,7 @@ class MockDictService {
     
     const completeDict: DataDict = {
       ...updatedDict,
-      items: updatedDict.items || []
+      items: updatedDict.items as DictItem[] || []
     }
     
     mockDataDicts[dictIndex] = completeDict
