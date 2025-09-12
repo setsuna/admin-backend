@@ -12,6 +12,7 @@ import type { Meeting, MeetingFilters, MeetingStatus, MeetingSecurityLevel, Tabl
 const statusConfig = {
   preparation: { label: '准备', color: 'text-gray-600' },
   distributable: { label: '可下发', color: 'text-blue-600' },
+  in_progress: { label: '进行中', color: 'text-green-600' },
   closed: { label: '关闭', color: 'text-red-600' }
 }
 

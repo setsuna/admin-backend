@@ -2,7 +2,7 @@
  * 会议相关类型定义
  */
 
-import { BaseEntity, EntityStatus, FilterParams } from './api.types'
+import { BaseEntity, FilterParams } from './api.types'
 
 // 会议密级
 export type MeetingSecurityLevel = 'internal' | 'confidential' | 'secret'

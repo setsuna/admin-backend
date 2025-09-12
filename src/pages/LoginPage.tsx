@@ -82,7 +82,9 @@ const LoginPage = () => {
           email: `${formData.username}@example.com`,
           role: getRoleByUsername(formData.username),
           avatar: '',
+          status: 'active',
           createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           // 权限信息将由usePermission钩子从API获取
         }
         setUser(mockUser)

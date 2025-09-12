@@ -384,7 +384,12 @@ const CreateMeetingPage: React.FC = () => {
         endTime: new Date(formData.endTime).toISOString(),
         location: formData.location,
         description: formData.description,
-        participants: formData.participants,
+        participants: formData.participants
+          .filter(p => p.role !== 'host')
+          .map(p => ({
+            userId: p.userId,
+            role: p.role as 'participant' | 'observer'
+          })),
         agendas: formData.agendas
       }
 

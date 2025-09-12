@@ -2,7 +2,7 @@
  * 数据字典类型定义
  */
 
-import { BaseEntity, EntityStatus, PaginationParams, FilterParams } from './api.types'
+import { BaseEntity, EntityStatus, FilterParams } from './api.types'
 
 // 字典项状态
 export type DictStatus = EntityStatus

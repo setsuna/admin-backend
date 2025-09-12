@@ -6,21 +6,13 @@ import { httpClient } from '@/services/core/http.client'
 import { API_PATHS } from '@/config/api.config'
 import {
   DataDict,
-  DictItem,
   DictFilters,
   CreateDictRequest,
   UpdateDictRequest,
-  CreateDictItemRequest,
-  UpdateDictItemRequest,
   DictSyncRequest,
-  DictSyncResult,
-  DictExportConfig,
-  DictImportResult,
-  DictStats,
-  DictTypeConfig
+  DictExportConfig
 } from '@/services/types/dict.types'
 import {
-  ApiResponse,
   PaginatedResponse,
   BatchRequest,
   BatchResponse,

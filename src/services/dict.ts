@@ -229,17 +229,28 @@ class MockDictService {
     }
     
     if (data.items) {
-      updatedDict.items = data.items.map((item, index) => ({
-        ...item,
-        id: item.id || `${Date.now()}_${index}`,
-        createdAt: item.createdAt || now,
+      const completeItems: DictItem[] = data.items.map((item, index) => ({
+        id: `${Date.now()}_${index}`,
+        code: item.code,
+        name: item.name,
+        value: item.value,
+        status: item.status,
+        sort: item.sort,
+        remark: item.remark,
+        createdAt: now,
         updatedAt: now,
       }))
-      updatedDict.itemCount = data.items.length
+      updatedDict.items = completeItems
+      updatedDict.itemCount = completeItems.length
     }
     
-    mockDataDicts[dictIndex] = updatedDict
-    return updatedDict
+    const completeDict: DataDict = {
+      ...updatedDict,
+      items: updatedDict.items || []
+    }
+    
+    mockDataDicts[dictIndex] = completeDict
+    return completeDict
   }
 
   async deleteDictionary(id: string): Promise<boolean> {

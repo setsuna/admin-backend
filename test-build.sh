@@ -1,16 +1,17 @@
 #!/bin/bash
 
-# 快速测试构建结果的脚本
+echo "开始构建测试..."
+echo "================================"
 
-echo "🔨 构建项目..."
+# 运行构建命令
 npm run build
 
+# 检查构建结果
 if [ $? -eq 0 ]; then
-  echo "✅ 构建成功！"
-  echo "🚀 启动预览服务器..."
-  echo "📱 浏览器访问: http://localhost:4173"
-  echo "💡 按 Ctrl+C 停止服务器"
-  npm run preview
+    echo "================================"
+    echo "✅ 构建成功！所有 TypeScript 错误已修复。"
 else
-  echo "❌ 构建失败！检查错误信息。"
+    echo "================================" 
+    echo "❌ 构建失败，仍有错误需要修复。"
+    exit 1
 fi

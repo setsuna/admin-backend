@@ -4,9 +4,8 @@
  */
 
 import { httpClient } from './http.client'
-import { authConfig, JWT_CONFIG, PERMISSIONS } from '@/config/auth.config'
+import { authConfig } from '@/config/auth.config'
 import { API_PATHS } from '@/config/api.config'
-import { ApiResponse } from '@/services/types/api.types'
 
 export interface LoginRequest {
   username: string
@@ -101,7 +100,7 @@ class AuthService {
     const userStr = localStorage.getItem('user')
     if (userStr) {
       this.currentUser = JSON.parse(userStr)
-      return this.currentUser
+      return this.currentUser!
     }
 
     // 从服务器获取

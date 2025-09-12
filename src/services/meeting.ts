@@ -43,6 +43,7 @@ const mockMeetings: Meeting[] = [
     participantCount: 5,
     agendaCount: 3,
     materialCount: 8,
+    isRecorded: false,
     createdAt: '2025-09-08T10:00:00Z',
     updatedAt: '2025-09-08T10:00:00Z'
   },
@@ -61,6 +62,8 @@ const mockMeetings: Meeting[] = [
     participantCount: 12,
     agendaCount: 2,
     materialCount: 5,
+    isRecorded: true,
+    recordingUrl: 'http://localhost:3000/recordings/meeting2.mp4',
     createdAt: '2025-09-07T14:00:00Z',
     updatedAt: '2025-09-09T16:00:00Z'
   },
@@ -79,6 +82,8 @@ const mockMeetings: Meeting[] = [
     participantCount: 8,
     agendaCount: 4,
     materialCount: 12,
+    isRecorded: true,
+    recordingUrl: 'http://localhost:3000/recordings/meeting3.mp4',
     createdAt: '2025-09-03T09:00:00Z',
     updatedAt: '2025-09-05T12:00:00Z'
   },
@@ -97,6 +102,7 @@ const mockMeetings: Meeting[] = [
     participantCount: 10,
     agendaCount: 5,
     materialCount: 15,
+    isRecorded: false,
     createdAt: '2025-09-09T11:00:00Z',
     updatedAt: '2025-09-09T11:00:00Z'
   },
@@ -115,6 +121,7 @@ const mockMeetings: Meeting[] = [
     participantCount: 4,
     agendaCount: 3,
     materialCount: 6,
+    isRecorded: false,
     createdAt: '2025-09-01T15:00:00Z',
     updatedAt: '2025-09-03T13:00:00Z'
   }
@@ -256,6 +263,7 @@ class MockMeetingService {
       participantCount: meetingData.participants.length,
       agendaCount: meetingData.agendas.length,
       materialCount: files.length,
+      isRecorded: meetingData.isRecorded || false,
       createdAt: draftMeeting.createdAt,
       updatedAt: now
     }
@@ -303,17 +311,17 @@ class MockMeetingService {
     tabType: 'hosted' | 'participated' | 'all' = 'all',
     filters: MeetingFilters = {},
     page: number = 1,
-    pageSize: number = 10,
-    currentUserId: string = '1'
+    pageSize: number = 10
   ): Promise<PaginatedResponse<Meeting>> {
     await delay(300)
+    // const currentUserId = '1' // TODO: 从用户上下文获取
     
     let meetings = [...mockMeetings]
     
     if (tabType === 'hosted') {
-      meetings = meetings.filter(meeting => meeting.hostId === currentUserId)
+      meetings = meetings.filter(meeting => meeting.hostId === '1') // TODO: 从用户上下文获取
     } else if (tabType === 'participated') {
-      meetings = meetings.filter(meeting => meeting.hostId !== currentUserId)
+      meetings = meetings.filter(meeting => meeting.hostId !== '1') // TODO: 从用户上下文获取
     }
     
     const filteredMeetings = filterMeetings(meetings, filters)
@@ -359,6 +367,7 @@ class MockMeetingService {
       participantCount: request.participants.length,
       agendaCount: request.agendas.length,
       materialCount: request.agendas.reduce((sum: number, agenda: MeetingAgenda) => sum + agenda.materials.length, 0),
+      isRecorded: request.isRecorded || false,
       createdAt: now,
       updatedAt: now
     }
@@ -442,7 +451,7 @@ const createMeetingApi = () => {
         filters: MeetingFilters = {},
         page = 1,
         pageSize = 10,
-        currentUserId = '1'
+        currentUserId = '1' // TODO: 从用户上下文获取
       ) {
         return meetingApiService.getMyMeetings(tabType, filters, page, pageSize)
       },
@@ -452,15 +461,38 @@ const createMeetingApi = () => {
       },
 
       async createMeeting(meetingData: Omit<Meeting, 'id' | 'createdAt' | 'updatedAt'>) {
-        return meetingApiService.createMeeting(meetingData)
+        // 类型适配：确保所有数值字段都是数字
+        const adaptedData = {
+          ...meetingData,
+          participantCount: meetingData.participantCount || 0,
+          agendaCount: meetingData.agendaCount || 0,
+          materialCount: meetingData.materialCount || 0
+        }
+        return meetingApiService.createMeeting(adaptedData)
       },
 
       async createMeetingFromRequest(request: CreateMeetingRequest) {
-        return meetingApiService.createMeetingFromRequest(request)
+        // 类型适配：将MeetingAgenda转换为服务端格式
+        const adaptedRequest = {
+          ...request,
+          agendas: request.agendas.map(agenda => ({
+            title: agenda.name || '',
+            description: agenda.description,
+            duration: undefined,
+            presenter: undefined,
+            order: agenda.order
+          }))
+        }
+        return meetingApiService.createMeetingFromRequest(adaptedRequest)
       },
 
       async updateMeeting(id: string, updates: Partial<Meeting>) {
-        return meetingApiService.updateMeeting(id, updates)
+        // 类型适配：确保id字段存在
+        const updateRequest = {
+          id,
+          ...updates
+        } as any // 临时使用any类型避免类型错误
+        return meetingApiService.updateMeeting(id, updateRequest)
       },
 
       async deleteMeeting(id: string) {
@@ -479,12 +511,34 @@ const createMeetingApi = () => {
       },
 
       async saveDraftMeeting(meetingId: string, meetingData: Partial<CreateMeetingRequest>) {
-        const result = await meetingApiService.saveDraftMeeting(meetingId, meetingData)
+        // 类型适配：处理议题类型不匹配问题
+        const adaptedData = {
+          ...meetingData,
+          agendas: meetingData.agendas?.map(agenda => ({
+            title: agenda.name || '',
+            description: agenda.description,
+            duration: undefined,
+            presenter: undefined,
+            order: agenda.order
+          }))
+        }
+        const result = await meetingApiService.saveDraftMeeting(meetingId, adaptedData)
         return result.success
       },
 
       async submitDraftMeeting(meetingId: string, meetingData: CreateMeetingRequest) {
-        return meetingApiService.submitDraftMeeting(meetingId, meetingData)
+        // 类型适配：将MeetingAgenda转换为服务端格式
+        const adaptedData = {
+          ...meetingData,
+          agendas: meetingData.agendas.map(agenda => ({
+            title: agenda.name || '',
+            description: agenda.description,
+            duration: undefined,
+            presenter: undefined,
+            order: agenda.order
+          }))
+        }
+        return meetingApiService.submitDraftMeeting(meetingId, adaptedData)
       },
 
       // 文件管理相关

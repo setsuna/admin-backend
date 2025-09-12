@@ -340,7 +340,23 @@ const createPermissionApi = () => {
     // 适配器模式，将新API服务包装成旧接口
     return {
       async getUserMenuConfig(user: User) {
-        return permissionApiService.getUserMenuConfig(user)
+        // 将前端 User 类型转换为后端API所需的类型
+        const apiUser = {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          avatar: user.avatar,
+          department: user.department,
+          position: user.position,
+          phone: user.phone,
+          status: user.status,
+          lastLoginAt: user.lastLoginAt,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+          permissions: user.permissions
+        }
+        return permissionApiService.getUserMenuConfig(apiUser)
       },
 
       async getAllPermissions() {

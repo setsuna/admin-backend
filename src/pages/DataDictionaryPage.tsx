@@ -10,8 +10,6 @@ import {
   Edit, 
   Power,
   PowerOff,
-  ChevronDown,
-  ChevronUp,
   X
 } from 'lucide-react'
 import { 
@@ -19,8 +17,7 @@ import {
   Input, 
   DataTable,
   Card,
-  CardContent,
-  Loading
+  CardContent
 } from '@/components'
 import DictEditModal from '@/components/features/DictEditModal'
 import { dictApi } from '@/services/dict'

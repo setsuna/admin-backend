@@ -62,7 +62,12 @@ export interface User {
   email: string
   role: 'admin' | 'user' | 'meeting_admin' | 'auditor'
   avatar?: string
+  department?: string
+  position?: string
+  phone?: string
+  status: 'active' | 'inactive' | 'suspended'
   createdAt: string
+  updatedAt: string
   lastLoginAt?: string
   permissions?: string[]
 }
@@ -176,7 +181,7 @@ export interface AsyncState<T> extends LoadingState {
 // 会议相关类型
 export type MeetingSecurityLevel = 'internal' | 'confidential' | 'secret'
 export type MeetingType = 'standard' | 'tablet'
-export type MeetingStatus = 'preparation' | 'distributable' | 'closed'
+export type MeetingStatus = 'preparation' | 'distributable' | 'in_progress' | 'closed'
 
 export interface Meeting {
   id: string
@@ -193,6 +198,8 @@ export interface Meeting {
   participantCount?: number
   agendaCount?: number
   materialCount?: number
+  isRecorded: boolean
+  recordingUrl?: string
   createdAt: string
   updatedAt: string
 }
@@ -217,6 +224,8 @@ export interface MeetingParticipant {
   name: string
   email?: string
   department?: string
+  userId: string
+  role: 'host' | 'participant' | 'observer'
 }
 
 export interface MeetingMaterial {
@@ -244,7 +253,11 @@ export interface CreateMeetingRequest {
   endTime: string
   description?: string
   location?: string
-  participants: MeetingParticipant[]
+  isRecorded?: boolean
+  participants: Array<{
+    userId: string
+    role: 'participant' | 'observer'
+  }>
   agendas: MeetingAgenda[]
 }
 

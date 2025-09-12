@@ -12,7 +12,6 @@ export { errorHandler, retryManager } from './core/error.handler'
 export { dictApiService } from './api/dict.api'
 export { meetingApiService } from './api/meeting.api'
 export { userApiService, permissionApiService } from './api/user.api'
-export { permissionApi } from './api/permission.api'
 
 // 类型导出
 export type * from './types/api.types'
@@ -90,8 +89,7 @@ export const meetingApi = {
     tabType: 'hosted' | 'participated' | 'all' = 'all',
     filters: any = {},
     page: number = 1,
-    pageSize: number = 10,
-    currentUserId: string = '1'
+    pageSize: number = 10
   ) {
     const { meetingApiService } = await import('./api/meeting.api')
     return meetingApiService.getMyMeetings(tabType, filters, page, pageSize)

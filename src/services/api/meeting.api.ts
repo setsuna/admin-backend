@@ -13,8 +13,7 @@ import {
   DraftMeeting,
   MeetingStats,
   MeetingTemplate,
-  MeetingSettings,
-  MeetingInvitation
+  MeetingSettings
 } from '@/services/types/meeting.types'
 import {
   PaginatedResponse,

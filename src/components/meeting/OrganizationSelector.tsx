@@ -77,7 +77,11 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
     } else {
       const newParticipant: MeetingParticipant = {
         id: user.id,
-        name: user.name
+        name: user.name,
+        email: undefined, // OrgUser不包含email属性
+        department: user.department,
+        userId: user.id,
+        role: 'participant'
       }
       onParticipantsChange([...selectedParticipants, newParticipant])
     }

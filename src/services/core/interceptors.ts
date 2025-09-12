@@ -2,13 +2,20 @@
  * 请求/响应拦截器
  */
 
-import { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
+import { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { apiConfig, HTTP_STATUS } from '@/config/api.config'
-import { authConfig, JWT_CONFIG } from '@/config/auth.config'
-import { envConfig } from '@/config/env.config'
+import { JWT_CONFIG } from '@/config/auth.config'
 import { ApiResponse } from '@/services/types/api.types'
 import { authService } from './auth.service'
 import { errorHandler } from './error.handler'
+
+// 扩展配置类型以包含metadata
+interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
+  metadata?: {
+    requestId: string
+    startTime: number
+  }
+}
 
 // 请求ID生成器
 let requestId = 0
@@ -17,10 +24,10 @@ const generateRequestId = () => `req_${Date.now()}_${++requestId}`
 /**
  * 请求拦截器
  */
-export const requestInterceptor = async (config: AxiosRequestConfig): Promise<AxiosRequestConfig> => {
+export const requestInterceptor = async (config: InternalAxiosRequestConfig): Promise<InternalAxiosRequestConfig> => {
   // 生成请求ID用于追踪
   const reqId = generateRequestId()
-  config.metadata = { requestId: reqId, startTime: Date.now() }
+  ;(config as ExtendedAxiosRequestConfig).metadata = { requestId: reqId, startTime: Date.now() }
 
   // 添加认证token
   const token = authService.getToken()
@@ -30,10 +37,9 @@ export const requestInterceptor = async (config: AxiosRequestConfig): Promise<Ax
   }
 
   // 添加请求头
-  config.headers = {
-    ...config.headers,
-    'X-Request-ID': reqId,
-    'X-Timestamp': Date.now().toString()
+  if (config.headers) {
+    config.headers.set('X-Request-ID', reqId)
+    config.headers.set('X-Timestamp', Date.now().toString())
   }
 
   // 开发环境请求日志
@@ -55,14 +61,15 @@ export const requestInterceptor = async (config: AxiosRequestConfig): Promise<Ax
  */
 export const responseInterceptor = (response: AxiosResponse<ApiResponse>): AxiosResponse<ApiResponse> => {
   const { config, data } = response
-  const requestId = config.metadata?.requestId
-  const startTime = config.metadata?.startTime
+  const extendedConfig = config as ExtendedAxiosRequestConfig
+  const requestId = extendedConfig.metadata?.requestId
+  const startTime = extendedConfig.metadata?.startTime
   const duration = startTime ? Date.now() - startTime : 0
 
   // 添加响应元数据
   if (data && typeof data === 'object') {
-    data.requestId = requestId
-    data.timestamp = Date.now()
+    ;(data as any).requestId = requestId
+    ;(data as any).timestamp = Date.now()
   }
 
   // 开发环境响应日志
@@ -114,7 +121,9 @@ export const errorInterceptor = async (error: AxiosError<ApiResponse>): Promise<
             await authService.refreshToken()
             // 重新发起请求
             if (config) {
-              return httpClient.getInstance()(config)
+              // 避免循环依赖，直接使用axios实例
+              const { httpClient } = await import('./http.client')
+              return httpClient.getInstance()(config as any)
             }
           } catch (refreshError) {
             authService.logout()
@@ -162,9 +171,3 @@ declare module 'axios' {
     }
   }
 }
-
-// 需要导入httpClient，避免循环依赖
-let httpClient: any
-setTimeout(() => {
-  httpClient = require('./http.client').httpClient
-}, 0)

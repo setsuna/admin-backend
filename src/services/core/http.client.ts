@@ -4,8 +4,7 @@
  */
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import { apiConfig, HTTP_STATUS } from '@/config/api.config'
-import { envConfig } from '@/config/env.config'
+import { apiConfig } from '@/config/api.config'
 import { ApiResponse } from '@/services/types/api.types'
 import { requestInterceptor, responseInterceptor, errorInterceptor } from './interceptors'
 
