@@ -264,7 +264,7 @@ export default function PermissionManagePage() {
                 return (
                   <div key={group.key} className="border-b last:border-b-0">
                     {/* 权限组标题 */}
-                    <div className="p-3 bg-gray-50 dark:bg-gray-800/50 border-b">
+                    <div className="p-6 bg-gray-50 dark:bg-gray-800/50 border-b">
                       <button
                         onClick={() => toggleGroup(group.key)}
                         className="flex items-center gap-2 font-medium hover:text-primary"
@@ -347,7 +347,7 @@ export default function PermissionManagePage() {
                         {roles.map(role => {
                           const isSelected = isGroupSelected(role.id, group.key)
                           return (
-                            <div key={role.id} className="w-32 flex-shrink-0 text-center p-3 border-r last:border-r-0">
+                            <div key={role.id} className="w-32 flex-shrink-0 text-center p-6 border-r last:border-r-0 flex items-center justify-center">
                               <input
                                 type="checkbox"
                                 checked={isSelected}
