@@ -4,8 +4,7 @@ import type {
   CreateUserRequest, 
   UpdateUserRequest,
   PaginatedResponse,
-  ApiResponse,
-  UserSecurityLevel
+  ApiResponse
 } from '@/types'
 
 // Mock用户数据

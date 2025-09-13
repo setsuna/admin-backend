@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { Building2, Users, CheckCircle, XCircle, BarChart } from 'lucide-react'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
+import { Building2, CheckCircle, XCircle, BarChart } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/Card'
 import { Loading } from '@/components/ui/Loading'
 import { departmentService } from '@/services'
 

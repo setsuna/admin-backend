@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { userService, departmentService } from '@/services'
 import { useGlobalStore } from '@/store'
-import type { User, UserFilters, CreateUserRequest, UpdateUserRequest } from '@/types'
+import type { UserFilters, CreateUserRequest, UpdateUserRequest } from '@/types'
 
 export interface UseUserOptions {
   initialFilters?: UserFilters

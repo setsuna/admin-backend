@@ -70,13 +70,13 @@ export const mockDictItems: Record<string, DictItem[]> = {
     { id: '46', code: 'SYNC_STATUS', name: '同步状态', value: JSON.stringify({ key: 'sync-status', label: '同步状态', icon: 'RefreshCw', path: '/sync-status', permissions: ['sync:read'], group: 'sync' }), status: 'enabled', sort: 4, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
     
     // 人员管理分组
-    { id: '47', code: 'PARTICIPANTS', name: '参会人员', value: JSON.stringify({ key: 'participants', label: '参会人员', icon: 'Users', path: '/participants', permissions: ['personnel:read'], group: 'personnel' }), status: 'enabled', sort: 5, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
     { id: '48', code: 'ROLE_PERMISSIONS', name: '角色权限', value: JSON.stringify({ key: 'role-permissions', label: '角色权限', icon: 'Shield', path: '/role-permissions', permissions: ['role:manage'], group: 'personnel' }), status: 'enabled', sort: 6, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
     { id: '49', code: 'SECURITY_LEVELS', name: '人员密级', value: JSON.stringify({ key: 'security-levels', label: '人员密级', icon: 'Lock', path: '/security-levels', permissions: ['security:manage'], group: 'personnel' }), status: 'enabled', sort: 7, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
     
     // 组织架构分组
     { id: '50', code: 'DEPARTMENTS', name: '部门管理', value: JSON.stringify({ key: 'departments', label: '部门管理', icon: 'Building', path: '/departments', permissions: ['org:manage'], group: 'organization' }), status: 'enabled', sort: 8, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
-    { id: '51', code: 'STAFF_MANAGEMENT', name: '人员管理', value: JSON.stringify({ key: 'staff-management', label: '人员管理', icon: 'UserCheck', path: '/staff', permissions: ['staff:manage'], group: 'organization' }), status: 'enabled', sort: 9, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '51', code: 'STAFF_MANAGEMENT', name: '人员管理', value: JSON.stringify({ key: 'staff-management', label: '人员管理', icon: 'UserCheck', path: '/users', permissions: ['staff:manage'], group: 'organization' }), status: 'enabled', sort: 9, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '47', code: 'STAF_SECMANAGEMENT', name: '人员管理(安全员)', value: JSON.stringify({ key: 'staff-secmanagement', label: '人员管理(安全员)', icon: 'UserCheck', path: '/security-users', permissions: ['staff:manage'], group: 'organization' }), status: 'enabled', sort: 9, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
     
     // 系统管理分组
     { id: '52', code: 'DATA_DICTIONARY', name: '数据字典', value: JSON.stringify({ key: 'data-dictionary', label: '数据字典', icon: 'Book', path: '/data-dictionary', permissions: ['system:dict:read'], group: 'system' }), status: 'enabled', sort: 10, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },

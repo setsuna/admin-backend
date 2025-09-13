@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, ChevronDown, Building2, Users, Edit, Trash2, Plus, MoreVertical } from 'lucide-react'
+import { ChevronRight, ChevronDown, Building2, Users, Edit, Trash2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { StatusIndicator } from '@/components/ui/StatusIndicator'
 import { Loading } from '@/components/ui/Loading'
