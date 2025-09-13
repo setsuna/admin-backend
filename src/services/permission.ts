@@ -45,6 +45,12 @@ const mockPermissions: Permission[] = [
   { id: '20', name: '员工查看', code: 'staff:read', category: 'organization', resource: 'staff', action: 'read', description: '查看员工信息' },
   { id: '21', name: '员工管理', code: 'staff:manage', category: 'organization', resource: 'staff', action: 'manage', description: '管理员工信息' },
   
+  // 用户管理权限
+  { id: '31', name: '用户查看', code: 'user:read', category: 'organization', resource: 'user', action: 'read', description: '查看用户信息' },
+  { id: '32', name: '用户创建', code: 'user:write', category: 'organization', resource: 'user', action: 'write', description: '创建用户' },
+  { id: '33', name: '用户删除', code: 'user:delete', category: 'organization', resource: 'user', action: 'delete', description: '删除用户' },
+  { id: '34', name: '用户管理', code: 'user:manage', category: 'organization', resource: 'user', action: 'manage', description: '全面管理用户' },
+  
   // 系统管理权限
   { id: '22', name: '数据字典查看', code: 'system:dict:read', category: 'system', resource: 'dict', action: 'read', description: '查看数据字典' },
   { id: '23', name: '数据字典管理', code: 'system:dict:manage', category: 'system', resource: 'dict', action: 'manage', description: '管理数据字典' },
@@ -73,6 +79,7 @@ const mockRoles: Role[] = [
       'security:read', 'security:manage',
       'org:read', 'org:manage',
       'staff:read', 'staff:manage',
+      'user:read', 'user:write', 'user:delete', 'user:manage',
       'system:dict:read', 'system:dict:manage',
       'system:config:read', 'system:config:manage',
       'system:logs:read', 'logs:admin:read', 'logs:audit:read',
@@ -241,6 +248,27 @@ class MockPermissionService {
             icon: 'BarChart3',
             path: '/',
             permissions: ['dashboard:view']
+          }
+        ]
+      },
+      {
+        key: 'organization',
+        label: '组织管理',
+        type: 'group',
+        children: [
+          {
+            key: 'departments',
+            label: '部门管理',
+            icon: 'Building',
+            path: '/departments',
+            permissions: ['org:manage']
+          },
+          {
+            key: 'users',
+            label: '用户管理',
+            icon: 'Users',
+            path: '/users',
+            permissions: ['user:manage']
           }
         ]
       },

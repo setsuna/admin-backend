@@ -13,6 +13,7 @@ const MyMeetingPage = lazy(() => import('@/pages/MyMeetingPage'))
 const CreateMeetingPage = lazy(() => import('@/pages/CreateMeetingPage'))
 const DataDictionaryPage = lazy(() => import('@/pages/DataDictionaryPage'))
 const DepartmentPage = lazy(() => import('@/pages/DepartmentPage'))
+const UserPage = lazy(() => import('@/pages/UserPage'))
 
 const AnomalyAlertsPage = lazy(() => 
   Promise.resolve({
@@ -264,6 +265,16 @@ export const router = createBrowserRouter([
           <PermissionGuard permissions={['org:manage']}>
             <LazyWrapper>
               <DepartmentsPage />
+            </LazyWrapper>
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: 'users',
+        element: (
+          <PermissionGuard permissions={['user:manage']}>
+            <LazyWrapper>
+              <UserPage />
             </LazyWrapper>
           </PermissionGuard>
         ),

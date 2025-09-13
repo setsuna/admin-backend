@@ -56,6 +56,8 @@ export interface ConfigItem {
 }
 
 // 用户相关类型
+export type UserSecurityLevel = 'unknown' | 'internal' | 'confidential' | 'secret'
+
 export interface User {
   id: string
   username: string
@@ -63,13 +65,40 @@ export interface User {
   role: 'admin' | 'user' | 'meeting_admin' | 'auditor'
   avatar?: string
   department?: string
+  departmentName?: string
   position?: string
   phone?: string
   status: 'active' | 'inactive' | 'suspended'
+  securityLevel: UserSecurityLevel
   createdAt: string
   updatedAt: string
   lastLoginAt?: string
   permissions?: string[]
+}
+
+export interface UserFilters {
+  keyword?: string
+  department?: string
+  role?: 'admin' | 'user' | 'meeting_admin' | 'auditor'
+  status?: 'active' | 'inactive' | 'suspended'
+  securityLevel?: UserSecurityLevel
+}
+
+export interface CreateUserRequest {
+  username: string
+  email: string
+  password: string
+  role: 'admin' | 'user' | 'meeting_admin' | 'auditor'
+  department?: string
+  position?: string
+  phone?: string
+  status: 'active' | 'inactive' | 'suspended'
+  securityLevel: UserSecurityLevel
+  permissions?: string[]
+}
+
+export interface UpdateUserRequest extends Partial<Omit<CreateUserRequest, 'password'>> {
+  id: string
 }
 
 // 权限相关类型

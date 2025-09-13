@@ -3,6 +3,7 @@ export * from './useMeeting'
 export * from './useModal'
 export * from './useRole'
 export { useDepartment } from './useDepartment'
+export { useUser } from './useUser'
 
 import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
