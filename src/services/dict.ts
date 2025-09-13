@@ -17,7 +17,7 @@ import { dictApiService } from './api/dict.api'
 import { envConfig } from '@/config/env.config'
 
 // 导入Mock数据
-import { mockDictItems, mockDataDicts } from './mock/dictData'
+import { mockDataDicts } from './mock/dictData'
 
 // 模拟网络延迟
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))

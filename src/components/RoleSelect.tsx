@@ -13,7 +13,7 @@ interface RoleSelectProps {
   disabled?: boolean
   className?: string
   allowClear?: boolean
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'default' | 'sm' | 'lg'
 }
 
 export function RoleSelect({
@@ -22,19 +22,21 @@ export function RoleSelect({
   placeholder = '请选择角色',
   disabled = false,
   className,
-  allowClear = false,
-  size = 'md'
+  size = 'default'
 }: RoleSelectProps) {
   const { roleOptions, isLoading } = useRoleOptions()
+
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onChange?.(e.target.value)
+  }
 
   return (
     <Select
       value={value}
-      onChange={onChange}
+      onChange={handleChange}
       placeholder={isLoading ? '加载角色中...' : placeholder}
       disabled={disabled || isLoading}
       className={className}
-      allowClear={allowClear}
       size={size}
       options={roleOptions}
     />
@@ -126,7 +128,7 @@ export function RoleMultiSelect({
 
       {/* 角色选择下拉框 */}
       <select
-        disabled={disabled || (maxCount && value.length >= maxCount)}
+        disabled={disabled || Boolean(maxCount && value.length >= maxCount)}
         onChange={(e) => {
           if (e.target.value) {
             handleChange(e.target.value)

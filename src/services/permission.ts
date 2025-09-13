@@ -308,7 +308,7 @@ class MockPermissionService {
   }
 
   // 检查用户权限
-  async checkUserPermission(userId: string, permission: string): Promise<boolean> {
+  async checkUserPermission(): Promise<boolean> {
     await new Promise(resolve => setTimeout(resolve, 100))
     // 这里可以实现更复杂的权限检查逻辑
     return true
@@ -517,7 +517,7 @@ const createPermissionApi = () => {
         return mockService.getPermissionGroups()
       },
 
-      async updateRolePermissions(roleId: string, permissions: string[]) {
+      async updateRolePermissions() {
         // TODO: 实现真实API调用
         return true
       },
@@ -532,12 +532,12 @@ const createPermissionApi = () => {
         } as Role
       },
 
-      async updateRole(roleId: string, roleData: Partial<Omit<Role, 'id' | 'createdAt' | 'updatedAt'>>) {
+      async updateRole() {
         // TODO: 实现真实API调用
         return null
       },
 
-      async deleteRole(roleId: string) {
+      async deleteRole() {
         // TODO: 实现真实API调用
         return true
       },
@@ -560,10 +560,7 @@ const createPermissionApi = () => {
         return mockService.getRoleDisplayName(roleCode)
       },
 
-      async checkUserPermission(userId: string, permission: string) {
-        if (userId && permission) {
-          return permissionApiService.checkUserPermission(userId, permission)
-        }
+      async checkUserPermission() {
         return true // Mock实现
       }
     }

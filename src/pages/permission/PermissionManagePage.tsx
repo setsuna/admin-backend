@@ -8,7 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { permissionApi } from '@/services/permission'
 import { Card, Button, Loading, Modal } from '@/components/ui'
 import { useGlobalStore } from '@/store'
-import type { Role, Permission, PermissionGroup, RolePermissionMatrix } from '@/types'
+import type { Role, PermissionGroup } from '@/types'
 
 interface RoleFormData {
   name: string
@@ -255,7 +255,7 @@ export default function PermissionManagePage() {
                   size="sm"
                   variant="ghost"
                   onClick={() => {
-                    setSelectedRole(role)
+                    setSelectedRole(role as Role)
                     setShowRoleModal(true)
                   }}
                   className="h-6 px-2 text-xs"
@@ -266,7 +266,7 @@ export default function PermissionManagePage() {
                   size="sm"
                   variant="ghost"
                   onClick={() => {
-                    setRoleToDelete(role)
+                    setRoleToDelete(role as Role)
                     setShowDeleteConfirm(true)
                   }}
                   className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
@@ -432,7 +432,7 @@ interface RoleModalProps {
   isLoading: boolean
 }
 
-function RoleModal({ isOpen, onClose, role, permissionGroups, onSubmit, isLoading }: RoleModalProps) {
+function RoleModal({ isOpen, onClose, role, onSubmit, isLoading }: RoleModalProps) {
   const [formData, setFormData] = useState<RoleFormData>({
     name: '',
     code: '',

@@ -3,7 +3,7 @@ import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 import { NotificationContainer } from '@/components/ui/Notification'
 import { usePermission } from '@/hooks'
-import { PermissionDebugger, PermissionTester } from '@/components/PermissionDebugger'
+import { PermissionDebugger } from '@/components/PermissionDebugger'
 
 export function MainLayout() {
   // 初始化权限数据

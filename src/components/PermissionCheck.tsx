@@ -153,9 +153,6 @@ export function PermissionField({
   permissions = [],
   readOnlyPermissions = [],
   writePermissions = [],
-  deletePermissions = [],
-  roles = [],
-  requireAll = false,
   readOnlyFallback = null
 }: PermissionFieldProps) {
   const { hasAnyPermission } = usePermission()
@@ -199,7 +196,7 @@ export function withPermission<T extends object>(
 }
 
 // 权限装饰器钩子
-export function usePermissionState(permissions: string[] = [], roles: string[] = []) {
+export function usePermissionState(permissions: string[] = []) {
   const { hasPermission, hasAnyPermission, isLoading } = usePermission()
 
   const hasAccess = permissions.length === 0 || hasAnyPermission(permissions)

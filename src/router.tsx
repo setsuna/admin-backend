@@ -45,16 +45,16 @@ const ParticipantsPage = lazy(() =>
   })
 )
 
-const RolePermissionsPage = lazy(() => 
-  Promise.resolve({
-    default: () => (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">角色权限</h1>
-        <p className="text-muted-foreground">角色权限页面待开发</p>
-      </div>
-    )
-  })
-)
+// const RolePermissionsPage = lazy(() => 
+//   Promise.resolve({
+//     default: () => (
+//       <div className="p-6">
+//         <h1 className="text-2xl font-bold mb-4">角色权限</h1>
+//         <p className="text-muted-foreground">角色权限页面待开发</p>
+//       </div>
+//     )
+//   })
+// )
 
 const SecurityLevelsPage = lazy(() => 
   Promise.resolve({
