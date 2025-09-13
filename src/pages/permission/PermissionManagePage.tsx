@@ -526,7 +526,7 @@ function RoleModal({ isOpen, onClose, role, onSubmit, isLoading }: RoleModalProp
           <label className="block text-sm font-medium mb-1">状态</label>
           <Select
             value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value as 'enabled' | 'disabled' })}
+            onValueChange={(value) => setFormData({ ...formData, status: value as 'enabled' | 'disabled' })}
             options={[
               { value: 'enabled', label: '启用' },
               { value: 'disabled', label: '禁用' }

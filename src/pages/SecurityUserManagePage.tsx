@@ -32,11 +32,7 @@ const SecurityUserManagePage = () => {
     isResettingPassword,
     isUpdatingStatus,
     resetFilters,
-    refreshData,
-    toggleSelectAll,
-    toggleSelectId,
-    isAllSelected,
-    isIndeterminate
+    refreshData
   } = useUser()
   
   // 搜索关键词状态
@@ -223,7 +219,7 @@ const SecurityUserManagePage = () => {
           suspended: { label: '停用', type: 'error' }
         }
         const statusInfo = statusMap[status] || { label: status, type: 'warning' }
-        return <StatusIndicator type={statusInfo.type} text={statusInfo.label} />
+        return <StatusIndicator status={statusInfo.type} text={statusInfo.label} />
       }
     },
     {
@@ -238,7 +234,7 @@ const SecurityUserManagePage = () => {
       key: 'actions',
       title: '安全操作',
       width: 180,
-      render: (_, user: User) => (
+      render: (_: any, user: User) => (
         <div className="flex space-x-2">
           <Button
             variant="ghost"
@@ -517,12 +513,6 @@ const SecurityUserManagePage = () => {
             loading={isLoading}
             pagination={pagination}
             onPaginationChange={setPagination}
-            selectedIds={selectedIds}
-            onSelectedIdsChange={setSelectedIds}
-            onSelectAll={toggleSelectAll}
-            onSelectId={toggleSelectId}
-            isAllSelected={isAllSelected()}
-            isIndeterminate={isIndeterminate()}
             rowKey="id"
           />
         </CardContent>

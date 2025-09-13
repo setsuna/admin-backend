@@ -12,7 +12,7 @@ const MeetingListPage = lazy(() => import('@/pages/MeetingListPage'))
 const MyMeetingPage = lazy(() => import('@/pages/MyMeetingPage'))
 const CreateMeetingPage = lazy(() => import('@/pages/CreateMeetingPage'))
 const DataDictionaryPage = lazy(() => import('@/pages/DataDictionaryPage'))
-const DepartmentPage = lazy(() => import('@/pages/DepartmentPage'))
+
 const UserPage = lazy(() => import('@/pages/UserPage'))
 const SecurityUserManagePage = lazy(() => import('@/pages/SecurityUserManagePage'))
 
@@ -37,16 +37,7 @@ const SyncStatusPage = lazy(() =>
   })
 )
 
-const ParticipantsPage = lazy(() => 
-  Promise.resolve({
-    default: () => (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">参会人员</h1>
-        <p className="text-muted-foreground">参会人员页面待开发</p>
-      </div>
-    )
-  })
-)
+
 
 // const RolePermissionsPage = lazy(() => 
 //   Promise.resolve({

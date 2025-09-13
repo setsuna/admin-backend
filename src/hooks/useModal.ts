@@ -32,6 +32,7 @@ export interface AlertOptions {
 export interface ConfirmOptions {
   title: string
   message?: string
+  content?: string
   confirmText?: string
   cancelText?: string
   type?: 'warning' | 'danger' | 'info'
@@ -52,6 +53,7 @@ interface ConfirmState {
 export interface UseDialogReturn {
   alert: (options: AlertOptions) => Promise<void>
   confirm: (options: ConfirmOptions) => Promise<boolean>
+  showConfirm: (options: ConfirmOptions) => Promise<boolean>
   alertState: AlertState
   confirmState: ConfirmState
   closeAlert: () => void
@@ -116,6 +118,7 @@ export function useDialog(): UseDialogReturn {
   return {
     alert,
     confirm,
+    showConfirm: confirm,
     alertState,
     confirmState,
     closeAlert,

@@ -15,7 +15,7 @@ export interface User {
   id: string
   username: string
   email: string
-  role: 'admin' | 'user' | 'meeting_admin' | 'auditor'
+  role: 'admin' | 'user' | 'meeting_admin' | 'auditor' | 'security_admin'
   avatar?: string
   department?: string
   position?: string

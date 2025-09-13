@@ -224,7 +224,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           <label className="block text-sm font-medium mb-1">会议类别</label>
           <Select
             value={formData.category}
-            onChange={(e) => onFormDataChange('category', e.target.value)}
+            onValueChange={(value) => onFormDataChange('category', value)}
             options={categories.map(category => ({
               value: category.name,
               label: category.name

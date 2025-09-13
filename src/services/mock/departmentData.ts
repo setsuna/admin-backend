@@ -318,7 +318,7 @@ export const mockDepartmentService = {
     }
   },
 
-  async batchDeleteDepartments(ids: string[]): Promise<ApiResponse<void>> {
+  async batchDeleteDepartments(_ids: string[]): Promise<ApiResponse<void>> {
     await delay(600)
     return {
       code: 200,

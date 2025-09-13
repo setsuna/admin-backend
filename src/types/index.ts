@@ -62,7 +62,7 @@ export interface User {
   id: string
   username: string
   email: string
-  role: 'admin' | 'user' | 'meeting_admin' | 'auditor' | 'security_admin' | 'security_admin'
+  role: 'admin' | 'user' | 'meeting_admin' | 'auditor' | 'security_admin'
   avatar?: string
   department?: string
   departmentName?: string
@@ -161,6 +161,8 @@ export interface TableProps<T = any> {
   pagination?: PaginationParams
   onPaginationChange?: (pagination: PaginationParams) => void
   rowKey?: keyof T | ((record: T) => string)
+  selectedIds?: string[]
+  onSelectionChange?: (selectedIds: string[]) => void
   className?: string
 }
 

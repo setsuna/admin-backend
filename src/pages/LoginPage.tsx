@@ -85,6 +85,7 @@ const LoginPage = () => {
           role: getRoleByUsername(formData.username),
           avatar: '',
           status: 'active',
+          securityLevel: 'internal',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           // 权限信息将由usePermission钩子从API获取

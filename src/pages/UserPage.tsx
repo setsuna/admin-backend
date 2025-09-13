@@ -40,7 +40,6 @@ const UserPage = () => {
     error,
     setFilters,
     setPagination,
-    setSelectedIds,
     createUser,
     updateUser,
     deleteUser,
@@ -51,10 +50,6 @@ const UserPage = () => {
     isBatchDeleting,
     resetFilters,
     refreshData,
-    toggleSelectAll,
-    toggleSelectId,
-    isAllSelected,
-    isIndeterminate,
     getPermissionsByRole
   } = useUser()
   
@@ -239,7 +234,7 @@ const UserPage = () => {
           suspended: { label: '停用', type: 'error' }
         }
         const statusInfo = statusMap[status] || { label: status, type: 'warning' }
-        return <StatusIndicator type={statusInfo.type} text={statusInfo.label} />
+        return <StatusIndicator status={statusInfo.type} text={statusInfo.label} />
       }
     },
     {
@@ -254,7 +249,7 @@ const UserPage = () => {
       key: 'actions',
       title: '操作',
       width: 150,
-      render: (_, user: User) => (
+      render: (_: any, user: User) => (
         <div className="flex space-x-2">
           <Button
             variant="ghost"
@@ -550,12 +545,6 @@ const UserPage = () => {
             loading={isLoading}
             pagination={pagination}
             onPaginationChange={setPagination}
-            selectedIds={selectedIds}
-            onSelectedIdsChange={setSelectedIds}
-            onSelectAll={toggleSelectAll}
-            onSelectId={toggleSelectId}
-            isAllSelected={isAllSelected()}
-            isIndeterminate={isIndeterminate()}
             rowKey="id"
           />
         </CardContent>

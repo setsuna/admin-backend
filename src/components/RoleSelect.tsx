@@ -26,14 +26,10 @@ export function RoleSelect({
 }: RoleSelectProps) {
   const { roleOptions, isLoading } = useRoleOptions()
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onChange?.(e.target.value)
-  }
-
   return (
     <Select
       value={value}
-      onChange={handleChange}
+      onValueChange={onChange}
       placeholder={isLoading ? '加载角色中...' : placeholder}
       disabled={disabled || isLoading}
       className={className}
