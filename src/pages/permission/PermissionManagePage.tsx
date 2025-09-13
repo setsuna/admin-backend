@@ -251,9 +251,9 @@ export default function PermissionManagePage() {
         <div className="relative border rounded-lg overflow-hidden">
           <div className="flex">
             {/* 左侧固定权限列 */}
-            <div className="w-80 flex-shrink-0 bg-white dark:bg-gray-900 relative z-10 border-r">
+            <div className="w-64 flex-shrink-0 bg-white dark:bg-gray-900 relative z-10 border-r">
               {/* 标题 */}
-              <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-b min-h-[88px] flex items-center">
+              <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-b min-h-[64px] flex items-center">
                 <div className="font-medium">权限项</div>
               </div>
               
@@ -280,12 +280,12 @@ export default function PermissionManagePage() {
                     {isExpanded && (
                       <div>
                         {group.permissions.map(permission => (
-                          <div key={permission.id} className="px-6 py-3 pl-6 border-b border-gray-100 last:border-b-0 min-h-[56px] flex items-center">
-                            <div>
-                              <div className="font-medium text-sm">{permission.name}</div>
-                              <div className="text-xs text-muted-foreground">{permission.code}</div>
+                          <div key={permission.id} className="px-6 py-2 pl-6 border-b border-gray-100 last:border-b-0 h-[56px] flex items-center">
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm truncate">{permission.name}</div>
+                              <div className="text-xs text-muted-foreground truncate">{permission.code}</div>
                               {permission.description && (
-                                <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                <div className="text-xs text-muted-foreground truncate mt-0.5" title={permission.description}>
                                   {permission.description}
                                 </div>
                               )}
@@ -303,12 +303,14 @@ export default function PermissionManagePage() {
             <div className="flex-1 overflow-x-auto">
               <div className="min-w-max">
                 {/* 角色标题行 */}
-                <div className="flex bg-gray-50 dark:bg-gray-800/50 border-b min-h-[88px]">
+                <div className="flex bg-gray-50 dark:bg-gray-800/50 border-b h-[64px]">
                   {roles.map(role => (
-                    <div key={role.id} className="w-32 flex-shrink-0 text-center px-3 py-4 border-r last:border-r-0 flex flex-col justify-center">
-                      <div className="font-medium">{role.name}</div>
-                      <div className="text-xs text-muted-foreground">{role.code}</div>
-                      <div className="flex gap-1 justify-center mt-2">
+                    <div key={role.id} className="w-32 flex-shrink-0 text-center px-2 py-2 border-r last:border-r-0 flex flex-col justify-center relative group">
+                      <div className="font-medium text-sm truncate">{role.name}</div>
+                      <div className="text-xs text-muted-foreground truncate">{role.code}</div>
+                      
+                      {/* 悬停显示的操作按钮 */}
+                      <div className="absolute inset-0 bg-gray-50/95 dark:bg-gray-800/95 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1">
                         <Button
                           size="sm"
                           variant="ghost"
@@ -316,7 +318,7 @@ export default function PermissionManagePage() {
                             setSelectedRole(role as Role)
                             setShowRoleModal(true)
                           }}
-                          className="h-6 px-2 text-xs"
+                          className="h-5 px-1 text-xs"
                         >
                           编辑
                         </Button>
@@ -327,7 +329,7 @@ export default function PermissionManagePage() {
                             setRoleToDelete(role as Role)
                             setShowDeleteConfirm(true)
                           }}
-                          className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
+                          className="h-5 px-1 text-xs text-red-600 hover:text-red-700"
                         >
                           删除
                         </Button>
@@ -363,13 +365,13 @@ export default function PermissionManagePage() {
                       {isExpanded && (
                         <div>
                           {group.permissions.map(permission => (
-                            <div key={permission.id} className="flex border-b border-gray-100 last:border-b-0 min-h-[56px]">
+                            <div key={permission.id} className="flex border-b border-gray-100 last:border-b-0 h-[56px]">
                               {roles.map(role => {
                                 const roleMatrix = rolePermissionMatrix.find(rm => rm.roleId === role.id)
                                 const hasPermission = roleMatrix?.permissions[permission.code] || false
                                 
                                 return (
-                                  <div key={role.id} className="w-32 flex-shrink-0 text-center px-3 py-3 border-r last:border-r-0 flex items-center justify-center">
+                                  <div key={role.id} className="w-32 flex-shrink-0 text-center px-3 py-2 border-r last:border-r-0 flex items-center justify-center">
                                     <input
                                       type="checkbox"
                                       checked={hasPermission}
