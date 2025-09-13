@@ -1,3 +1,5 @@
 export { DataTable } from './DataTable'
 export { StatsCard, StatsGrid } from './StatsCard'
 export { default as DictEditModal } from './DictEditModal'
+export { DepartmentTree } from './DepartmentTree'
+export { DepartmentStats } from './DepartmentStats'

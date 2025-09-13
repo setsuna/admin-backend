@@ -12,6 +12,7 @@ const MeetingListPage = lazy(() => import('@/pages/MeetingListPage'))
 const MyMeetingPage = lazy(() => import('@/pages/MyMeetingPage'))
 const CreateMeetingPage = lazy(() => import('@/pages/CreateMeetingPage'))
 const DataDictionaryPage = lazy(() => import('@/pages/DataDictionaryPage'))
+const DepartmentPage = lazy(() => import('@/pages/DepartmentPage'))
 
 const AnomalyAlertsPage = lazy(() => 
   Promise.resolve({
@@ -67,16 +68,7 @@ const SecurityLevelsPage = lazy(() =>
   })
 )
 
-const DepartmentsPage = lazy(() => 
-  Promise.resolve({
-    default: () => (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">部门管理</h1>
-        <p className="text-muted-foreground">部门管理页面待开发</p>
-      </div>
-    )
-  })
-)
+const DepartmentsPage = lazy(() => import('@/pages/DepartmentPage'))
 
 const StaffPage = lazy(() => 
   Promise.resolve({

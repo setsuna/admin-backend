@@ -361,3 +361,53 @@ export interface CreateDictRequest {
 export interface UpdateDictRequest extends Partial<CreateDictRequest> {
   id: string
 }
+
+// 部门相关类型
+export interface Department {
+  id: string
+  name: string
+  code: string
+  description?: string
+  parentId?: string
+  managerId?: string
+  managerName?: string
+  level: number
+  path: string
+  sort: number
+  status: 'enabled' | 'disabled'
+  phone?: string
+  email?: string
+  address?: string
+  employeeCount?: number
+  children?: Department[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DepartmentFilters {
+  keyword?: string
+  status?: 'enabled' | 'disabled'
+  parentId?: string
+}
+
+export interface CreateDepartmentRequest {
+  name: string
+  code: string
+  description?: string
+  parentId?: string
+  managerId?: string
+  sort: number
+  status: 'enabled' | 'disabled'
+  phone?: string
+  email?: string
+  address?: string
+}
+
+export interface UpdateDepartmentRequest extends Partial<CreateDepartmentRequest> {
+  id: string
+}
+
+export interface DepartmentTreeNode extends Department {
+  children?: DepartmentTreeNode[]
+  expanded?: boolean
+}

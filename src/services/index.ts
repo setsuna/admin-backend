@@ -8,6 +8,9 @@ export { httpClient } from './core/http.client'
 export { authService } from './core/auth.service'
 export { errorHandler, retryManager } from './core/error.handler'
 
+// 业务服务
+export { departmentService } from './department'
+
 // API服务
 export { dictApiService } from './api/dict.api'
 export { meetingApiService } from './api/meeting.api'

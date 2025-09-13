@@ -2,6 +2,7 @@ import { RouterProvider } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { router } from './router'
 import { PerformanceMonitor, DevPerformanceTools } from './components/PerformanceMonitor'
+import { DialogProvider } from '@/components/ui/DialogProvider'
 import './styles/globals.css'
 
 // 创建QueryClient实例
@@ -23,9 +24,11 @@ function App() {
   
   return (
     <QueryClientProvider client={queryClient}>
-      <PerformanceMonitor />
-      {isDevelopment && <DevPerformanceTools />}
-      <RouterProvider router={router} />
+      <DialogProvider>
+        <PerformanceMonitor />
+        {isDevelopment && <DevPerformanceTools />}
+        <RouterProvider router={router} />
+      </DialogProvider>
     </QueryClientProvider>
   )
 }

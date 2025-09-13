@@ -68,6 +68,7 @@ api.interceptors.response.use(
 )
 
 export default api
+export { api }
 
 // 通用API方法
 export const apiClient = {

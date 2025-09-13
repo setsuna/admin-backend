@@ -2,6 +2,7 @@ export * from './usePermission'
 export * from './useMeeting'
 export * from './useModal'
 export * from './useRole'
+export { useDepartment } from './useDepartment'
 
 import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
