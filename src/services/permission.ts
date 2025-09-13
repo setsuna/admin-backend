@@ -3,42 +3,60 @@
  * 保持原有接口不变，内部切换到新的API架构
  */
 
-import type { MenuConfig, Permission, Role, User, MenuItem, MenuItemConfig } from '@/types'
+import type { MenuConfig, Permission, Role, User, MenuItem, MenuItemConfig, PermissionGroup, RolePermissionMatrix } from '@/types'
 import { permissionApiService } from './api/user.api'
 import { dictApi } from './dict'
 import { envConfig } from '@/config/env.config'
 
 // Mock权限数据
 const mockPermissions: Permission[] = [
-  { id: '1', name: '仪表板查看', code: 'dashboard:view', description: '查看仪表板' },
+  // 仪表板权限
+  { id: '1', name: '仪表板查看', code: 'dashboard:view', category: 'workspace', resource: 'dashboard', action: 'read', description: '查看仪表板' },
   
   // 会议管理权限
-  { id: '2', name: '会议查看', code: 'meeting:view', description: '查看会议信息' },
-  { id: '3', name: '会议管理', code: 'meeting:manage', description: '创建、编辑、删除会议' },
+  { id: '2', name: '会议查看', code: 'meeting:read', category: 'meeting', resource: 'meeting', action: 'read', description: '查看会议信息' },
+  { id: '3', name: '会议创建', code: 'meeting:write', category: 'meeting', resource: 'meeting', action: 'write', description: '创建会议' },
+  { id: '4', name: '会议删除', code: 'meeting:delete', category: 'meeting', resource: 'meeting', action: 'delete', description: '删除会议' },
+  { id: '5', name: '会议管理', code: 'meeting:manage', category: 'meeting', resource: 'meeting', action: 'manage', description: '全面管理会议' },
   
   // 同步管理权限
-  { id: '4', name: '同步状态查看', code: 'sync:view', description: '查看同步状态' },
-  { id: '5', name: '同步管理', code: 'sync:manage', description: '管理同步设置' },
+  { id: '6', name: '同步状态查看', code: 'sync:read', category: 'sync', resource: 'sync', action: 'read', description: '查看同步状态' },
+  { id: '7', name: '同步管理', code: 'sync:manage', category: 'sync', resource: 'sync', action: 'manage', description: '管理同步设置' },
   
   // 人员管理权限
-  { id: '6', name: '人员查看', code: 'personnel:view', description: '查看参会人员' },
-  { id: '7', name: '人员管理', code: 'personnel:manage', description: '管理参会人员' },
-  { id: '8', name: '角色管理', code: 'role:manage', description: '管理角色权限' },
-  { id: '9', name: '密级管理', code: 'security:manage', description: '管理人员密级' },
+  { id: '8', name: '人员查看', code: 'personnel:read', category: 'personnel', resource: 'personnel', action: 'read', description: '查看参会人员' },
+  { id: '9', name: '人员编辑', code: 'personnel:write', category: 'personnel', resource: 'personnel', action: 'write', description: '编辑人员信息' },
+  { id: '10', name: '人员删除', code: 'personnel:delete', category: 'personnel', resource: 'personnel', action: 'delete', description: '删除人员' },
+  { id: '11', name: '人员管理', code: 'personnel:manage', category: 'personnel', resource: 'personnel', action: 'manage', description: '管理参会人员' },
+  
+  // 角色权限管理
+  { id: '12', name: '角色查看', code: 'role:read', category: 'personnel', resource: 'role', action: 'read', description: '查看角色信息' },
+  { id: '13', name: '角色编辑', code: 'role:write', category: 'personnel', resource: 'role', action: 'write', description: '编辑角色权限' },
+  { id: '14', name: '角色删除', code: 'role:delete', category: 'personnel', resource: 'role', action: 'delete', description: '删除角色' },
+  { id: '15', name: '角色管理', code: 'role:manage', category: 'personnel', resource: 'role', action: 'manage', description: '管理角色权限' },
+  
+  // 密级管理权限
+  { id: '16', name: '密级查看', code: 'security:read', category: 'personnel', resource: 'security', action: 'read', description: '查看人员密级' },
+  { id: '17', name: '密级管理', code: 'security:manage', category: 'personnel', resource: 'security', action: 'manage', description: '管理人员密级' },
   
   // 组织架构权限
-  { id: '10', name: '组织管理', code: 'org:manage', description: '管理组织架构' },
-  { id: '11', name: '员工管理', code: 'staff:manage', description: '管理员工信息' },
+  { id: '18', name: '组织查看', code: 'org:read', category: 'organization', resource: 'organization', action: 'read', description: '查看组织架构' },
+  { id: '19', name: '组织管理', code: 'org:manage', category: 'organization', resource: 'organization', action: 'manage', description: '管理组织架构' },
+  { id: '20', name: '员工查看', code: 'staff:read', category: 'organization', resource: 'staff', action: 'read', description: '查看员工信息' },
+  { id: '21', name: '员工管理', code: 'staff:manage', category: 'organization', resource: 'staff', action: 'manage', description: '管理员工信息' },
   
   // 系统管理权限
-  { id: '12', name: '数据字典', code: 'system:dict', description: '管理数据字典' },
-  { id: '13', name: '系统配置', code: 'system:config', description: '管理系统配置' },
-  { id: '14', name: '系统日志', code: 'system:logs', description: '查看系统日志' },
-  { id: '15', name: '管理员日志', code: 'logs:admin', description: '查看管理员操作日志' },
-  { id: '16', name: '审计日志', code: 'logs:audit', description: '查看审计日志' },
+  { id: '22', name: '数据字典查看', code: 'system:dict:read', category: 'system', resource: 'dict', action: 'read', description: '查看数据字典' },
+  { id: '23', name: '数据字典管理', code: 'system:dict:manage', category: 'system', resource: 'dict', action: 'manage', description: '管理数据字典' },
+  { id: '24', name: '系统配置查看', code: 'system:config:read', category: 'system', resource: 'config', action: 'read', description: '查看系统配置' },
+  { id: '25', name: '系统配置管理', code: 'system:config:manage', category: 'system', resource: 'config', action: 'manage', description: '管理系统配置' },
+  { id: '26', name: '系统日志查看', code: 'system:logs:read', category: 'system', resource: 'logs', action: 'read', description: '查看系统日志' },
+  { id: '27', name: '管理员日志查看', code: 'logs:admin:read', category: 'system', resource: 'admin_logs', action: 'read', description: '查看管理员操作日志' },
+  { id: '28', name: '审计日志查看', code: 'logs:audit:read', category: 'system', resource: 'audit_logs', action: 'read', description: '查看审计日志' },
   
   // 监控告警权限
-  { id: '17', name: '告警监控', code: 'monitor:alerts', description: '查看和处理告警' },
+  { id: '29', name: '告警查看', code: 'monitor:alerts:read', category: 'monitoring', resource: 'alerts', action: 'read', description: '查看告警信息' },
+  { id: '30', name: '告警处理', code: 'monitor:alerts:manage', category: 'monitoring', resource: 'alerts', action: 'manage', description: '处理告警' },
 ]
 
 const mockRoles: Role[] = [
@@ -48,24 +66,22 @@ const mockRoles: Role[] = [
     code: 'admin',
     permissions: [
       'dashboard:view',
-      'meeting:view',
-      'meeting:manage',
-      'sync:view',
-      'sync:manage',
-      'personnel:view',
-      'personnel:manage',
-      'role:manage',
-      'security:manage',
-      'org:manage',
-      'staff:manage',
-      'system:dict',
-      'system:config',
-      'system:logs',
-      'logs:admin',
-      'logs:audit',
-      'monitor:alerts'
+      'meeting:read', 'meeting:write', 'meeting:delete', 'meeting:manage',
+      'sync:read', 'sync:manage',
+      'personnel:read', 'personnel:write', 'personnel:delete', 'personnel:manage',
+      'role:read', 'role:write', 'role:delete', 'role:manage',
+      'security:read', 'security:manage',
+      'org:read', 'org:manage',
+      'staff:read', 'staff:manage',
+      'system:dict:read', 'system:dict:manage',
+      'system:config:read', 'system:config:manage',
+      'system:logs:read', 'logs:admin:read', 'logs:audit:read',
+      'monitor:alerts:read', 'monitor:alerts:manage'
     ],
-    description: '拥有所有权限'
+    status: 'enabled',
+    description: '拥有所有权限',
+    createdAt: '2024-01-01T10:00:00Z',
+    updatedAt: '2024-01-01T10:00:00Z'
   },
   {
     id: '2',
@@ -73,13 +89,14 @@ const mockRoles: Role[] = [
     code: 'meeting_admin',
     permissions: [
       'dashboard:view',
-      'meeting:view',
-      'meeting:manage',
-      'sync:view',
-      'personnel:view',
-      'personnel:manage',
+      'meeting:read', 'meeting:write', 'meeting:manage',
+      'sync:read',
+      'personnel:read', 'personnel:write', 'personnel:manage',
     ],
-    description: '会议相关管理权限'
+    status: 'enabled',
+    description: '会议相关管理权限',
+    createdAt: '2024-01-01T10:00:00Z',
+    updatedAt: '2024-01-01T10:00:00Z'
   },
   {
     id: '3',
@@ -87,10 +104,14 @@ const mockRoles: Role[] = [
     code: 'user',
     permissions: [
       'dashboard:view',
-      'meeting:view',
-      'sync:view',
+      'meeting:read',
+      'sync:read',
+      'personnel:read',
     ],
-    description: '基础查看权限'
+    status: 'enabled',
+    description: '基础查看权限',
+    createdAt: '2024-01-01T10:00:00Z',
+    updatedAt: '2024-01-01T10:00:00Z'
   },
   {
     id: '4',
@@ -98,13 +119,15 @@ const mockRoles: Role[] = [
     code: 'auditor',
     permissions: [
       'dashboard:view',
-      'meeting:view',
-      'system:logs',
-      'logs:admin',
-      'logs:audit',
-      'monitor:alerts'
+      'meeting:read',
+      'personnel:read',
+      'system:logs:read', 'logs:admin:read', 'logs:audit:read',
+      'monitor:alerts:read'
     ],
-    description: '审计和监控权限'
+    status: 'enabled',
+    description: '审计和监控权限',
+    createdAt: '2024-01-01T10:00:00Z',
+    updatedAt: '2024-01-01T10:00:00Z'
   }
 ]
 
@@ -231,7 +254,7 @@ class MockPermissionService {
             label: '数据字典',
             icon: 'Book',
             path: '/data-dictionary',
-            permissions: ['system:dict']
+            permissions: ['system:dict:read']
           }
         ]
       }
@@ -285,9 +308,114 @@ class MockPermissionService {
   }
 
   // 检查用户权限
-  async checkUserPermission(): Promise<boolean> {
+  async checkUserPermission(userId: string, permission: string): Promise<boolean> {
     await new Promise(resolve => setTimeout(resolve, 100))
+    // 这里可以实现更复杂的权限检查逻辑
     return true
+  }
+
+  // 获取权限分组
+  async getPermissionGroups(): Promise<PermissionGroup[]> {
+    await new Promise(resolve => setTimeout(resolve, 200))
+    
+    const groups = mockPermissions.reduce((acc, permission) => {
+      const existingGroup = acc.find(g => g.key === permission.category)
+      if (existingGroup) {
+        existingGroup.permissions.push(permission)
+      } else {
+        acc.push({
+          key: permission.category,
+          name: this.getCategoryName(permission.category),
+          permissions: [permission]
+        })
+      }
+      return acc
+    }, [] as PermissionGroup[])
+    
+    return groups
+  }
+
+  private getCategoryName(category: string): string {
+    const categoryNames: Record<string, string> = {
+      'workspace': '工作台',
+      'meeting': '会议管理',
+      'sync': '同步管理',
+      'personnel': '人员管理',
+      'organization': '组织架构',
+      'system': '系统管理',
+      'monitoring': '监控告警'
+    }
+    return categoryNames[category] || category
+  }
+
+  // 更新角色权限
+  async updateRolePermissions(roleId: string, permissions: string[]): Promise<boolean> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    const roleIndex = mockRoles.findIndex(r => r.id === roleId)
+    if (roleIndex === -1) return false
+    
+    mockRoles[roleIndex].permissions = permissions
+    mockRoles[roleIndex].updatedAt = new Date().toISOString()
+    
+    return true
+  }
+
+  // 创建角色
+  async createRole(roleData: Omit<Role, 'id' | 'createdAt' | 'updatedAt'>): Promise<Role> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    const now = new Date().toISOString()
+    const newRole: Role = {
+      id: Date.now().toString(),
+      ...roleData,
+      createdAt: now,
+      updatedAt: now
+    }
+    
+    mockRoles.push(newRole)
+    return newRole
+  }
+
+  // 更新角色
+  async updateRole(roleId: string, roleData: Partial<Omit<Role, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Role | null> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    const roleIndex = mockRoles.findIndex(r => r.id === roleId)
+    if (roleIndex === -1) return null
+    
+    mockRoles[roleIndex] = {
+      ...mockRoles[roleIndex],
+      ...roleData,
+      updatedAt: new Date().toISOString()
+    }
+    
+    return mockRoles[roleIndex]
+  }
+
+  // 删除角色
+  async deleteRole(roleId: string): Promise<boolean> {
+    await new Promise(resolve => setTimeout(resolve, 300))
+    
+    const roleIndex = mockRoles.findIndex(r => r.id === roleId)
+    if (roleIndex === -1) return false
+    
+    mockRoles.splice(roleIndex, 1)
+    return true
+  }
+
+  // 获取角色权限矩阵
+  async getRolePermissionMatrix(): Promise<RolePermissionMatrix[]> {
+    await new Promise(resolve => setTimeout(resolve, 300))
+    
+    return mockRoles.map(role => ({
+      roleId: role.id,
+      roleName: role.name,
+      permissions: mockPermissions.reduce((acc, permission) => {
+        acc[permission.code] = role.permissions.includes(permission.code)
+        return acc
+      }, {} as Record<string, boolean>)
+    }))
   }
 
   // 测试方法：验证菜单是否从字典读取
@@ -365,7 +493,44 @@ const createPermissionApi = () => {
         return permissionApiService.getAllRoles()
       },
 
-      async checkUserPermission(userId?: string, permission?: string) {
+      async getPermissionGroups() {
+        // 使用Mock服务的方法
+        const mockService = new MockPermissionService()
+        return mockService.getPermissionGroups()
+      },
+
+      async updateRolePermissions(roleId: string, permissions: string[]) {
+        // TODO: 实现真实API调用
+        return true
+      },
+
+      async createRole(roleData: Omit<Role, 'id' | 'createdAt' | 'updatedAt'>) {
+        // TODO: 实现真实API调用
+        return {
+          ...roleData,
+          id: Date.now().toString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        } as Role
+      },
+
+      async updateRole(roleId: string, roleData: Partial<Omit<Role, 'id' | 'createdAt' | 'updatedAt'>>) {
+        // TODO: 实现真实API调用
+        return null
+      },
+
+      async deleteRole(roleId: string) {
+        // TODO: 实现真实API调用
+        return true
+      },
+
+      async getRolePermissionMatrix() {
+        // 使用Mock服务的方法
+        const mockService = new MockPermissionService()
+        return mockService.getRolePermissionMatrix()
+      },
+
+      async checkUserPermission(userId: string, permission: string) {
         if (userId && permission) {
           return permissionApiService.checkUserPermission(userId, permission)
         }

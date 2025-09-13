@@ -13,7 +13,16 @@ const MyMeetingPage = lazy(() => import('@/pages/MyMeetingPage'))
 const CreateMeetingPage = lazy(() => import('@/pages/CreateMeetingPage'))
 const DataDictionaryPage = lazy(() => import('@/pages/DataDictionaryPage'))
 
-// 未来页面的懒加载（占位符）
+const AnomalyAlertsPage = lazy(() => 
+  Promise.resolve({
+    default: () => (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4">异常行为告警</h1>
+        <p className="text-muted-foreground">异常行为告警页面待开发</p>
+      </div>
+    )
+  })
+)
 const SyncStatusPage = lazy(() => 
   Promise.resolve({
     default: () => (
@@ -126,16 +135,8 @@ const AuditLogsPage = lazy(() =>
   })
 )
 
-const AnomalyAlertsPage = lazy(() => 
-  Promise.resolve({
-    default: () => (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">异常行为告警</h1>
-        <p className="text-muted-foreground">异常行为告警页面待开发</p>
-      </div>
-    )
-  })
-)
+const PermissionManagePage = lazy(() => import('@/pages/permission/PermissionManagePage'))
+const PermissionDemoPage = lazy(() => import('@/pages/permission/PermissionDemoPage'))
 
 // 懒加载包装器组件
 function LazyWrapper({ children }: { children: React.ReactNode }) {
@@ -200,7 +201,7 @@ export const router = createBrowserRouter([
       {
         path: 'meetings',
         element: (
-          <PermissionGuard permissions={['meeting:view']}>
+          <PermissionGuard permissions={['meeting:read']}>
             <LazyWrapper>
               <MeetingListPage />
             </LazyWrapper>
@@ -220,7 +221,7 @@ export const router = createBrowserRouter([
       {
         path: 'my-meetings',
         element: (
-          <PermissionGuard permissions={['meeting:view']}>
+          <PermissionGuard permissions={['meeting:read']}>
             <LazyWrapper>
               <MyMeetingPage />
             </LazyWrapper>
@@ -230,7 +231,7 @@ export const router = createBrowserRouter([
       {
         path: 'sync-status',
         element: (
-          <PermissionGuard permissions={['sync:view']}>
+          <PermissionGuard permissions={['sync:read']}>
             <LazyWrapper>
               <SyncStatusPage />
             </LazyWrapper>
@@ -240,7 +241,7 @@ export const router = createBrowserRouter([
       {
         path: 'participants',
         element: (
-          <PermissionGuard permissions={['personnel:view']}>
+          <PermissionGuard permissions={['personnel:read']}>
             <LazyWrapper>
               <ParticipantsPage />
             </LazyWrapper>
@@ -252,7 +253,7 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permissions={['role:manage']}>
             <LazyWrapper>
-              <RolePermissionsPage />
+              <PermissionManagePage />
             </LazyWrapper>
           </PermissionGuard>
         ),
@@ -290,7 +291,7 @@ export const router = createBrowserRouter([
       {
         path: 'data-dictionary',
         element: (
-          <PermissionGuard permissions={['system:dict']}>
+          <PermissionGuard permissions={['system:dict:read']}>
             <LazyWrapper>
               <DataDictionaryPage />
             </LazyWrapper>
@@ -300,7 +301,7 @@ export const router = createBrowserRouter([
       {
         path: 'basic-config',
         element: (
-          <PermissionGuard permissions={['system:config']}>
+          <PermissionGuard permissions={['system:config:read']}>
             <LazyWrapper>
               <BasicConfigPage />
             </LazyWrapper>
@@ -310,7 +311,7 @@ export const router = createBrowserRouter([
       {
         path: 'system-logs',
         element: (
-          <PermissionGuard permissions={['system:logs']}>
+          <PermissionGuard permissions={['system:logs:read']}>
             <LazyWrapper>
               <SystemLogsPage />
             </LazyWrapper>
@@ -320,7 +321,7 @@ export const router = createBrowserRouter([
       {
         path: 'admin-logs',
         element: (
-          <PermissionGuard permissions={['logs:admin']}>
+          <PermissionGuard permissions={['logs:admin:read']}>
             <LazyWrapper>
               <AdminLogsPage />
             </LazyWrapper>
@@ -330,7 +331,7 @@ export const router = createBrowserRouter([
       {
         path: 'audit-logs',
         element: (
-          <PermissionGuard permissions={['logs:audit']}>
+          <PermissionGuard permissions={['logs:audit:read']}>
             <LazyWrapper>
               <AuditLogsPage />
             </LazyWrapper>
@@ -340,9 +341,19 @@ export const router = createBrowserRouter([
       {
         path: 'anomaly-alerts',
         element: (
-          <PermissionGuard permissions={['monitor:alerts']}>
+          <PermissionGuard permissions={['monitor:alerts:read']}>
             <LazyWrapper>
               <AnomalyAlertsPage />
+            </LazyWrapper>
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: 'permission-demo',
+        element: (
+          <PermissionGuard permissions={['dashboard:view']}>
+            <LazyWrapper>
+              <PermissionDemoPage />
             </LazyWrapper>
           </PermissionGuard>
         ),

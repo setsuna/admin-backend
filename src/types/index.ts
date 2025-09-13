@@ -77,6 +77,16 @@ export interface Permission {
   id: string
   name: string
   code: string
+  category: string // 权限分类
+  resource: string // 资源标识
+  action: 'read' | 'write' | 'delete' | 'manage' // 操作类型
+  description?: string
+}
+
+export interface PermissionGroup {
+  key: string
+  name: string
+  permissions: Permission[]
   description?: string
 }
 
@@ -86,6 +96,23 @@ export interface Role {
   code: string
   permissions: string[]
   description?: string
+  status: 'enabled' | 'disabled'
+  createdAt: string
+  updatedAt: string
+}
+
+// 角色权限矩阵
+export interface RolePermissionMatrix {
+  roleId: string
+  roleName: string
+  permissions: Record<string, boolean> // permissionCode -> hasPermission
+}
+
+// 权限验证结果
+export interface PermissionCheckResult {
+  hasAccess: boolean
+  missingPermissions?: string[]
+  reason?: string
 }
 
 // 表格相关类型

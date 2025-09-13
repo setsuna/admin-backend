@@ -3,6 +3,7 @@ import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 import { NotificationContainer } from '@/components/ui/Notification'
 import { usePermission } from '@/hooks'
+import { PermissionDebugger, PermissionTester } from '@/components/PermissionDebugger'
 
 export function MainLayout() {
   // 初始化权限数据
@@ -18,6 +19,9 @@ export function MainLayout() {
         </main>
       </div>
       <NotificationContainer />
+      
+      {/* 开发环境下的权限调试组件 <PermissionTester />*/}
+      <PermissionDebugger />
     </div>
   )
 }

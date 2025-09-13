@@ -9,6 +9,7 @@ export * from './features'
 
 // 权限组件
 export { PermissionGuard } from './PermissionGuard'
+export { PermissionCheck, PermissionButton, PermissionLink, PermissionField, withPermission, usePermissionState, useBatchPermissionCheck } from './PermissionCheck'
 
 // 主题组件
 export { ThemeSwitcher } from './ThemeSwitcher'
