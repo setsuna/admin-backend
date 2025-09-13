@@ -1,4 +1,4 @@
-import api from './api'
+import { api } from './api'
 import { mockDepartmentService } from './mock/departmentData'
 import type { 
   Department, 

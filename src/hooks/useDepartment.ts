@@ -28,18 +28,17 @@ export const useDepartment = (options: UseDepartmentOptions = {}) => {
   const [viewMode, setViewMode] = useState<'table' | 'tree'>('table')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   
-  // 查询部门列表
+  // 查询部门列表（表格模式）
   const departmentQuery = useQuery({
     queryKey: ['departments', filters, pagination],
     queryFn: () => departmentService.getDepartments({ ...filters, ...pagination }),
     refetchInterval: enableAutoRefresh ? autoRefreshInterval : false
   })
   
-  // 查询部门树
+  // 查询部门树（树形模式）
   const departmentTreeQuery = useQuery({
     queryKey: ['departmentTree'],
     queryFn: () => departmentService.getDepartmentTree(),
-    enabled: viewMode === 'tree',
     refetchInterval: enableAutoRefresh ? autoRefreshInterval : false
   })
   

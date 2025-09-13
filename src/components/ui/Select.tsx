@@ -7,15 +7,20 @@ export interface SelectOption {
   disabled?: boolean
 }
 
-export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
+export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size' | 'onChange'> {
   options: SelectOption[]
   placeholder?: string
   size?: 'default' | 'sm' | 'lg'
   error?: boolean
+  onValueChange?: (value: string) => void
 }
 
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, options, placeholder, size = 'default', error, children, ...props }, ref) => {
+  ({ className, options, placeholder, size = 'default', error, children, onValueChange, ...props }, ref) => {
+    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      onValueChange?.(e.target.value)
+    }
+    
     return (
       <select
         className={cn(
@@ -33,6 +38,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           className
         )}
         ref={ref}
+        onChange={handleChange}
         {...props}
       >
         {placeholder && (

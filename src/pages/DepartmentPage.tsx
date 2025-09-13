@@ -3,7 +3,7 @@ import { Plus, Edit, Trash2, Search, RefreshCw, Building2, Users, Phone, Mail } 
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/Table'
+import { DataTable } from '@/components/features/DataTable'
 import { Select } from '@/components/ui/Select'
 import { StatusIndicator } from '@/components/ui/StatusIndicator'
 import { Loading } from '@/components/ui/Loading'
@@ -353,7 +353,7 @@ const DepartmentPageV2 = () => {
               <Select
                 placeholder="选择状态"
                 value={filters.status || ''}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value as any })}
+                onValueChange={(value) => setFilters({ ...filters, status: value as any })}
                 options={[
                   { label: '全部状态', value: '' },
                   { label: '启用', value: 'enabled' },
@@ -413,7 +413,7 @@ const DepartmentPageV2 = () => {
               <Loading />
             </div>
           ) : viewMode === 'table' ? (
-            <Table
+            <DataTable
               data={departments}
               columns={columns}
               loading={isLoading}
