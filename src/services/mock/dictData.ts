@@ -83,10 +83,11 @@ export const mockDictItems: Record<string, DictItem[]> = {
     { id: '53', code: 'BASIC_CONFIG', name: '基础配置', value: JSON.stringify({ key: 'basic-config', label: '基础配置', icon: 'Settings', path: '/basic-config', permissions: ['system:config:read'], group: 'system' }), status: 'enabled', sort: 11, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
     { id: '54', code: 'SYSTEM_LOGS', name: '系统日志', value: JSON.stringify({ key: 'system-logs', label: '系统日志', icon: 'FileText', path: '/system-logs', permissions: ['system:logs:read'], group: 'system' }), status: 'enabled', sort: 12, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
     { id: '55', code: 'ADMIN_LOGS', name: '操作日志（系统员）', value: JSON.stringify({ key: 'admin-logs', label: '操作日志（系统员）', icon: 'ScrollText', path: '/admin-logs', permissions: ['logs:admin:read'], group: 'system' }), status: 'enabled', sort: 13, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
-    { id: '56', code: 'AUDIT_LOGS', name: '操作日志（审计员）', value: JSON.stringify({ key: 'audit-logs', label: '操作日志（审计员）', icon: 'Search', path: '/audit-logs', permissions: ['logs:audit:read'], group: 'system' }), status: 'enabled', sort: 14, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '56', code: 'CLIENT_LOGS', name: '客户端日志（系统员）', value: JSON.stringify({ key: 'client-logs', label: '客户端日志（系统员）', icon: 'ScrollText', path: '/client-logs', permissions: ['logs:admin:read'], group: 'system' }), status: 'enabled', sort: 14, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '57', code: 'AUDIT_LOGS', name: '操作日志（审计员）', value: JSON.stringify({ key: 'audit-logs', label: '操作日志（审计员）', icon: 'Search', path: '/audit-logs', permissions: ['logs:audit:read'], group: 'system' }), status: 'enabled', sort: 15, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
     
     // 监控告警分组
-    { id: '57', code: 'ANOMALY_ALERTS', name: '异常行为告警', value: JSON.stringify({ key: 'anomaly-alerts', label: '异常行为告警', icon: 'AlertTriangle', path: '/anomaly-alerts', permissions: ['monitor:alerts:read'], group: 'monitoring' }), status: 'enabled', sort: 15, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
+    { id: '58', code: 'ANOMALY_ALERTS', name: '异常行为告警', value: JSON.stringify({ key: 'anomaly-alerts', label: '异常行为告警', icon: 'AlertTriangle', path: '/anomaly-alerts', permissions: ['monitor:alerts:read'], group: 'monitoring' }), status: 'enabled', sort: 16, createdAt: '2024-01-01T10:00:00Z', updatedAt: '2024-01-01T10:00:00Z' },
     
   ],
 
