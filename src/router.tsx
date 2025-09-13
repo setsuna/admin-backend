@@ -136,8 +136,6 @@ const AuditLogsPage = lazy(() =>
 )
 
 const PermissionManagePage = lazy(() => import('@/pages/permission/PermissionManagePage'))
-const PermissionDemoPage = lazy(() => import('@/pages/permission/PermissionDemoPage'))
-
 // 懒加载包装器组件
 function LazyWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -344,16 +342,6 @@ export const router = createBrowserRouter([
           <PermissionGuard permissions={['monitor:alerts:read']}>
             <LazyWrapper>
               <AnomalyAlertsPage />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'permission-demo',
-        element: (
-          <PermissionGuard permissions={['dashboard:view']}>
-            <LazyWrapper>
-              <PermissionDemoPage />
             </LazyWrapper>
           </PermissionGuard>
         ),

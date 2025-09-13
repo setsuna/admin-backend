@@ -418,7 +418,25 @@ class MockPermissionService {
     }))
   }
 
-  // 测试方法：验证菜单是否从字典读取
+  // 获取启用的角色选项
+  async getRoleOptions(): Promise<Array<{ label: string, value: string, sort: number }>> {
+    await new Promise(resolve => setTimeout(resolve, 200))
+    
+    return mockRoles
+      .filter(role => role.status === 'enabled')
+      .sort((a, b) => parseInt(a.id) - parseInt(b.id))
+      .map(role => ({
+        label: role.name,
+        value: role.code,
+        sort: parseInt(role.id)
+      }))
+  }
+
+  // 根据角色代码获取角色名称
+  getRoleDisplayName(roleCode: string): string {
+    const role = mockRoles.find(r => r.code === roleCode)
+    return role?.name || roleCode
+  }
   async testMenuFromDict(): Promise<{ success: boolean, menuCount: number, source: string }> {
     try {
       const testPermissions = ['dashboard:view', 'meeting:view', 'system:dict']
@@ -528,6 +546,18 @@ const createPermissionApi = () => {
         // 使用Mock服务的方法
         const mockService = new MockPermissionService()
         return mockService.getRolePermissionMatrix()
+      },
+
+      async getRoleOptions() {
+        // 使用Mock服务的方法
+        const mockService = new MockPermissionService()
+        return mockService.getRoleOptions()
+      },
+
+      getRoleDisplayName(roleCode: string) {
+        // 使用Mock服务的方法
+        const mockService = new MockPermissionService()
+        return mockService.getRoleDisplayName(roleCode)
       },
 
       async checkUserPermission(userId: string, permission: string) {

@@ -215,6 +215,23 @@ function AdminPanel() {
 
 ## 🎨 自定义扩展
 
+### 使用角色选择组件
+
+```tsx
+import { RoleSelect, RoleDisplay } from '@/components'
+
+// 单选角色
+<RoleSelect
+  value={userRole}
+  onChange={setUserRole}
+  placeholder="请选择角色"
+  allowClear
+/>
+
+// 显示角色名称
+<RoleDisplay roleCode={userRole} showCode />
+```
+
 ### 添加新权限
 
 1. 在 `services/permission.ts` 的 `mockPermissions` 中添加权限定义
@@ -248,7 +265,15 @@ function AdminPanel() {
 
 ## 📝 更新日志
 
-### v1.0.0 (当前版本)
+### v1.0.1 (当前版本) - 数据源统一
+- ✅ 移除字典中的 USER_ROLE 数据
+- ✅ 统一角色数据源到权限系统
+- ✅ 创建角色选择组件 (RoleSelect, RoleMultiSelect)
+- ✅ 添加角色显示组件 (RoleDisplay, RoleListDisplay)
+- ✅ 提供角色相关钩子 (useRoleOptions, useRoleDisplayName)
+- ✅ 解决数据不一致问题
+
+### v1.0.0
 - ✅ 完成权限数据结构设计
 - ✅ 实现菜单字典与权限分离
 - ✅ 创建权限管理页面
