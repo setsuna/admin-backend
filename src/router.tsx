@@ -233,9 +233,9 @@ export const router = createBrowserRouter([
       {
         path: 'participants',
         element: (
-          <PermissionGuard permissions={['personnel:read']}>
+          <PermissionGuard permissions={['user:manage']}>
             <LazyWrapper>
-              <ParticipantsPage />
+              <UserPage />
             </LazyWrapper>
           </PermissionGuard>
         ),
@@ -283,7 +283,7 @@ export const router = createBrowserRouter([
       {
         path: 'security-users',
         element: (
-          <PermissionGuard permissions={['security:user:manage']}>
+          <PermissionGuard permissions={['security:user:manage', 'user:manage']}>
             <LazyWrapper>
               <SecurityUserManagePage />
             </LazyWrapper>

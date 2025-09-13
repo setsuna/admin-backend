@@ -126,7 +126,7 @@ const mockRoles: Role[] = [
   {
     id: '4',
     name: '审计员',
-    code: 'auditor',
+    code: 'auditadm',
     permissions: [
       'dashboard:view',
       'meeting:read',
@@ -142,7 +142,7 @@ const mockRoles: Role[] = [
   {
     id: '5',
     name: '安全管理员',
-    code: 'security_admin',
+    code: 'secadm',
     permissions: [
       'dashboard:view',
       'security:user:manage',
@@ -150,7 +150,7 @@ const mockRoles: Role[] = [
       'security:manage'
     ],
     status: 'enabled',
-    description: '用户安全管理权限',
+    description: '安全管理员权限',
     createdAt: '2024-01-01T10:00:00Z',
     updatedAt: '2024-01-01T10:00:00Z'
   }
@@ -282,18 +282,25 @@ class MockPermissionService {
             permissions: ['org:manage']
           },
           {
-            key: 'users',
-            label: '用户管理（系统管理员）',
+            key: 'participants',
+            label: '人员管理',
             icon: 'Users',
-            path: '/users',
+            path: '/participants',
             permissions: ['user:manage']
           },
           {
             key: 'security-users',
-            label: '用户管理（安全管理员）',
+            label: '人员管理（安全员）',
             icon: 'Shield',
             path: '/security-users',
-            permissions: ['security:user:manage']
+            permissions: ['security:user:manage', 'user:manage']
+          },
+          {
+            key: 'users',
+            label: '用户管理（系统管理员）',
+            icon: 'User',
+            path: '/users',
+            permissions: ['user:manage']
           }
         ]
       },
@@ -326,6 +333,7 @@ class MockPermissionService {
         if (!menu.permissions || menu.permissions.length === 0) {
           return true
         }
+        // 支持多个权限的OR逻辑：只要有一个权限匹配就显示
         return menu.permissions.some((permission: string) => 
           userPermissions.includes(permission)
         )
