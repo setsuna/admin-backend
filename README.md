@@ -8,6 +8,23 @@
 - **优雅的UI**: Tailwind CSS + shadcn/ui 风格的设计系统
 - **数据管理**: TanStack Query + Zustand
 - **功能完整**: CRUD操作、YAML编辑、实时状态、设备管理
+
+## 📝 AI 开发指导
+
+**重要提醒：在使用 AI 工具协助开发时，请务必遵循以下原则以避免循环依赖问题：**
+
+### 导入规范
+```typescript
+// ✅ 正确：始终使用直接导入
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { Modal } from '@/components/ui/Modal'
+
+// ❌ 禁止：通过 index.ts 导入 UI 组件
+import { Button, Card, Modal } from '@/components/ui'
+```
+
+**详细指导原则请查看：[.ai-guidelines.md](./.ai-guidelines.md)**
 - **开发友好**: 完整的TypeScript类型定义、ESLint配置
 - **长期维护**: 清晰的目录结构、组件化架构
 

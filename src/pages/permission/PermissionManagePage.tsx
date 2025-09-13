@@ -6,7 +6,10 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { permissionApi } from '@/services/permission'
-import { Card, Button, Loading, Modal } from '@/components/ui'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Loading } from '@/components/ui/Loading'
+import { Modal } from '@/components/ui/Modal'
 import { useGlobalStore } from '@/store'
 import type { Role, PermissionGroup } from '@/types'
 
