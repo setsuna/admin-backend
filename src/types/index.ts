@@ -62,7 +62,7 @@ export interface User {
   id: string
   username: string
   email: string
-  role: 'admin' | 'user' | 'meeting_admin' | 'auditor'
+  role: 'admin' | 'user' | 'meeting_admin' | 'auditor' | 'security_admin' | 'security_admin'
   avatar?: string
   department?: string
   departmentName?: string
@@ -79,7 +79,7 @@ export interface User {
 export interface UserFilters {
   keyword?: string
   department?: string
-  role?: 'admin' | 'user' | 'meeting_admin' | 'auditor'
+  role?: 'admin' | 'user' | 'meeting_admin' | 'auditor' | 'security_admin'
   status?: 'active' | 'inactive' | 'suspended'
   securityLevel?: UserSecurityLevel
 }
@@ -88,7 +88,7 @@ export interface CreateUserRequest {
   username: string
   email: string
   password: string
-  role: 'admin' | 'user' | 'meeting_admin' | 'auditor'
+  role: 'admin' | 'user' | 'meeting_admin' | 'auditor' | 'security_admin'
   department?: string
   position?: string
   phone?: string

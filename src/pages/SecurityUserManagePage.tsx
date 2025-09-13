@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Edit, Trash2, Search, RefreshCw, User as UserIcon, Users, Shield, Mail, Phone } from 'lucide-react'
+import { Search, RefreshCw, Users, Shield, Key, UserCheck, UserX, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
@@ -7,25 +7,11 @@ import { DataTable } from '@/components/features/DataTable'
 import { Select } from '@/components/ui/Select'
 import { StatusIndicator } from '@/components/ui/StatusIndicator'
 import { Loading } from '@/components/ui/Loading'
-import { FormModal } from '@/components/ui/FormModal'
 import { useGlobalDialog } from '@/components/ui/DialogProvider'
 import { useUser } from '@/hooks/useUser'
-import type { User, CreateUserRequest, UpdateUserRequest, UserSecurityLevel } from '@/types'
+import type { User, UserSecurityLevel } from '@/types'
 
-interface UserFormData {
-  username: string
-  email: string
-  password?: string
-  role: 'admin' | 'user' | 'meeting_admin' | 'auditor'
-  department?: string
-  position?: string
-  phone?: string
-  status: 'active' | 'inactive' | 'suspended'
-  securityLevel: UserSecurityLevel
-  permissions?: string[]
-}
-
-const UserPage = () => {
+const SecurityUserManagePage = () => {
   const { showConfirm } = useGlobalDialog()
   
   // 使用用户管理hook
@@ -41,26 +27,17 @@ const UserPage = () => {
     setFilters,
     setPagination,
     setSelectedIds,
-    createUser,
-    updateUser,
-    deleteUser,
-    batchDeleteUsers,
-    isCreating,
-    isUpdating,
-    isDeleting,
-    isBatchDeleting,
+    resetPassword,
+    updateUserStatus,
+    isResettingPassword,
+    isUpdatingStatus,
     resetFilters,
     refreshData,
     toggleSelectAll,
     toggleSelectId,
     isAllSelected,
-    isIndeterminate,
-    getPermissionsByRole
+    isIndeterminate
   } = useUser()
-  
-  // 表单状态
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState<User | null>(null)
   
   // 搜索关键词状态
   const [searchKeyword, setSearchKeyword] = useState(filters.keyword || '')
@@ -70,8 +47,8 @@ const UserPage = () => {
     { label: '管理员', value: 'admin' },
     { label: '普通用户', value: 'user' },
     { label: '会议管理员', value: 'meeting_admin' },
-    { label: '审计员', value: 'auditor' },
-    { label: '安全管理员', value: 'security_admin' }
+    { label: '审计员', value: 'auditadm' },
+    { label: '安全管理员', value: 'secadm' }
   ]
   
   // 状态选项
@@ -95,63 +72,70 @@ const UserPage = () => {
     setPagination({ page: 1, pageSize: pagination?.pageSize || 20 })
   }
   
-  // 新增用户
-  const handleCreateUser = () => {
-    setEditingUser(null)
-    setIsFormModalOpen(true)
-  }
-  
-  // 编辑用户
-  const handleEditUser = (user: User) => {
-    setEditingUser(user)
-    setIsFormModalOpen(true)
-  }
-  
-  // 删除用户
-  const handleDeleteUser = async (user: User) => {
+  // 重置密码
+  const handleResetPassword = async (user: User) => {
     const confirmed = await showConfirm({
-      title: '删除用户',
-      content: `确定要删除用户"${user.username}"吗？此操作无法撤销。`,
-      confirmText: '删除',
+      title: '重置密码',
+      content: `确定要重置用户"${user.username}"的密码吗？密码将重置为默认密码。`,
+      confirmText: '重置',
       cancelText: '取消'
     })
     
     if (confirmed) {
-      deleteUser(user.id)
+      resetPassword(user.id)
     }
   }
   
-  // 批量删除用户
-  const handleBatchDelete = async () => {
+  // 更新用户状态
+  const handleUpdateStatus = async (user: User, newStatus: 'active' | 'inactive' | 'suspended') => {
+    const statusMap = { active: '启用', inactive: '禁用', suspended: '停用' }
     const confirmed = await showConfirm({
-      title: '批量删除',
-      content: `确定要删除选中的 ${selectedIds.length} 个用户吗？此操作无法撤销。`,
-      confirmText: '删除',
+      title: '更新状态',
+      content: `确定要${statusMap[newStatus]}用户"${user.username}"吗？`,
+      confirmText: '确定',
       cancelText: '取消'
     })
     
     if (confirmed) {
-      batchDeleteUsers(selectedIds)
+      updateUserStatus({ id: user.id, status: newStatus })
     }
   }
   
-  // 表单提交处理
-  const handleFormSubmit = (formData: UserFormData) => {
-    if (editingUser) {
-      const { password, ...updateData } = formData
-      updateUser({
-        id: editingUser.id,
-        ...updateData,
-        permissions: getPermissionsByRole(formData.role)
-      } as UpdateUserRequest)
-    } else {
-      createUser({
-        ...formData,
-        password: formData.password || '123456',
-        permissions: getPermissionsByRole(formData.role)
-      } as CreateUserRequest)
+  // 批量重置密码
+  const handleBatchResetPassword = async () => {
+    const confirmed = await showConfirm({
+      title: '批量重置密码',
+      content: `确定要重置选中的 ${selectedIds.length} 个用户的密码吗？密码将重置为默认密码。`,
+      confirmText: '重置',
+      cancelText: '取消'
+    })
+    
+    if (confirmed) {
+      // 逐个重置密码
+      for (const userId of selectedIds) {
+        resetPassword(userId)
+      }
+      setSelectedIds([])
     }
-    setIsFormModalOpen(false)
+  }
+  
+  // 批量更新状态
+  const handleBatchUpdateStatus = async (status: 'active' | 'inactive' | 'suspended') => {
+    const statusMap = { active: '启用', inactive: '禁用', suspended: '停用' }
+    const confirmed = await showConfirm({
+      title: `批量${statusMap[status]}`,
+      content: `确定要${statusMap[status]}选中的 ${selectedIds.length} 个用户吗？`,
+      confirmText: '确定',
+      cancelText: '取消'
+    })
+    
+    if (confirmed) {
+      // 逐个更新状态
+      for (const userId of selectedIds) {
+        updateUserStatus({ id: userId, status })
+      }
+      setSelectedIds([])
+    }
   }
   
   // 表格列定义
@@ -252,94 +236,53 @@ const UserPage = () => {
     },
     {
       key: 'actions',
-      title: '操作',
-      width: 150,
+      title: '安全操作',
+      width: 180,
       render: (_, user: User) => (
         <div className="flex space-x-2">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleEditUser(user)}
-            disabled={isUpdating}
-            title="编辑用户"
+            onClick={() => handleResetPassword(user)}
+            disabled={isResettingPassword}
+            title="重置密码"
           >
-            <Edit className="w-4 h-4" />
+            <Key className="w-4 h-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleDeleteUser(user)}
-            disabled={isDeleting}
-            title="删除用户"
-          >
-            <Trash2 className="w-4 h-4 text-red-500" />
-          </Button>
+          {user.status === 'active' ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleUpdateStatus(user, 'inactive')}
+              disabled={isUpdatingStatus}
+              title="禁用用户"
+            >
+              <UserX className="w-4 h-4 text-orange-500" />
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleUpdateStatus(user, 'active')}
+              disabled={isUpdatingStatus}
+              title="启用用户"
+            >
+              <UserCheck className="w-4 h-4 text-green-500" />
+            </Button>
+          )}
+          {user.status !== 'suspended' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleUpdateStatus(user, 'suspended')}
+              disabled={isUpdatingStatus}
+              title="停用用户"
+            >
+              <AlertTriangle className="w-4 h-4 text-red-500" />
+            </Button>
+          )}
         </div>
       )
-    }
-  ]
-  
-  // 表单字段定义
-  const formFields = [
-    {
-      name: 'username',
-      label: '用户名',
-      type: 'text' as const,
-      required: true,
-      placeholder: '请输入用户名'
-    },
-    {
-      name: 'email',
-      label: '邮箱',
-      type: 'email' as const,
-      required: true,
-      placeholder: '请输入邮箱地址'
-    },
-    ...(editingUser ? [] : [{
-      name: 'password',
-      label: '密码',
-      type: 'password' as const,
-      required: !editingUser,
-      placeholder: editingUser ? '不修改请留空' : '请输入密码（默认123456）'
-    }]),
-    {
-      name: 'role',
-      label: '角色',
-      type: 'select' as const,
-      required: true,
-      options: roleOptions
-    },
-    {
-      name: 'department',
-      label: '部门',
-      type: 'select' as const,
-      options: departmentOptions.map(dept => ({ label: dept.name, value: dept.id }))
-    },
-    {
-      name: 'position',
-      label: '职位',
-      type: 'text' as const,
-      placeholder: '请输入职位'
-    },
-    {
-      name: 'phone',
-      label: '手机号',
-      type: 'text' as const,
-      placeholder: '请输入手机号'
-    },
-    {
-      name: 'securityLevel',
-      label: '密级',
-      type: 'select' as const,
-      required: true,
-      options: securityLevelOptions
-    },
-    {
-      name: 'status',
-      label: '状态',
-      type: 'select' as const,
-      required: true,
-      options: statusOptions
     }
   ]
   
@@ -381,7 +324,7 @@ const UserPage = () => {
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-green-100 rounded-lg">
-                  <UserIcon className="w-6 h-6 text-green-600" />
+                  <UserCheck className="w-6 h-6 text-green-600" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">正常用户</p>
@@ -395,7 +338,7 @@ const UserPage = () => {
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-yellow-100 rounded-lg">
-                  <UserIcon className="w-6 h-6 text-yellow-600" />
+                  <UserX className="w-6 h-6 text-yellow-600" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">禁用用户</p>
@@ -409,7 +352,7 @@ const UserPage = () => {
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-red-100 rounded-lg">
-                  <Shield className="w-6 h-6 text-red-600" />
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">停用用户</p>
@@ -424,7 +367,7 @@ const UserPage = () => {
       {/* 筛选和搜索区域 */}
       <Card>
         <CardHeader>
-          <CardTitle>用户管理（系统管理员）</CardTitle>
+          <CardTitle>用户管理（安全管理员）</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
@@ -516,23 +459,47 @@ const UserPage = () => {
         </CardContent>
       </Card>
       
-      {/* 操作按钮区域 */}
+      {/* 安全操作按钮区域 */}
       <div className="flex justify-between items-center">
         <div className="flex space-x-2">
-          <Button onClick={handleCreateUser} disabled={isCreating}>
-            <Plus className="w-4 h-4 mr-2" />
-            新增用户
-          </Button>
-          
           {selectedIds.length > 0 && (
-            <Button
-              variant="destructive"
-              onClick={handleBatchDelete}
-              disabled={isBatchDeleting}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              批量删除 ({selectedIds.length})
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                onClick={handleBatchResetPassword}
+                disabled={isResettingPassword}
+              >
+                <Key className="w-4 h-4 mr-2" />
+                批量重置密码 ({selectedIds.length})
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => handleBatchUpdateStatus('active')}
+                disabled={isUpdatingStatus}
+              >
+                <UserCheck className="w-4 h-4 mr-2" />
+                批量启用 ({selectedIds.length})
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => handleBatchUpdateStatus('inactive')}
+                disabled={isUpdatingStatus}
+              >
+                <UserX className="w-4 h-4 mr-2" />
+                批量禁用 ({selectedIds.length})
+              </Button>
+              
+              <Button
+                variant="destructive"
+                onClick={() => handleBatchUpdateStatus('suspended')}
+                disabled={isUpdatingStatus}
+              >
+                <AlertTriangle className="w-4 h-4 mr-2" />
+                批量停用 ({selectedIds.length})
+              </Button>
+            </>
           )}
         </div>
         
@@ -560,33 +527,8 @@ const UserPage = () => {
           />
         </CardContent>
       </Card>
-      
-      {/* 用户表单弹窗 */}
-      <FormModal
-        open={isFormModalOpen}
-        onOpenChange={setIsFormModalOpen}
-        title={editingUser ? '编辑用户' : '新增用户'}
-        fields={formFields}
-        initialData={editingUser ? {
-          username: editingUser.username,
-          email: editingUser.email,
-          role: editingUser.role,
-          department: editingUser.department,
-          position: editingUser.position,
-          phone: editingUser.phone,
-          securityLevel: editingUser.securityLevel,
-          status: editingUser.status
-        } : {
-          status: 'active',
-          securityLevel: 'unknown',
-          role: 'user'
-        }}
-        onSubmit={handleFormSubmit}
-        loading={isCreating || isUpdating}
-        submitText={editingUser ? '更新' : '创建'}
-      />
     </div>
   )
 }
 
-export default UserPage
+export default SecurityUserManagePage

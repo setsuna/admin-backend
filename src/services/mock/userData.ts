@@ -179,6 +179,23 @@ const mockUsers: User[] = [
     updatedAt: '2024-03-20T11:30:00.000Z',
     lastLoginAt: '2025-09-09T14:20:00.000Z',
     permissions: ['operation:view']
+  },
+  {
+    id: '11',
+    username: 'security_admin',
+    email: 'security@example.com',
+    role: 'security_admin',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=security_admin',
+    department: '2',
+    departmentName: '行政部',
+    position: '安全管理员',
+    phone: '13800138011',
+    status: 'active',
+    securityLevel: 'secret',
+    createdAt: '2024-03-01T08:00:00.000Z',
+    updatedAt: '2024-03-25T12:00:00.000Z',
+    lastLoginAt: '2025-09-13T09:00:00.000Z',
+    permissions: ['security:user:manage', 'dashboard:view']
   }
 ]
 

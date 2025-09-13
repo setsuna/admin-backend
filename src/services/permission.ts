@@ -39,6 +39,9 @@ const mockPermissions: Permission[] = [
   { id: '16', name: '密级查看', code: 'security:read', category: 'personnel', resource: 'security', action: 'read', description: '查看人员密级' },
   { id: '17', name: '密级管理', code: 'security:manage', category: 'personnel', resource: 'security', action: 'manage', description: '管理人员密级' },
   
+  // 安全管理员权限
+  { id: '35', name: '用户安全管理', code: 'security:user:manage', category: 'security', resource: 'user_security', action: 'manage', description: '管理用户密码和状态' },
+  
   // 组织架构权限
   { id: '18', name: '组织查看', code: 'org:read', category: 'organization', resource: 'organization', action: 'read', description: '查看组织架构' },
   { id: '19', name: '组织管理', code: 'org:manage', category: 'organization', resource: 'organization', action: 'manage', description: '管理组织架构' },
@@ -133,6 +136,21 @@ const mockRoles: Role[] = [
     ],
     status: 'enabled',
     description: '审计和监控权限',
+    createdAt: '2024-01-01T10:00:00Z',
+    updatedAt: '2024-01-01T10:00:00Z'
+  },
+  {
+    id: '5',
+    name: '安全管理员',
+    code: 'security_admin',
+    permissions: [
+      'dashboard:view',
+      'security:user:manage',
+      'security:read',
+      'security:manage'
+    ],
+    status: 'enabled',
+    description: '用户安全管理权限',
     createdAt: '2024-01-01T10:00:00Z',
     updatedAt: '2024-01-01T10:00:00Z'
   }
@@ -265,10 +283,17 @@ class MockPermissionService {
           },
           {
             key: 'users',
-            label: '用户管理',
+            label: '用户管理（系统管理员）',
             icon: 'Users',
             path: '/users',
             permissions: ['user:manage']
+          },
+          {
+            key: 'security-users',
+            label: '用户管理（安全管理员）',
+            icon: 'Shield',
+            path: '/security-users',
+            permissions: ['security:user:manage']
           }
         ]
       },
@@ -370,6 +395,7 @@ class MockPermissionService {
       'sync': '同步管理',
       'personnel': '人员管理',
       'organization': '组织架构',
+      'security': '安全管理',
       'system': '系统管理',
       'monitoring': '监控告警'
     }
