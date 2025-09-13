@@ -253,7 +253,7 @@ export default function PermissionManagePage() {
             {/* 左侧固定权限列 */}
             <div className="w-80 flex-shrink-0 bg-white dark:bg-gray-900 relative z-10 border-r">
               {/* 标题 */}
-              <div className="p-6 bg-gray-50 dark:bg-gray-800/50 border-b">
+              <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-b min-h-[88px] flex items-center">
                 <div className="font-medium">权限项</div>
               </div>
               
@@ -264,7 +264,7 @@ export default function PermissionManagePage() {
                 return (
                   <div key={group.key} className="border-b last:border-b-0">
                     {/* 权限组标题 */}
-                    <div className="p-6 bg-gray-50 dark:bg-gray-800/50 border-b">
+                    <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-b min-h-[64px] flex items-center">
                       <button
                         onClick={() => toggleGroup(group.key)}
                         className="flex items-center gap-2 font-medium hover:text-primary"
@@ -280,12 +280,12 @@ export default function PermissionManagePage() {
                     {isExpanded && (
                       <div>
                         {group.permissions.map(permission => (
-                          <div key={permission.id} className="p-6 pl-6 border-b border-gray-100 last:border-b-0 flex items-center">
+                          <div key={permission.id} className="px-6 py-3 pl-6 border-b border-gray-100 last:border-b-0 min-h-[56px] flex items-center">
                             <div>
                               <div className="font-medium text-sm">{permission.name}</div>
                               <div className="text-xs text-muted-foreground">{permission.code}</div>
                               {permission.description && (
-                                <div className="text-xs text-muted-foreground mt-1">
+                                <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                                   {permission.description}
                                 </div>
                               )}
@@ -303,9 +303,9 @@ export default function PermissionManagePage() {
             <div className="flex-1 overflow-x-auto">
               <div className="min-w-max">
                 {/* 角色标题行 */}
-                <div className="flex bg-gray-50 dark:bg-gray-800/50 border-b">
+                <div className="flex bg-gray-50 dark:bg-gray-800/50 border-b min-h-[88px]">
                   {roles.map(role => (
-                    <div key={role.id} className="w-32 flex-shrink-0 text-center p-3 border-r last:border-r-0">
+                    <div key={role.id} className="w-32 flex-shrink-0 text-center px-3 py-4 border-r last:border-r-0 flex flex-col justify-center">
                       <div className="font-medium">{role.name}</div>
                       <div className="text-xs text-muted-foreground">{role.code}</div>
                       <div className="flex gap-1 justify-center mt-2">
@@ -343,11 +343,11 @@ export default function PermissionManagePage() {
                   return (
                     <div key={group.key} className="border-b last:border-b-0">
                       {/* 权限组角色复选框 */}
-                      <div className="flex bg-gray-50 dark:bg-gray-800/50 border-b">
+                      <div className="flex bg-gray-50 dark:bg-gray-800/50 border-b min-h-[64px]">
                         {roles.map(role => {
                           const isSelected = isGroupSelected(role.id, group.key)
                           return (
-                            <div key={role.id} className="w-32 flex-shrink-0 text-center p-6 border-r last:border-r-0 flex items-center justify-center">
+                            <div key={role.id} className="w-32 flex-shrink-0 text-center px-3 py-4 border-r last:border-r-0 flex items-center justify-center">
                               <input
                                 type="checkbox"
                                 checked={isSelected}
@@ -363,13 +363,13 @@ export default function PermissionManagePage() {
                       {isExpanded && (
                         <div>
                           {group.permissions.map(permission => (
-                            <div key={permission.id} className="flex border-b border-gray-100 last:border-b-0">
+                            <div key={permission.id} className="flex border-b border-gray-100 last:border-b-0 min-h-[56px]">
                               {roles.map(role => {
                                 const roleMatrix = rolePermissionMatrix.find(rm => rm.roleId === role.id)
                                 const hasPermission = roleMatrix?.permissions[permission.code] || false
                                 
                                 return (
-                                  <div key={role.id} className="w-32 flex-shrink-0 text-center p-6 border-r last:border-r-0 flex items-center justify-center">
+                                  <div key={role.id} className="w-32 flex-shrink-0 text-center px-3 py-3 border-r last:border-r-0 flex items-center justify-center">
                                     <input
                                       type="checkbox"
                                       checked={hasPermission}
