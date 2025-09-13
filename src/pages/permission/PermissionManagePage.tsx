@@ -280,7 +280,7 @@ export default function PermissionManagePage() {
                     {isExpanded && (
                       <div>
                         {group.permissions.map(permission => (
-                          <div key={permission.id} className="p-3 pl-6 border-b border-gray-100 last:border-b-0 min-h-[60px] flex items-center">
+                          <div key={permission.id} className="p-6 pl-6 border-b border-gray-100 last:border-b-0 flex items-center">
                             <div>
                               <div className="font-medium text-sm">{permission.name}</div>
                               <div className="text-xs text-muted-foreground">{permission.code}</div>
@@ -363,13 +363,13 @@ export default function PermissionManagePage() {
                       {isExpanded && (
                         <div>
                           {group.permissions.map(permission => (
-                            <div key={permission.id} className="flex border-b border-gray-100 last:border-b-0 min-h-[60px]">
+                            <div key={permission.id} className="flex border-b border-gray-100 last:border-b-0">
                               {roles.map(role => {
                                 const roleMatrix = rolePermissionMatrix.find(rm => rm.roleId === role.id)
                                 const hasPermission = roleMatrix?.permissions[permission.code] || false
                                 
                                 return (
-                                  <div key={role.id} className="w-32 flex-shrink-0 text-center p-3 border-r last:border-r-0 flex items-center justify-center">
+                                  <div key={role.id} className="w-32 flex-shrink-0 text-center p-6 border-r last:border-r-0 flex items-center justify-center">
                                     <input
                                       type="checkbox"
                                       checked={hasPermission}
