@@ -6,7 +6,8 @@ import type {
   CreateUserRequest, 
   UpdateUserRequest,
   PaginatedResponse,
-  ApiResponse 
+  ApiResponse,
+  UserSecurityLevel 
 } from '@/types'
 
 // 判断是否使用Mock数据
@@ -147,6 +148,45 @@ export const userService = {
       byRole: Record<string, number>
       bySecurityLevel: Record<string, number>
     }>>('/users/stats')
+    return response.data
+  },
+
+  // 更新用户密级
+  async updateUserSecurityLevel(id: string, securityLevel: UserSecurityLevel) {
+    if (shouldUseMock()) {
+      return mockUserService.updateUserSecurityLevel(id, securityLevel)
+    }
+    
+    const response = await api.put<ApiResponse<User>>(`/users/${id}/security-level`, { securityLevel })
+    return response.data
+  },
+
+  // 批量更新用户密级
+  async batchUpdateSecurityLevel(ids: string[], securityLevel: UserSecurityLevel) {
+    if (shouldUseMock()) {
+      return mockUserService.batchUpdateSecurityLevel(ids, securityLevel)
+    }
+    
+    const response = await api.put<ApiResponse<void>>('/users/batch/security-level', { ids, securityLevel })
+    return response.data
+  },
+
+  // 获取密级变更历史（可选）
+  async getSecurityLevelHistory(userId: string) {
+    if (shouldUseMock()) {
+      return mockUserService.getSecurityLevelHistory(userId)
+    }
+    
+    const response = await api.get<ApiResponse<Array<{
+      id: string
+      userId: string
+      oldLevel: UserSecurityLevel
+      newLevel: UserSecurityLevel
+      updatedBy: string
+      updatedByName: string
+      updatedAt: string
+      reason?: string
+    }>>>(`/users/${userId}/security-level-history`)
     return response.data
   }
 }

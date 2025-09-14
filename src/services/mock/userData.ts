@@ -4,7 +4,8 @@ import type {
   CreateUserRequest, 
   UpdateUserRequest,
   PaginatedResponse,
-  ApiResponse
+  ApiResponse,
+  UserSecurityLevel
 } from '@/types'
 
 // Mock用户数据
@@ -203,6 +204,20 @@ const delay = (ms: number = 500) => new Promise(resolve => setTimeout(resolve, m
 
 // 生成新的ID
 const generateId = () => Math.random().toString(36).substr(2, 9)
+
+// 全局存储密级变更历史
+interface SecurityLevelHistoryRecord {
+  id: string
+  userId: string
+  oldLevel: UserSecurityLevel
+  newLevel: UserSecurityLevel
+  updatedBy: string
+  updatedByName: string
+  updatedAt: string
+  reason?: string
+}
+
+let securityLevelHistory: SecurityLevelHistoryRecord[] = []
 
 // 筛选用户数据
 const filterUsers = (users: User[], filters?: UserFilters): User[] => {
@@ -461,6 +476,97 @@ export const mockUserService = {
       code: 200,
       message: 'success',
       data: stats
+    }
+  },
+
+  // 更新用户密级
+  async updateUserSecurityLevel(id: string, securityLevel: UserSecurityLevel): Promise<ApiResponse<User>> {
+    await delay()
+    
+    const index = mockUsers.findIndex(u => u.id === id)
+    if (index === -1) {
+      throw new Error(`用户不存在: ${id}`)
+    }
+    
+    const oldLevel = mockUsers[index].securityLevel
+    mockUsers[index] = {
+      ...mockUsers[index],
+      securityLevel,
+      updatedAt: new Date().toISOString()
+    }
+    
+    // 记录密级变更历史
+    const historyRecord: SecurityLevelHistoryRecord = {
+      id: generateId(),
+      userId: id,
+      oldLevel,
+      newLevel: securityLevel,
+      updatedBy: 'current_user_id',
+      updatedByName: '当前用户',
+      updatedAt: new Date().toISOString(),
+      reason: '手动调整密级'
+    }
+    
+    securityLevelHistory.push(historyRecord)
+    
+    return {
+      code: 200,
+      message: 'success',
+      data: mockUsers[index]
+    }
+  },
+
+  // 批量更新用户密级
+  async batchUpdateSecurityLevel(ids: string[], securityLevel: UserSecurityLevel): Promise<ApiResponse<void>> {
+    await delay()
+    
+    const now = new Date().toISOString()
+    
+    ids.forEach(id => {
+      const index = mockUsers.findIndex(u => u.id === id)
+      if (index !== -1) {
+        const oldLevel = mockUsers[index].securityLevel
+        mockUsers[index] = {
+          ...mockUsers[index],
+          securityLevel,
+          updatedAt: now
+        }
+        
+        // 记录密级变更历史
+        const historyRecord: SecurityLevelHistoryRecord = {
+          id: generateId(),
+          userId: id,
+          oldLevel,
+          newLevel: securityLevel,
+          updatedBy: 'current_user_id',
+          updatedByName: '当前用户',
+          updatedAt: now,
+          reason: '批量调整密级'
+        }
+        
+        securityLevelHistory.push(historyRecord)
+      }
+    })
+    
+    return {
+      code: 200,
+      message: 'success',
+      data: undefined
+    }
+  },
+
+  // 获取密级变更历史
+  async getSecurityLevelHistory(userId: string): Promise<ApiResponse<SecurityLevelHistoryRecord[]>> {
+    await delay()
+    
+    const history = securityLevelHistory
+      .filter(record => record.userId === userId)
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    
+    return {
+      code: 200,
+      message: 'success',
+      data: history
     }
   }
 }

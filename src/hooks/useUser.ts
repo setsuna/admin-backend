@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { userService, departmentService } from '@/services'
 import { useGlobalStore } from '@/store'
-import type { UserFilters, CreateUserRequest, UpdateUserRequest } from '@/types'
+import type { UserFilters, CreateUserRequest, UpdateUserRequest, UserSecurityLevel } from '@/types'
 
 export interface UseUserOptions {
   initialFilters?: UserFilters
@@ -154,6 +154,51 @@ export const useUser = (options: UseUserOptions = {}) => {
     }
   })
   
+  // 更新用户密级
+  const updateSecurityLevelMutation = useMutation({
+    mutationFn: ({ id, securityLevel }: { id: string; securityLevel: UserSecurityLevel }) => 
+      userService.updateUserSecurityLevel(id, securityLevel),
+    onSuccess: (_, { securityLevel }) => {
+      const levelMap = { unknown: '未知', internal: '内部', confidential: '机密', secret: '绝密' }
+      addNotification({ 
+        type: 'success', 
+        title: '密级更新成功', 
+        message: `用户密级已调整为 ${levelMap[securityLevel]}` 
+      })
+      invalidateQueries()
+    },
+    onError: (error: any) => {
+      addNotification({ 
+        type: 'error', 
+        title: '密级更新失败', 
+        message: error.message || '请稍后重试' 
+      })
+    }
+  })
+  
+  // 批量更新用户密级
+  const batchUpdateSecurityLevelMutation = useMutation({
+    mutationFn: ({ ids, securityLevel }: { ids: string[]; securityLevel: UserSecurityLevel }) => 
+      userService.batchUpdateSecurityLevel(ids, securityLevel),
+    onSuccess: (_, { ids, securityLevel }) => {
+      const levelMap = { unknown: '未知', internal: '内部', confidential: '机密', secret: '绝密' }
+      addNotification({ 
+        type: 'success', 
+        title: '批量密级更新成功', 
+        message: `已将 ${ids.length} 个用户的密级调整为 ${levelMap[securityLevel]}` 
+      })
+      setSelectedIds([])
+      invalidateQueries()
+    },
+    onError: (error: any) => {
+      addNotification({ 
+        type: 'error', 
+        title: '批量密级更新失败', 
+        message: error.message || '请稍后重试' 
+      })
+    }
+  })
+  
   // 工具函数
   const resetFilters = () => {
     setFilters(initialFilters)
@@ -223,6 +268,8 @@ export const useUser = (options: UseUserOptions = {}) => {
     batchDeleteUsers: batchDeleteMutation.mutate,
     resetPassword: resetPasswordMutation.mutate,
     updateUserStatus: updateStatusMutation.mutate,
+    updateUserSecurityLevel: updateSecurityLevelMutation.mutate,
+    batchUpdateSecurityLevel: batchUpdateSecurityLevelMutation.mutate,
     
     // 操作状态
     isCreating: createMutation.isPending,
@@ -231,6 +278,8 @@ export const useUser = (options: UseUserOptions = {}) => {
     isBatchDeleting: batchDeleteMutation.isPending,
     isResettingPassword: resetPasswordMutation.isPending,
     isUpdatingStatus: updateStatusMutation.isPending,
+    isUpdatingSecurityLevel: updateSecurityLevelMutation.isPending,
+    isBatchUpdatingSecurityLevel: batchUpdateSecurityLevelMutation.isPending,
     
     // 工具函数
     resetFilters,

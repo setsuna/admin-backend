@@ -50,16 +50,7 @@ const SyncStatusPage = lazy(() =>
 //   })
 // )
 
-const SecurityLevelsPage = lazy(() => 
-  Promise.resolve({
-    default: () => (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">人员密级</h1>
-        <p className="text-muted-foreground">人员密级页面待开发</p>
-      </div>
-    )
-  })
-)
+const SecurityLevelsPage = lazy(() => import('@/pages/SecurityLevelManagePage'))
 
 const DepartmentsPage = lazy(() => import('@/pages/DepartmentPage'))
 

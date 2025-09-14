@@ -174,9 +174,6 @@ const LoginPage = () => {
           <div className="mt-6 text-center text-sm text-muted-foreground">
             <p>测试账号：</p>
             <p>系统管理员：admin / admin123</p>
-            <p>会议管理员：meeting_admin / meeting123</p>
-            <p>审计员：auditor / audit123</p>
-            <p>普通用户：user / user123</p>
           </div>
         </CardContent>
       </Card>
