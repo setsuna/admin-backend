@@ -11,6 +11,7 @@ export { errorHandler, retryManager } from './core/error.handler'
 // 业务服务
 export { departmentService } from './department'
 export { userService } from './user'
+export { policyService } from './policy'
 
 // API服务
 export { dictApiService } from './api/dict.api'

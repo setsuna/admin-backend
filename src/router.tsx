@@ -67,16 +67,7 @@ const StaffPage = lazy(() =>
 
 
 
-const BasicConfigPage = lazy(() => 
-  Promise.resolve({
-    default: () => (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">基础配置</h1>
-        <p className="text-muted-foreground">基础配置页面待开发</p>
-      </div>
-    )
-  })
-)
+const PolicyConfigPage = lazy(() => import('@/pages/PolicyConfigPage'))
 
 const SystemLogsPage = lazy(() => 
   Promise.resolve({
@@ -297,7 +288,7 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permissions={['system:config:read']}>
             <LazyWrapper>
-              <BasicConfigPage />
+              <PolicyConfigPage />
             </LazyWrapper>
           </PermissionGuard>
         ),

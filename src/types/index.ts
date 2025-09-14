@@ -57,6 +57,7 @@ export interface ConfigItem {
 
 // 用户相关类型
 export type UserSecurityLevel = 'unknown' | 'internal' | 'confidential' | 'secret'
+export type SystemSecurityLevel = 'internal' | 'confidential' | 'secret'
 
 export interface User {
   id: string
@@ -441,4 +442,79 @@ export interface UpdateDepartmentRequest extends Partial<CreateDepartmentRequest
 export interface DepartmentTreeNode extends Department {
   children?: DepartmentTreeNode[]
   expanded?: boolean
+}
+
+// 策略配置相关类型
+export interface PasswordPolicy {
+  minLength: number
+  requireUppercase: boolean
+  requireLowercase: boolean
+  requireNumbers: boolean
+  requireSpecialChars: boolean
+  changeIntervalDays: number
+  maxFailAttempts: number
+  lockoutDurationMinutes: number
+  preventReuse: number
+}
+
+export interface TimeWindow {
+  start: string
+  end: string
+  enabled: boolean
+}
+
+export interface SecurityPolicy {
+  // 系统安全策略
+  systemSecurityLevel: SystemSecurityLevel
+  allowSecurityDowngrade: boolean
+  
+  // 文件管理策略
+  serverFileRetentionDays: number
+  clientFileExpirationHours: number
+  fileUploadMaxSize: number
+  allowedFileTypes: string[]
+  fileEncryptionEnabled: boolean
+  
+  // 认证与密码策略
+  passwordPolicy: PasswordPolicy
+  
+  // 会话管理策略
+  sessionTimeoutMinutes: number
+  idleLockTimeoutMinutes: number
+  maxConcurrentSessions: number
+  rememberPasswordEnabled: boolean
+  singleSignOnEnabled: boolean
+  
+  // 访问控制策略
+  ipWhitelistEnabled: boolean
+  ipWhitelist: string[]
+  allowedLoginHours: TimeWindow
+  deviceBindingEnabled: boolean
+  geoLocationRestricted: boolean
+  
+  // 审计策略
+  auditLogRetentionDays: number
+  sensitiveOperationLogging: 'minimal' | 'standard' | 'detailed'
+  auditLogExportEnabled: boolean
+  
+  // 系统维护策略
+  maintenanceWindow: TimeWindow
+  autoBackupEnabled: boolean
+  backupRetentionDays: number
+}
+
+export interface PolicyConfigFilters {
+  category?: string
+  enabled?: boolean
+}
+
+export interface CreatePolicyRequest {
+  name: string
+  description?: string
+  config: Partial<SecurityPolicy>
+  enabled: boolean
+}
+
+export interface UpdatePolicyRequest extends Partial<CreatePolicyRequest> {
+  id: string
 }
