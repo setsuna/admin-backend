@@ -7,7 +7,7 @@ import { Select } from '@/components/ui/Select'
 import { Loading } from '@/components/ui/Loading'
 import { useGlobalDialog } from '@/components/ui/DialogProvider'
 import { usePolicy } from '@/hooks/usePolicy'
-import type { SystemSecurityLevel, SecurityPolicy } from '@/types'
+import type { SecurityPolicy } from '@/types'
 
 const PolicyConfigPage = () => {
   const { showConfirm } = useGlobalDialog()

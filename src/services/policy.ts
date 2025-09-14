@@ -2,9 +2,6 @@ import { api } from './api'
 import { mockPolicyService } from './mock/policyData'
 import type { 
   SecurityPolicy,
-  PolicyConfigFilters,
-  CreatePolicyRequest,
-  UpdatePolicyRequest,
   ApiResponse 
 } from '@/types'
 
