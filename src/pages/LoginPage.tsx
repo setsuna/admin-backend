@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { useGlobalStore } from '@/store'
-import type { User } from '@/types'
+import { auth } from '@/services/auth'
+import { envConfig } from '@/config/env.config'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -46,60 +47,46 @@ const LoginPage = () => {
     if (!validateForm()) return
     
     setLoading(true)
+    setErrors({}) // 清除之前的错误
     
-    // 模拟登录延迟
-    setTimeout(() => {
-      // 简单的账号密码验证
-      if ((formData.username === 'admin' && formData.password === 'admin123') || 
-      (formData.username === 'user' && formData.password === 'user123') ||
-            (formData.username === 'meeting_admin' && formData.password === 'meeting123') ||
-            (formData.username === 'auditor' && formData.password === 'audit123')) {
-        
-        // 生成mock token
-        const mockToken = `token_${Date.now()}_${Math.random().toString(36).substring(2)}`
-        localStorage.setItem('token', mockToken)
-        
-        // 保存用户信息
-        const getRoleByUsername = (username: string): 'admin' | 'user' | 'meeting_admin' | 'auditor' => {
-          switch (username) {
-            case 'admin': return 'admin'
-            case 'meeting_admin': return 'meeting_admin'
-            case 'auditor': return 'auditor'
-            default: return 'user'
-          }
-        }
-        
-        const getUserId = (username: string): string => {
-          switch (username) {
-            case 'admin': return '1'
-            case 'meeting_admin': return '3'
-            case 'auditor': return '4'
-            default: return '2'
-          }
-        }
-        
-        const mockUser: User = {
-          id: getUserId(formData.username),
-          username: formData.username,
-          email: `${formData.username}@example.com`,
-          role: getRoleByUsername(formData.username),
-          avatar: '',
-          status: 'active',
-          securityLevel: 'internal',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          // 权限信息将由usePermission钩子从API获取
-        }
-        setUser(mockUser)
-        
-        // 跳转到首页
-        navigate('/')
-      } else {
-        setErrors({ submit: '用户名或密码错误' })
-      }
+    try {
+      // 使用统一的认证服务
+      const result = await auth.login({
+        username: formData.username,
+        password: formData.password
+      })
       
+      // 保存用户信息到全局状态
+      setUser(result.user)
+      
+      // 跳转到首页
+      navigate('/')
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '登录失败，请重试'
+      setErrors({ submit: errorMessage })
+    } finally {
       setLoading(false)
-    }, 800) // 模拟网络延迟
+    }
+  }
+  
+  // 获取测试账号提示
+  const getTestAccountHints = () => {
+    // 只有在Mock模式下才显示测试账号
+    if (!envConfig.ENABLE_MOCK) {
+      return null
+    }
+    
+    return (
+      <div className="mt-6 text-center text-sm text-muted-foreground">
+        <p className="mb-2">测试账号：</p>
+        <div className="space-y-1">
+          <p>系统管理员：admin / admin123</p>
+          <p>会议管理员：meeting_admin / meeting123</p>
+          <p>审计员：auditor / audit123</p>
+          <p>普通用户：user / user123</p>
+        </div>
+      </div>
+    )
   }
   
   return (
@@ -114,6 +101,11 @@ const LoginPage = () => {
           <CardTitle className="text-2xl">登录管理后台</CardTitle>
           <p className="text-sm text-muted-foreground">
             请输入您的登录凭据
+            {envConfig.ENABLE_MOCK && (
+              <span className="block mt-1 text-orange-600">
+                当前为Mock模式
+              </span>
+            )}
           </p>
         </CardHeader>
         <CardContent>
@@ -127,6 +119,7 @@ const LoginPage = () => {
                 placeholder="请输入用户名"
                 error={errors.username}
                 autoComplete="username"
+                disabled={loading}
               />
             </div>
             
@@ -141,11 +134,13 @@ const LoginPage = () => {
                   error={errors.password}
                   autoComplete="current-password"
                   className="pr-10"
+                  disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  disabled={loading}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -157,7 +152,7 @@ const LoginPage = () => {
             </div>
             
             {errors.submit && (
-              <div className="text-sm text-destructive">
+              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
                 {errors.submit}
               </div>
             )}
@@ -166,15 +161,13 @@ const LoginPage = () => {
               type="submit"
               className="w-full"
               loading={loading}
+              disabled={loading}
             >
-              登录
+              {loading ? '登录中...' : '登录'}
             </Button>
           </form>
           
-          <div className="mt-6 text-center text-sm text-muted-foreground">
-            <p>测试账号：</p>
-            <p>系统管理员：admin / admin123</p>
-          </div>
+          {getTestAccountHints()}
         </CardContent>
       </Card>
     </div>

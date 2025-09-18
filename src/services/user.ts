@@ -1,5 +1,6 @@
 import { api } from './api'
 import { mockUserService } from './mock/userData'
+import { envConfig } from '@/config/env.config'
 import type { 
   User, 
   UserFilters, 
@@ -10,18 +11,20 @@ import type {
   UserSecurityLevel 
 } from '@/types'
 
-// 判断是否使用Mock数据
+// 统一使用 envConfig 判断是否使用Mock数据
 const shouldUseMock = () => {
-  return import.meta.env.VITE_ENABLE_MOCK === 'true' || 
-         import.meta.env.NODE_ENV === 'development'
+  return envConfig.ENABLE_MOCK
 }
 
 export const userService = {
   // 获取用户列表（分页）
   async getUsers(filters?: UserFilters & { page?: number; pageSize?: number }) {
     if (shouldUseMock()) {
+      console.log('👥 User API: Using Mock Service')
       return mockUserService.getUsers(filters, filters?.page, filters?.pageSize)
     }
+    
+    console.log('🌐 User API: Using Real API Service')
     
     const params = new URLSearchParams()
     

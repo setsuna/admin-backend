@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { DataTable } from '@/components/features/DataTable'
 import { meetingApi } from '@/services/meeting'
+import { envConfig } from '@/config/env.config'
 import { debounce, formatDate } from '@/utils'
 import type { Meeting, MeetingFilters, MeetingStatus, MeetingSecurityLevel, TableColumn } from '@/types'
 
@@ -21,6 +22,8 @@ const securityLevelConfig = {
 }
 
 const MyMeetingPage: React.FC = () => {
+  // 显示当前使用的API模式
+  console.log('📅 My Meeting: API Mode =', envConfig.ENABLE_MOCK ? 'Mock' : 'Real')
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [loading, setLoading] = useState(false)
   const [searchText, setSearchText] = useState('')

@@ -18,6 +18,7 @@ import { DataTable } from '@/components/features/DataTable'
 import { Card, CardContent } from '@/components/ui/Card'
 import DictEditModal from '@/components/features/DictEditModal'
 import { dictApi } from '@/services/dict'
+import { envConfig } from '@/config/env.config'
 import { debounce } from '@/utils'
 import type { 
   DataDict, 
@@ -34,6 +35,8 @@ const statusConfig = {
 }
 
 const DataDictionaryPage: React.FC = () => {
+  // 显示当前使用的API模式
+  console.log('📋 Dict Page: API Mode =', envConfig.ENABLE_MOCK ? 'Mock' : 'Real')
   const [dictionaries, setDictionaries] = useState<DataDict[]>([])
   const [loading, setLoading] = useState(false)
   const [searchText, setSearchText] = useState('')

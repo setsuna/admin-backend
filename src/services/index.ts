@@ -3,9 +3,11 @@
  * 提供统一的API接口，保持向后兼容
  */
 
+import { envConfig } from '@/config/env.config'
+
 // 核心服务
 export { httpClient } from './core/http.client'
-export { authService } from './core/auth.service'
+export { authService, auth } from './auth'
 export { errorHandler, retryManager } from './core/error.handler'
 
 // 业务服务
@@ -187,8 +189,7 @@ export const permissionApi = {
 
 // 环境检测和切换逻辑
 const shouldUseMock = () => {
-  return import.meta.env.VITE_ENABLE_MOCK === 'true' || 
-         import.meta.env.NODE_ENV === 'development'
+  return envConfig.ENABLE_MOCK
 }
 
 // 如果启用Mock模式，则切换到Mock API

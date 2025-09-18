@@ -214,9 +214,9 @@ class MockDictService {
   }
 }
 
-// 决定使用哪个服务实现
+// 统一使用 envConfig 判断是否使用Mock数据
 const shouldUseMock = () => {
-  return envConfig.ENABLE_MOCK || envConfig.DEV
+  return envConfig.ENABLE_MOCK
 }
 
 // 创建统一的API接口

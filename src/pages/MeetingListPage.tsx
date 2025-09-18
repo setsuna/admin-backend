@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { DataTable } from '@/components/features/DataTable'
 import { meetingApi } from '@/services/meeting'
+import { envConfig } from '@/config/env.config'
 import { debounce, formatDate } from '@/utils'
 import type { Meeting, MeetingFilters, MeetingStatus, MeetingSecurityLevel, MeetingType, TableColumn } from '@/types'
 
@@ -27,6 +28,8 @@ const typeConfig = {
 }
 
 const MeetingListPage: React.FC = () => {
+  // 显示当前使用的API模式
+  console.log('📊 Meeting List: API Mode =', envConfig.ENABLE_MOCK ? 'Mock' : 'Real')
   const navigate = useNavigate()
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [loading, setLoading] = useState(false)
