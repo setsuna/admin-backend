@@ -50,11 +50,19 @@ const LoginPage = () => {
     setErrors({}) // 清除之前的错误
     
     try {
+      console.log('Login attempt:', { 
+        username: formData.username,
+        mockMode: envConfig.ENABLE_MOCK,
+        apiBaseUrl: envConfig.API_BASE_URL 
+      })
+      
       // 使用统一的认证服务
       const result = await auth.login({
         username: formData.username,
         password: formData.password
       })
+      
+      console.log('Login success:', result)
       
       // 保存用户信息到全局状态
       setUser(result.user)
@@ -62,6 +70,7 @@ const LoginPage = () => {
       // 跳转到首页
       navigate('/')
     } catch (error) {
+      console.error('Login error:', error)
       const errorMessage = error instanceof Error ? error.message : '登录失败，请重试'
       setErrors({ submit: errorMessage })
     } finally {

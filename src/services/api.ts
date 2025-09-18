@@ -1,10 +1,11 @@
 import axios, { AxiosResponse, AxiosError } from 'axios'
+import { envConfig } from '@/config/env.config'
 import type { ApiResponse } from '@/types'
 
 // 创建axios实例
 const api = axios.create({
-  baseURL: '/api',
-  timeout: 10000,
+  baseURL: envConfig.API_BASE_URL,
+  timeout: envConfig.REQUEST_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -44,9 +45,14 @@ api.interceptors.response.use(
       
       switch (status) {
         case 401:
-          // 清除token，跳转到登录页
+          // 清除token
           localStorage.removeItem('token')
-          window.location.href = '/login'
+          localStorage.removeItem('refreshToken')
+          
+          // 只有在非登录页面时才跳转到登录页
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login'
+          }
           break
         case 403:
           throw new Error('没有权限访问')

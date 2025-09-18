@@ -168,8 +168,29 @@ class MockAuthService {
 // 真实认证服务
 class RealAuthService {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await api.post<ApiResponse<LoginResponse>>('/auth/login', credentials)
-    return response.data.data
+    try {
+      const response = await api.post('/auth/login', credentials)
+      
+      // 根据实际后端API返回的数据结构进行调整
+      // 如果后端直接返回LoginResponse结构，则使用response.data
+      // 如果后端返回{ code, data, message }结构，则使用response.data.data
+      console.log('Login API Response:', response)
+      
+      // 先尝试response.data.data，如果不存在则使用response.data
+      const loginData = response.data?.data || response.data
+      
+      if (!loginData.user || !loginData.token) {
+        throw new Error('登录响应数据格式错误')
+      }
+      
+      return loginData as LoginResponse
+    } catch (error) {
+      console.error('RealAuthService login error:', error)
+      if (error instanceof Error) {
+        throw error
+      }
+      throw new Error('登录失败，请检查网络连接')
+    }
   }
 
   async logout(): Promise<void> {
