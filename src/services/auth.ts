@@ -171,25 +171,46 @@ class RealAuthService {
     try {
       const response = await api.post('/auth/login', credentials)
       
-      // 根据实际后端API返回的数据结构进行调整
-      // 如果后端直接返回LoginResponse结构，则使用response.data
-      // 如果后端返回{ code, data, message }结构，则使用response.data.data
       console.log('Login API Response:', response)
       
-      // 先尝试response.data.data，如果不存在则使用response.data
-      const loginData = response.data?.data || response.data
+      // 后端返回格式: { code: 200, message: "登录成功", data: { token, refreshToken, expiresIn, userInfo } }
+      if (response.code !== 200) {
+        throw new Error(response.message || '登录失败')
+      }
       
-      if (!loginData.user || !loginData.token) {
+      const loginData = response.data
+      if (!loginData || !loginData.userInfo || !loginData.token) {
         throw new Error('登录响应数据格式错误')
       }
       
-      return loginData as LoginResponse
+      // 将后端的userInfo转换为前端期望的User格式
+      const user: User = {
+        id: loginData.userInfo.id,
+        username: loginData.userInfo.username,
+        email: loginData.userInfo.email,
+        role: loginData.userInfo.roles?.[0] || 'user', // 防御性处理
+        avatar: loginData.userInfo.avatar || '', // 处理null值
+        status: 'active' as const,
+        securityLevel: 'internal' as const, // 默认值，后续从permissions推断
+        realName: loginData.userInfo.realName || loginData.userInfo.username,
+        department: loginData.userInfo.department || '',
+        position: loginData.userInfo.position || '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+      
+      return {
+        user,
+        token: loginData.token,
+        refreshToken: loginData.refreshToken,
+        expiresIn: loginData.expiresIn
+      }
     } catch (error) {
       console.error('RealAuthService login error:', error)
       if (error instanceof Error) {
         throw error
       }
-      throw new Error('登录失败，请检查网络连接')
+      throw new Error('登录失败，请检查网络连接或后端服务')
     }
   }
 
