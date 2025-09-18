@@ -161,9 +161,11 @@ export { default as YourNewPage } from './YourNewPage'
 ```
 
 **用户角色：**
-- `admin`: 系统管理员 (完整权限)
-- `meeting_admin`: 会议管理员
-- `auditor`: 审计员
+- `xunyidi`: 超管 (完整权限)
+- `admin`: 会议管理员 (完整权限)
+- `sysadm`: 系统管理员
+- `secadm`: 安全管理员
+- `auditadm`: 审计员
 - `user`: 普通用户
 
 ## 状态管理 (Zustand)
