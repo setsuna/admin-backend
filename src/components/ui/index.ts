@@ -12,3 +12,4 @@ export { DialogProvider, useGlobalDialog, showAlert, showConfirm } from './Dialo
 export { DialogComponents } from './DialogComponents'
 export { AuthErrorModal } from './AuthErrorModal'
 export { SimpleQRCode } from './QRCode'
+export { Logo } from './Logo'

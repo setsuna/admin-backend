@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Server, Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
+import { Logo } from '@/components/ui/Logo'
 import { useGlobalStore } from '@/store'
 import { auth } from '@/services/auth'
 import { envConfig } from '@/config/env.config'
@@ -96,86 +97,94 @@ const LoginPage = () => {
   }
   
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Server className="h-6 w-6" />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex flex-col">
+      {/* 主内容区域 */}
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <Card className="w-full max-w-sm shadow-lg border-0">
+          <CardHeader className="text-center pb-8">
+            {/* Logo 和产品名称 */}
+            <div className="flex justify-center mb-6">
+              <Logo size="md" className="" />
             </div>
-          </div>
-          <CardTitle className="text-2xl">登录管理后台</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            请输入您的登录凭据
-            {envConfig.ENABLE_MOCK && (
-              <span className="block mt-1 text-orange-600">
-                当前为Mock模式
-              </span>
-            )}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">用户名</label>
-              <Input
-                type="text"
-                value={formData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
-                placeholder="请输入用户名"
-                error={errors.username}
-                autoComplete="username"
-                disabled={loading}
-              />
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium">密码</label>
-              <div className="relative">
+          </CardHeader>
+          <CardContent className="px-6 pb-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  用户名
+                </label>
                 <Input
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
-                  placeholder="请输入密码"
-                  error={errors.password}
-                  autoComplete="current-password"
-                  className="pr-10"
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={(e) => handleInputChange('username', e.target.value)}
+                  placeholder="请输入用户名"
+                  error={errors.username}
+                  autoComplete="username"
                   disabled={loading}
+                  className="h-11"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  disabled={loading}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
               </div>
-            </div>
-            
-            {errors.submit && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
-                {errors.submit}
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  密码
+                </label>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    value={formData.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    placeholder="请输入密码"
+                    error={errors.password}
+                    autoComplete="current-password"
+                    className="h-11 pr-10"
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+                    disabled={loading}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
-            )}
+              
+              {errors.submit && (
+                <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-md border border-red-200 dark:border-red-800">
+                  {errors.submit}
+                </div>
+              )}
+              
+              <Button
+                type="submit"
+                className="w-full h-11 text-base font-medium"
+                loading={loading}
+                disabled={loading}
+              >
+                {loading ? '登录中...' : '登录'}
+              </Button>
+            </form>
             
-            <Button
-              type="submit"
-              className="w-full"
-              loading={loading}
-              disabled={loading}
-            >
-              {loading ? '登录中...' : '登录'}
-            </Button>
-          </form>
-          
-          {getTestAccountHints()}
-        </CardContent>
-      </Card>
+            {getTestAccountHints()}
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* 底部信息 */}
+      <footer className="py-6 text-center">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {import.meta.env.VITE_COMPANY_NAME} | v{import.meta.env.VITE_APP_VERSION}
+        </p>
+      </footer>
     </div>
   )
 }

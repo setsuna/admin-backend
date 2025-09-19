@@ -28,6 +28,12 @@ function App() {
   const isDevelopment = import.meta.env.DEV
   const { showAuthManagement } = useGlobalStore()
   
+  // 动态设置页面标题
+  useEffect(() => {
+    const title = import.meta.env.VITE_APP_TITLE || '管理系统'
+    document.title = title
+  }, [])
+  
   // 监听URL参数
   useEffect(() => {
     const checkUrlParams = () => {
