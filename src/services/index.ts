@@ -15,15 +15,45 @@ export { departmentService } from './department'
 export { userService } from './user'
 export { policyService } from './policy'
 
-// API服务
-export { dictApiService } from './api/dict.api'
-export { meetingApiService } from './api/meeting.api'
-export { userApiService, permissionApiService } from './api/user.api'
+// API服务 - 移除静态导入，只在需要时动态导入
+// export { dictApiService } from './api/dict.api'
+// export { meetingApiService } from './api/meeting.api'
+// export { userApiService, permissionApiService } from './api/user.api'
 
 // 类型导出
 export type * from './types/api.types'
 export type * from './types/dict.types'
 export type * from './types/meeting.types'
+
+// 动态API服务 - 按需加载
+let dictApiService: any = null
+let meetingApiService: any = null
+let permissionApiService: any = null
+
+// 懒加载API服务
+const getDictApiService = async () => {
+  if (!dictApiService) {
+    const module = await import('./api/dict.api')
+    dictApiService = module.dictApiService
+  }
+  return dictApiService
+}
+
+const getMeetingApiService = async () => {
+  if (!meetingApiService) {
+    const module = await import('./api/meeting.api')
+    meetingApiService = module.meetingApiService
+  }
+  return meetingApiService
+}
+
+const getPermissionApiService = async () => {
+  if (!permissionApiService) {
+    const module = await import('./api/user.api')
+    permissionApiService = module.permissionApiService
+  }
+  return permissionApiService
+}
 
 // 兼容性API接口 - 保持现有调用方式不变
 export const dictApi = {
@@ -32,53 +62,53 @@ export const dictApi = {
     page: number = 1,
     pageSize: number = 20
   ) {
-    const { dictApiService } = await import('./api/dict.api')
-    return dictApiService.getDictionaries(filters, page, pageSize)
+    const service = await getDictApiService()
+    return service.getDictionaries(filters, page, pageSize)
   },
 
   async getDictionary(id: string) {
-    const { dictApiService } = await import('./api/dict.api')
-    return dictApiService.getDictionary(id)
+    const service = await getDictApiService()
+    return service.getDictionary(id)
   },
 
   async createDictionary(data: any) {
-    const { dictApiService } = await import('./api/dict.api')
-    return dictApiService.createDictionary(data)
+    const service = await getDictApiService()
+    return service.createDictionary(data)
   },
 
   async updateDictionary(id: string, data: any) {
-    const { dictApiService } = await import('./api/dict.api')
-    return dictApiService.updateDictionary(id, data)
+    const service = await getDictApiService()
+    return service.updateDictionary(id, data)
   },
 
   async deleteDictionary(id: string) {
-    const { dictApiService } = await import('./api/dict.api')
-    return dictApiService.deleteDictionary(id)
+    const service = await getDictApiService()
+    return service.deleteDictionary(id)
   },
 
   async deleteDictionaries(ids: string[]) {
-    const { dictApiService } = await import('./api/dict.api')
-    return dictApiService.deleteDictionaries(ids)
+    const service = await getDictApiService()
+    return service.deleteDictionaries(ids)
   },
 
   async updateDictionaryStatus(id: string, status: 'enabled' | 'disabled') {
-    const { dictApiService } = await import('./api/dict.api')
-    return dictApiService.updateDictionaryStatus(id, status)
+    const service = await getDictApiService()
+    return service.updateDictionaryStatus(id, status)
   },
 
   async getDictTypes() {
-    const { dictApiService } = await import('./api/dict.api')
-    return dictApiService.getDictTypes()
+    const service = await getDictApiService()
+    return service.getDictTypes()
   },
 
   async syncToDevices(dictIds: string[]) {
-    const { dictApiService } = await import('./api/dict.api')
-    return dictApiService.syncToDevices(dictIds)
+    const service = await getDictApiService()
+    return service.syncToDevices(dictIds)
   },
 
   async exportDictionaries(dictIds?: string[]) {
-    const { dictApiService } = await import('./api/dict.api')
-    return dictApiService.exportDictionaries(dictIds)
+    const service = await getDictApiService()
+    return service.exportDictionaries(dictIds)
   }
 }
 
@@ -88,8 +118,8 @@ export const meetingApi = {
     page: number = 1,
     pageSize: number = 10
   ) {
-    const { meetingApiService } = await import('./api/meeting.api')
-    return meetingApiService.getMeetings(filters, page, pageSize)
+    const service = await getMeetingApiService()
+    return service.getMeetings(filters, page, pageSize)
   },
 
   async getMyMeetings(
@@ -98,92 +128,92 @@ export const meetingApi = {
     page: number = 1,
     pageSize: number = 10
   ) {
-    const { meetingApiService } = await import('./api/meeting.api')
-    return meetingApiService.getMyMeetings(tabType, filters, page, pageSize)
+    const service = await getMeetingApiService()
+    return service.getMyMeetings(tabType, filters, page, pageSize)
   },
 
   async getMeetingById(id: string) {
-    const { meetingApiService } = await import('./api/meeting.api')
-    return meetingApiService.getMeetingById(id)
+    const service = await getMeetingApiService()
+    return service.getMeetingById(id)
   },
 
   async createMeeting(meetingData: any) {
-    const { meetingApiService } = await import('./api/meeting.api')
-    return meetingApiService.createMeeting(meetingData)
+    const service = await getMeetingApiService()
+    return service.createMeeting(meetingData)
   },
 
   async createMeetingFromRequest(request: any) {
-    const { meetingApiService } = await import('./api/meeting.api')
-    return meetingApiService.createMeetingFromRequest(request)
+    const service = await getMeetingApiService()
+    return service.createMeetingFromRequest(request)
   },
 
   async updateMeeting(id: string, updates: any) {
-    const { meetingApiService } = await import('./api/meeting.api')
-    return meetingApiService.updateMeeting(id, updates)
+    const service = await getMeetingApiService()
+    return service.updateMeeting(id, updates)
   },
 
   async deleteMeeting(id: string) {
-    const { meetingApiService } = await import('./api/meeting.api')
-    return meetingApiService.deleteMeeting(id)
+    const service = await getMeetingApiService()
+    return service.deleteMeeting(id)
   },
 
   async batchUpdateMeetings(ids: string[], updates: any) {
-    const { meetingApiService } = await import('./api/meeting.api')
-    return meetingApiService.batchUpdateMeetings(ids, updates)
+    const service = await getMeetingApiService()
+    return service.batchUpdateMeetings(ids, updates)
   },
 
   // 草稿会议相关
   async createDraftMeeting() {
-    const { meetingApiService } = await import('./api/meeting.api')
-    return meetingApiService.createDraftMeeting()
+    const service = await getMeetingApiService()
+    return service.createDraftMeeting()
   },
 
   async saveDraftMeeting(meetingId: string, meetingData: any) {
-    const { meetingApiService } = await import('./api/meeting.api')
-    return meetingApiService.saveDraftMeeting(meetingId, meetingData)
+    const service = await getMeetingApiService()
+    return service.saveDraftMeeting(meetingId, meetingData)
   },
 
   async submitDraftMeeting(meetingId: string, meetingData: any) {
-    const { meetingApiService } = await import('./api/meeting.api')
-    return meetingApiService.submitDraftMeeting(meetingId, meetingData)
+    const service = await getMeetingApiService()
+    return service.submitDraftMeeting(meetingId, meetingData)
   },
 
   // 文件管理相关
   async uploadMeetingFile(meetingId: string, file: File, agendaId?: string) {
-    const { meetingApiService } = await import('./api/meeting.api')
-    return meetingApiService.uploadMeetingFile(meetingId, file, agendaId)
+    const service = await getMeetingApiService()
+    return service.uploadMeetingFile(meetingId, file, agendaId)
   },
 
   async getMeetingFiles(meetingId: string) {
-    const { meetingApiService } = await import('./api/meeting.api')
-    return meetingApiService.getMeetingFiles(meetingId)
+    const service = await getMeetingApiService()
+    return service.getMeetingFiles(meetingId)
   },
 
   async deleteMeetingFile(meetingId: string, fileId: string) {
-    const { meetingApiService } = await import('./api/meeting.api')
-    return meetingApiService.deleteMeetingFile(meetingId, fileId)
+    const service = await getMeetingApiService()
+    return service.deleteMeetingFile(meetingId, fileId)
   }
 }
 
 export const permissionApi = {
   async getAllPermissions() {
-    const { permissionApiService } = await import('./api/user.api')
-    return permissionApiService.getAllPermissions()
+    const service = await getPermissionApiService()
+    return service.getAllPermissions()
   },
 
   async getAllRoles() {
-    const { permissionApiService } = await import('./api/user.api')
-    return permissionApiService.getAllRoles()
+    const service = await getPermissionApiService()
+    return service.getAllRoles()
   },
 
   async getUserMenuConfig(user: any) {
-    const { permissionApiService } = await import('./api/user.api')
-    return permissionApiService.getUserMenuConfig(user)
+    const service = await getPermissionApiService()
+    return service.getUserMenuConfig(user)
   },
 
   async checkUserPermission(userId: string, permission: string) {
-    const { permissionApiService } = await import('./api/user.api')
-    return permissionApiService.checkUserPermission(userId, permission)
+    const service = await getPermissionApiService()
+    return service.checkUserPermission(userId, permission)
   }
 }
 

@@ -12,8 +12,8 @@ import type {
   PaginatedResponse 
 } from '@/types'
 
-// 导入新的API服务
-import { dictApiService } from './api/dict.api'
+// 导入新的API服务 - 改为动态导入
+// import { dictApiService } from './api/dict.api'
 import { envConfig } from '@/config/env.config'
 
 // 导入Mock数据
@@ -229,45 +229,55 @@ const createDictApi = () => {
     // 适配器模式，将新API服务包装成旧接口
     return {
       async getDictionaries(filters: DictFilters = {}, page = 1, pageSize = 20) {
+        const { dictApiService } = await import('./api/dict.api')
         return dictApiService.getDictionaries(filters, page, pageSize)
       },
 
       async getDictionary(id: string) {
+        const { dictApiService } = await import('./api/dict.api')
         return dictApiService.getDictionary(id)
       },
 
       async createDictionary(data: CreateDictRequest) {
+        const { dictApiService } = await import('./api/dict.api')
         return dictApiService.createDictionary(data)
       },
 
       async updateDictionary(id: string, data: Partial<UpdateDictRequest>) {
+        const { dictApiService } = await import('./api/dict.api')
         return dictApiService.updateDictionary(id, data)
       },
 
       async deleteDictionary(id: string) {
+        const { dictApiService } = await import('./api/dict.api')
         const result = await dictApiService.deleteDictionary(id)
         return result.success
       },
 
       async deleteDictionaries(ids: string[]) {
+        const { dictApiService } = await import('./api/dict.api')
         const result = await dictApiService.deleteDictionaries(ids)
         return result.successCount === ids.length
       },
 
       async updateDictionaryStatus(id: string, status: 'enabled' | 'disabled') {
+        const { dictApiService } = await import('./api/dict.api')
         const result = await dictApiService.updateDictionaryStatus(id, status)
         return result.success
       },
 
       async getDictTypes() {
+        const { dictApiService } = await import('./api/dict.api')
         return dictApiService.getDictTypes()
       },
 
       async syncToDevices(dictIds: string[]) {
+        const { dictApiService } = await import('./api/dict.api')
         return dictApiService.syncToDevices(dictIds)
       },
 
       async exportDictionaries(dictIds?: string[]) {
+        const { dictApiService } = await import('./api/dict.api')
         return dictApiService.exportDictionaries(dictIds)
       }
     }

@@ -4,7 +4,7 @@
  */
 
 import type { MenuConfig, Permission, Role, User, MenuItem, MenuItemConfig, PermissionGroup, RolePermissionMatrix } from '@/types'
-import { permissionApiService } from './api/user.api'
+// import { permissionApiService } from './api/user.api' // 改为动态导入
 import { dictApi } from './dict'
 import { envConfig } from '@/config/env.config'
 
@@ -546,6 +546,8 @@ const createPermissionApi = () => {
         } catch (error) {
           console.error('Failed to build menu from dict in real API, falling back to API service:', error)
           // 如果字典方式失败，降级到原有API服务
+          // 动态导入permissionApiService
+          const { permissionApiService } = await import('./api/user.api')
           const apiUser = {
             id: user.id,
             username: user.username,
@@ -566,10 +568,12 @@ const createPermissionApi = () => {
       },
 
       async getAllPermissions() {
+        const { permissionApiService } = await import('./api/user.api')
         return permissionApiService.getAllPermissions()
       },
 
       async getAllRoles() {
+        const { permissionApiService } = await import('./api/user.api')
         return permissionApiService.getAllRoles()
       },
 

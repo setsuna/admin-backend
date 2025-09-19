@@ -4,7 +4,7 @@
  */
 
 import type { Meeting, MeetingFilters, PaginatedResponse, CreateMeetingRequest, MeetingAgenda } from '@/types'
-import { meetingApiService } from './api/meeting.api'
+// import { meetingApiService } from './api/meeting.api' // 改为动态导入
 import { envConfig } from '@/config/env.config'
 
 // 草稿会议接口（保持向后兼容）
@@ -443,6 +443,7 @@ const createMeetingApi = () => {
     // 适配器模式，将新API服务包装成旧接口
     return {
       async getMeetings(filters: MeetingFilters = {}, page = 1, pageSize = 10) {
+        const { meetingApiService } = await import('./api/meeting.api')
         return meetingApiService.getMeetings(filters, page, pageSize)
       },
 
@@ -453,14 +454,17 @@ const createMeetingApi = () => {
         pageSize = 10
         // currentUserId = '1' // TODO: 从用户上下文获取
       ) {
+        const { meetingApiService } = await import('./api/meeting.api')
         return meetingApiService.getMyMeetings(tabType, filters, page, pageSize)
       },
 
       async getMeetingById(id: string) {
+        const { meetingApiService } = await import('./api/meeting.api')
         return meetingApiService.getMeetingById(id)
       },
 
       async createMeeting(meetingData: Omit<Meeting, 'id' | 'createdAt' | 'updatedAt'>) {
+        const { meetingApiService } = await import('./api/meeting.api')
         // 类型适配：确保所有数值字段都是数字
         const adaptedData = {
           ...meetingData,
@@ -472,6 +476,7 @@ const createMeetingApi = () => {
       },
 
       async createMeetingFromRequest(request: CreateMeetingRequest) {
+        const { meetingApiService } = await import('./api/meeting.api')
         // 类型适配：将MeetingAgenda转换为服务端格式
         const adaptedRequest = {
           ...request,
@@ -487,6 +492,7 @@ const createMeetingApi = () => {
       },
 
       async updateMeeting(id: string, updates: Partial<Meeting>) {
+        const { meetingApiService } = await import('./api/meeting.api')
         // 类型适配：确保id字段存在
         const updateRequest = {
           id,
@@ -496,21 +502,25 @@ const createMeetingApi = () => {
       },
 
       async deleteMeeting(id: string) {
+        const { meetingApiService } = await import('./api/meeting.api')
         const result = await meetingApiService.deleteMeeting(id)
         return result.success
       },
 
       async batchUpdateMeetings(ids: string[], updates: Partial<Meeting>) {
+        const { meetingApiService } = await import('./api/meeting.api')
         const result = await meetingApiService.batchUpdateMeetings(ids, updates)
         return result.success
       },
 
       // 草稿会议相关
       async createDraftMeeting() {
+        const { meetingApiService } = await import('./api/meeting.api')
         return meetingApiService.createDraftMeeting()
       },
 
       async saveDraftMeeting(meetingId: string, meetingData: Partial<CreateMeetingRequest>) {
+        const { meetingApiService } = await import('./api/meeting.api')
         // 类型适配：处理议题类型不匹配问题
         const adaptedData = {
           ...meetingData,
@@ -527,6 +537,7 @@ const createMeetingApi = () => {
       },
 
       async submitDraftMeeting(meetingId: string, meetingData: CreateMeetingRequest) {
+        const { meetingApiService } = await import('./api/meeting.api')
         // 类型适配：将MeetingAgenda转换为服务端格式
         const adaptedData = {
           ...meetingData,
@@ -543,14 +554,17 @@ const createMeetingApi = () => {
 
       // 文件管理相关
       async uploadMeetingFile(meetingId: string, file: File, agendaId?: string) {
+        const { meetingApiService } = await import('./api/meeting.api')
         return meetingApiService.uploadMeetingFile(meetingId, file, agendaId)
       },
 
       async getMeetingFiles(meetingId: string) {
+        const { meetingApiService } = await import('./api/meeting.api')
         return meetingApiService.getMeetingFiles(meetingId)
       },
 
       async deleteMeetingFile(meetingId: string, fileId: string) {
+        const { meetingApiService } = await import('./api/meeting.api')
         const result = await meetingApiService.deleteMeetingFile(meetingId, fileId)
         return result.success
       }
