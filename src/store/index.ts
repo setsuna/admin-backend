@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Theme, User, Notification, MenuConfig } from '@/types'
+import type { Theme, User, Notification, MenuConfig, AuthErrorDialogData } from '@/types'
+import { getCurrentDeviceFingerprint } from '@/utils/auth'
 
 // 全局状态
 interface GlobalState {
@@ -25,6 +26,15 @@ interface GlobalState {
   // 加载状态
   globalLoading: boolean
   setGlobalLoading: (loading: boolean) => void
+  
+  // 授权错误弹窗
+  authError: {
+    visible: boolean
+    data: AuthErrorDialogData | null
+  }
+  showAuthError: (data: AuthErrorDialogData) => void
+  hideAuthError: () => void
+  showAuthManagement: () => void
 }
 
 export const useGlobalStore = create<GlobalState>()(
@@ -70,6 +80,29 @@ export const useGlobalStore = create<GlobalState>()(
       // 全局加载状态
       globalLoading: false,
       setGlobalLoading: (loading) => set({ globalLoading: loading }),
+      
+      // 授权错误弹窗
+      authError: {
+        visible: false,
+        data: null,
+      },
+      showAuthError: (data) => set({ authError: { visible: true, data } }),
+      hideAuthError: () => set({ authError: { visible: false, data: null } }),
+      showAuthManagement: () => {
+        const currentFingerprint = getCurrentDeviceFingerprint()
+        set({ 
+          authError: { 
+            visible: true, 
+            data: {
+              message: '授权信息管理',
+              deviceFingerprint: currentFingerprint,
+              mode: 'info',
+              allowClose: true,
+              showCurrentStatus: true
+            }
+          } 
+        })
+      },
     }),
     {
       name: 'admin-global-store',

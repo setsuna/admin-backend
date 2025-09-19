@@ -1,5 +1,4 @@
 export { default as Dashboard } from './Dashboard'
-export { DevicesPage } from './DevicesPage'
 export { default as LoginPage } from './LoginPage'
 export { default as MeetingListPage } from './MeetingListPage'
 export { default as MyMeetingPage } from './MyMeetingPage'

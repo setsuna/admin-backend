@@ -127,7 +127,7 @@ class MockAuthService {
     // Mock注销逻辑
   }
 
-  async refreshToken(refreshToken: string): Promise<{ token: string; expiresIn: number }> {
+  async refreshToken(_refreshToken: string): Promise<{ token: string; expiresIn: number }> {
     await delay(300)
     return {
       token: `refresh_token_${Date.now()}_${Math.random().toString(36).substring(2)}`,
@@ -174,8 +174,8 @@ class RealAuthService {
       console.log('Login API Response:', response)
       
       // 后端返回格式: { code: 200, message: "登录成功", data: { token, refreshToken, expiresIn, userInfo } }
-      if (response.code !== 200) {
-        throw new Error(response.message || '登录失败')
+      if (response.data.code !== 200) {
+        throw new Error(response.data.message || '登录失败')
       }
       
       const loginData = response.data

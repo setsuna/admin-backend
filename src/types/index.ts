@@ -3,6 +3,49 @@ export interface ApiResponse<T = any> {
   code: number
   message: string
   data: T
+  timestamp?: number
+  requestId?: string
+}
+
+// 授权错误的特殊数据结构
+export interface AuthErrorData {
+  device_fingerprint?: string
+  error_code?: string
+  error_message?: string
+  hardware_summary?: string
+  need_license?: boolean
+  [key: string]: any
+}
+
+// 错误响应格式
+export interface ApiErrorResponse {
+  code: number
+  message: string
+  data: null | AuthErrorData
+  errors?: Array<{
+    field: string
+    message: string
+  }>
+  timestamp?: number
+  requestId?: string
+}
+
+// 错误信息提取结果
+export interface ErrorInfo {
+  message: string
+  isAuthError: boolean
+  authData?: AuthErrorData
+}
+
+// 授权错误弹窗的参数
+export interface AuthErrorDialogData {
+  message: string
+  deviceFingerprint?: string
+  hardwareSummary?: string
+  errorCode?: string
+  mode: 'error' | 'info'
+  allowClose?: boolean
+  showCurrentStatus?: boolean
 }
 
 // 分页相关
@@ -62,6 +105,7 @@ export type SystemSecurityLevel = 'internal' | 'confidential' | 'secret'
 export interface User {
   id: string
   username: string
+  realName?: string  // 添加真实姓名字段
   email: string
   role: 'admin' | 'user' | 'meeting_admin' | 'auditor' | 'security_admin'
   avatar?: string
