@@ -52,7 +52,7 @@ export const Logo: React.FC<LogoProps> = ({
   // 计算文字尺寸和布局
   const charWidth = config.fontSize * 1.03 // 中文字符宽度估算
   const textWidth = appTitle.length * charWidth
-  const overlapWidth = config.leafSize * 0.25 // 15%重叠
+  const overlapWidth = config.leafSize * 0.13 // 15%重叠
   const totalWidth = config.leafSize + textWidth - overlapWidth
   
   // 叶子在垂直方向的偏移调整
