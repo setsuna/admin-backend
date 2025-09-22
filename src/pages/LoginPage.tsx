@@ -100,7 +100,7 @@ const LoginPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex flex-col">
       {/* 主内容区域 */}
       <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <Card className="w-full max-w-sm shadow-lg border-0">
+        <Card className="w-full max-w-md shadow-lg border-0">
           <CardHeader className="text-center pb-8">
             {/* Logo 和产品名称 */}
             <div className="flex justify-center mb-6">

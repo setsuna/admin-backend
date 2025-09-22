@@ -52,11 +52,11 @@ export const Logo: React.FC<LogoProps> = ({
   // 计算文字尺寸和布局
   const charWidth = config.fontSize * 1.1 // 中文字符宽度估算
   const textWidth = appTitle.length * charWidth
-  const overlapWidth = config.leafSize * 0.15 // 15%重叠
+  const overlapWidth = config.leafSize * 0.25 // 15%重叠
   const totalWidth = config.leafSize + textWidth - overlapWidth
   
   // 叶子在垂直方向的偏移调整
-  const leafOffsetY = -config.totalHeight * 0.1 // 向上偏移10%
+  const leafOffsetY = -config.totalHeight * 0.28 // 向上偏移25%
   
   return (
     <div className={`flex items-center justify-center ${className}`} style={{ height: config.totalHeight }}>
