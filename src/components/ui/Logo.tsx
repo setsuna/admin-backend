@@ -50,13 +50,13 @@ export const Logo: React.FC<LogoProps> = ({
   }
   
   // 计算文字尺寸和布局
-  const charWidth = config.fontSize * 1.1 // 中文字符宽度估算
+  const charWidth = config.fontSize * 1.03 // 中文字符宽度估算
   const textWidth = appTitle.length * charWidth
   const overlapWidth = config.leafSize * 0.25 // 15%重叠
   const totalWidth = config.leafSize + textWidth - overlapWidth
   
   // 叶子在垂直方向的偏移调整
-  const leafOffsetY = -config.totalHeight * 0.48 // 向上偏移25%
+  const leafOffsetY = -config.totalHeight * 0.18 // 向上偏移25%
   
   return (
     <div className={`flex items-center justify-center ${className}`} style={{ height: config.totalHeight }}>
@@ -69,7 +69,7 @@ export const Logo: React.FC<LogoProps> = ({
         {/* 文字SVG - 先渲染（在后面） */}
         <text
           x={config.leafSize - overlapWidth}
-          y={config.totalHeight / 2}
+          y={config.totalHeight / 2 + config.fontSize * 0.6}
           fontSize={config.fontSize}
           fill="#1a1a1a"
           fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
