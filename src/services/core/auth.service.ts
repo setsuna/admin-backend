@@ -1,61 +1,62 @@
 /**
- * 认证服务 - 新架构版本
- * 处理登录、token管理、权限验证等
- * 
- * @status 新架构，计划替换 services/auth.ts
- * @features 更完善的权限管理、配置化、自动刷新
- * @migration 需要添加Mock支持后才能全面替换
- * @warning 当前缺少Mock支持，不能直接使用
+ * 认证服务 - 统一架构版本
  */
 
-import { httpClient } from './http.client'
+import { api } from '../api'
 import { authConfig } from '@/config/auth.config'
 import { API_PATHS } from '@/config/api.config'
+import type { User, ApiResponse } from '@/types'
 
 export interface LoginRequest {
   username: string
   password: string
-  remember?: boolean
 }
 
 export interface LoginResponse {
   token: string
   refreshToken: string
-  user: {
-    id: string
-    username: string
-    email: string
-    role: string
-    permissions: string[]
-  }
-}
-
-export interface RefreshTokenResponse {
-  token: string
-  refreshToken: string
+  user: User
+  expiresIn?: number
 }
 
 class AuthService {
   private tokenKey = authConfig.tokenKey
   private refreshTokenKey = authConfig.refreshTokenKey
-  private currentUser: LoginResponse['user'] | null = null
+  private currentUser: User | null = null
 
   /**
    * 用户登录
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await httpClient.post<LoginResponse>(API_PATHS.AUTH_LOGIN, credentials)
-    
-    if (response.data) {
-      this.setToken(response.data.token)
-      this.setRefreshToken(response.data.refreshToken)
-      this.currentUser = response.data.user
+    try {
+      const response = await api.post(API_PATHS.AUTH_LOGIN, credentials)
+      const apiResponse = response.data as ApiResponse<LoginResponse>
       
-      // 存储用户信息
-      localStorage.setItem('user', JSON.stringify(response.data.user))
+      if (apiResponse.code === 200 && apiResponse.data) {
+        this.setToken(apiResponse.data.token)
+        this.setRefreshToken(apiResponse.data.refreshToken)
+        this.currentUser = apiResponse.data.user
+        
+        localStorage.setItem('user', JSON.stringify(apiResponse.data.user))
+        
+        // 更新权限store
+        try {
+          const { usePermissionStore } = await import('@/store')
+          const { setPermissions } = usePermissionStore.getState()
+          const permissions = apiResponse.data.user.permissions || []
+          setPermissions(permissions)
+        } catch (error) {
+          console.warn('Failed to update permissions store:', error)
+        }
+        
+        return apiResponse.data
+      } else {
+        throw new Error(apiResponse.message || '登录失败')
+      }
+    } catch (error) {
+      console.error('Login failed:', error)
+      throw error
     }
-    
-    return response.data
   }
 
   /**
@@ -63,11 +64,19 @@ class AuthService {
    */
   async logout(): Promise<void> {
     try {
-      await httpClient.post(API_PATHS.AUTH_LOGOUT)
+      await api.post(API_PATHS.AUTH_LOGOUT)
     } catch (error) {
-      // 忽略登出接口错误
+      console.warn('Logout API warning:', error)
     } finally {
       this.clearStorage()
+      
+      try {
+        const { usePermissionStore } = await import('@/store')
+        const { clearPermissions } = usePermissionStore.getState()
+        clearPermissions()
+      } catch (error) {
+        console.warn('Failed to clear permissions store:', error)
+      }
     }
   }
 
@@ -80,143 +89,110 @@ class AuthService {
       throw new Error('No refresh token available')
     }
 
-    const response = await httpClient.post<RefreshTokenResponse>(API_PATHS.AUTH_REFRESH, {
-      refreshToken
-    })
+    try {
+      const response = await api.post(API_PATHS.AUTH_REFRESH, { refreshToken })
+      const apiResponse = response.data as ApiResponse<{ token: string; refreshToken: string }>
 
-    if (response.data) {
-      this.setToken(response.data.token)
-      this.setRefreshToken(response.data.refreshToken)
-      return response.data.token
+      if (apiResponse.code === 200 && apiResponse.data) {
+        this.setToken(apiResponse.data.token)
+        this.setRefreshToken(apiResponse.data.refreshToken)
+        return apiResponse.data.token
+      }
+
+      throw new Error('Failed to refresh token')
+    } catch (error) {
+      console.error('Refresh token failed:', error)
+      this.clearStorage()
+      throw error
     }
-
-    throw new Error('Failed to refresh token')
   }
 
   /**
    * 获取当前用户信息
    */
-  async getCurrentUser(): Promise<LoginResponse['user']> {
-    if (this.currentUser) {
-      return this.currentUser
-    }
+  async getCurrentUser(): Promise<User | null> {
+    try {
+      if (this.currentUser) {
+        return this.currentUser
+      }
 
-    // 从localStorage恢复
-    const userStr = localStorage.getItem('user')
-    if (userStr) {
-      this.currentUser = JSON.parse(userStr)
-      return this.currentUser!
-    }
+      const userStr = localStorage.getItem('user')
+      if (userStr) {
+        this.currentUser = JSON.parse(userStr)
+        return this.currentUser!
+      }
 
-    // 从服务器获取
-    const response = await httpClient.get<LoginResponse['user']>(API_PATHS.AUTH_PROFILE)
-    this.currentUser = response.data
-    localStorage.setItem('user', JSON.stringify(response.data))
-    
-    return response.data
+      const response = await api.get(API_PATHS.AUTH_PROFILE)
+      const apiResponse = response.data as ApiResponse<User>
+      
+      if (apiResponse.code === 200 && apiResponse.data) {
+        this.currentUser = apiResponse.data
+        localStorage.setItem('user', JSON.stringify(apiResponse.data))
+        return apiResponse.data
+      }
+      
+      return null
+    } catch (error) {
+      console.error('Get current user failed:', error)
+      return null
+    }
   }
 
   /**
-   * 检查用户权限
+   * 权限检查
    */
   hasPermission(permission: string): boolean {
-    if (!this.currentUser) {
-      return false
-    }
-    return this.currentUser.permissions.includes(permission)
+    return this.currentUser?.permissions?.includes(permission) || false
   }
 
-  /**
-   * 检查多个权限（需要全部拥有）
-   */
   hasAllPermissions(permissions: string[]): boolean {
     return permissions.every(permission => this.hasPermission(permission))
   }
 
-  /**
-   * 检查多个权限（拥有任意一个即可）
-   */
   hasAnyPermission(permissions: string[]): boolean {
     return permissions.some(permission => this.hasPermission(permission))
   }
 
-  /**
-   * 检查用户角色
-   */
   hasRole(role: string): boolean {
     return this.currentUser?.role === role
   }
 
   /**
-   * 获取Token
+   * Token管理
    */
   getToken(): string | null {
     return localStorage.getItem(this.tokenKey)
   }
 
-  /**
-   * 设置Token
-   */
   setToken(token: string): void {
     localStorage.setItem(this.tokenKey, token)
   }
 
-  /**
-   * 获取RefreshToken
-   */
   getRefreshToken(): string | null {
     return localStorage.getItem(this.refreshTokenKey)
   }
 
-  /**
-   * 设置RefreshToken
-   */
   setRefreshToken(token: string): void {
     localStorage.setItem(this.refreshTokenKey, token)
   }
 
   /**
-   * 检查是否已登录
+   * 状态检查
    */
   isAuthenticated(): boolean {
     const token = this.getToken()
     return !!token && !this.isTokenExpired(token)
   }
 
-  /**
-   * 检查是否可以刷新Token
-   */
+  isLoggedIn(): boolean {
+    return this.isAuthenticated()
+  }
+
   canRefreshToken(): boolean {
     const refreshToken = this.getRefreshToken()
     return !!refreshToken && !this.isTokenExpired(refreshToken)
   }
 
-  /**
-   * 检查Token是否过期
-   */
-  private isTokenExpired(token: string): boolean {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      const currentTime = Date.now() / 1000
-      return payload.exp < currentTime
-    } catch {
-      return true
-    }
-  }
-
-  /**
-   * 清除存储
-   */
-  private clearStorage(): void {
-    localStorage.removeItem(this.tokenKey)
-    localStorage.removeItem(this.refreshTokenKey)
-    localStorage.removeItem('user')
-    this.currentUser = null
-  }
-
-  /**
-   * 检查Token是否即将过期（用于自动刷新）
-   */
   shouldRefreshToken(): boolean {
     const token = this.getToken()
     if (!token) return false
@@ -231,6 +207,64 @@ class AuthService {
       return false
     }
   }
+
+  /**
+   * 私有方法
+   */
+  private isTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      const currentTime = Date.now() / 1000
+      return payload.exp < currentTime
+    } catch {
+      return true
+    }
+  }
+
+  private clearStorage(): void {
+    localStorage.removeItem(this.tokenKey)
+    localStorage.removeItem(this.refreshTokenKey)
+    localStorage.removeItem('user')
+    this.currentUser = null
+  }
 }
 
 export const authService = new AuthService()
+
+// 兼容性导出
+export const auth = {
+  async login(credentials: LoginRequest) {
+    const result = await authService.login(credentials)
+    return {
+      user: result.user,
+      token: result.token,
+      refreshToken: result.refreshToken,
+      expiresIn: result.expiresIn || 86400
+    }
+  },
+  
+  async logout() {
+    return authService.logout()
+  },
+  
+  async getCurrentUser() {
+    return authService.getCurrentUser()
+  },
+  
+  async refreshToken() {
+    try {
+      const newToken = await authService.refreshToken()
+      return !!newToken
+    } catch {
+      return false
+    }
+  },
+  
+  isLoggedIn() {
+    return authService.isLoggedIn()
+  },
+  
+  getToken() {
+    return authService.getToken()
+  }
+}

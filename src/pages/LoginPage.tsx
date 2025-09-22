@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Logo } from '@/components/ui/Logo'
 import { useGlobalStore } from '@/store'
-import { auth } from '@/services/auth'
+import { auth } from '@/services/core/auth.service'
 import { envConfig } from '@/config/env.config'
 
 const LoginPage = () => {
