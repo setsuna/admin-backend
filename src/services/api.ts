@@ -17,7 +17,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // 添加认证token
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('access_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -56,8 +56,8 @@ api.interceptors.response.use(
       switch (status) {
         case 401:
           // 清除token
-          localStorage.removeItem('token')
-          localStorage.removeItem('refreshToken')
+          localStorage.removeItem('access_token')
+          localStorage.removeItem('refresh_token')
           
           // 提取错误信息
           if (data) {

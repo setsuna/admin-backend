@@ -6,8 +6,9 @@ import { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { apiConfig, HTTP_STATUS } from '@/config/api.config'
 import { JWT_CONFIG } from '@/config/auth.config'
 import { ApiResponse } from '@/services/types/api.types'
-import { authService } from './auth.service'
 import { errorHandler } from './error.handler'
+// 使用统一的认证服务
+import { auth } from '@/services/auth'
 
 // 扩展配置类型以包含metadata
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -30,10 +31,18 @@ export const requestInterceptor = async (config: InternalAxiosRequestConfig): Pr
   ;(config as ExtendedAxiosRequestConfig).metadata = { requestId: reqId, startTime: Date.now() }
 
   // 添加认证token
-  const token = authService.getToken()
+  const token = auth.getToken() // 使用统一的认证服务
   if (token) {
     config.headers = config.headers || {}
     config.headers.Authorization = `${JWT_CONFIG.HEADER_PREFIX} ${token}`
+    // 调试日志
+    console.log('[请求拦截器] Token found:', {
+      tokenExists: !!token,
+      tokenPrefix: token?.substring(0, 20) + '...',
+      authHeader: `${JWT_CONFIG.HEADER_PREFIX} ${token?.substring(0, 20)}...`
+    })
+  } else {
+    console.log('[请求拦截器] No token found')
   }
 
   // 添加请求头
@@ -116,7 +125,7 @@ export const errorInterceptor = async (error: AxiosError<ApiResponse>): Promise<
     switch (status) {
       case HTTP_STATUS.UNAUTHORIZED:
         // Token过期或无效，直接登出
-        authService.logout()
+        await auth.logout() // 使用统一的认证服务
         window.location.href = '/login'
         break
 
