@@ -8,7 +8,7 @@ import { JWT_CONFIG } from '@/config/auth.config'
 import { ApiResponse } from '@/services/types/api.types'
 import { errorHandler } from './error.handler'
 // 使用统一的认证服务
-import { auth } from '@/services/auth'
+import { auth } from './auth.service'
 
 // 扩展配置类型以包含metadata
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {

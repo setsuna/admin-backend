@@ -30,26 +30,50 @@ class AuthService {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
       const response = await api.post(API_PATHS.AUTH_LOGIN, credentials)
-      const apiResponse = response.data as ApiResponse<LoginResponse>
+      const apiResponse = response.data as ApiResponse<any>
       
       if (apiResponse.code === 200 && apiResponse.data) {
-        this.setToken(apiResponse.data.token)
-        this.setRefreshToken(apiResponse.data.refreshToken)
-        this.currentUser = apiResponse.data.user
+        const { token, refresh_token, expiresIn, userInfo } = apiResponse.data
         
-        localStorage.setItem('user', JSON.stringify(apiResponse.data.user))
+        // 映射后端数据结构到前端格式
+        const user: User = {
+          id: userInfo.id,
+          username: userInfo.username,
+          email: userInfo.email,
+          role: userInfo.roles[0] || 'user',
+          avatar: '',
+          department: '',
+          position: '',
+          status: 'active',
+          securityLevel: 'internal',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          permissions: userInfo.permissions
+        }
+        
+        const loginResult: LoginResponse = {
+          token,
+          refreshToken: refresh_token,
+          user,
+          expiresIn
+        }
+        
+        this.setToken(token)
+        this.setRefreshToken(refresh_token)
+        this.currentUser = user
+        
+        localStorage.setItem('user', JSON.stringify(user))
         
         // 更新权限store
         try {
           const { usePermissionStore } = await import('@/store')
           const { setPermissions } = usePermissionStore.getState()
-          const permissions = apiResponse.data.user.permissions || []
-          setPermissions(permissions)
+          setPermissions(userInfo.permissions || [])
         } catch (error) {
           console.warn('Failed to update permissions store:', error)
         }
         
-        return apiResponse.data
+        return loginResult
       } else {
         throw new Error(apiResponse.message || '登录失败')
       }

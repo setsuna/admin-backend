@@ -7,7 +7,7 @@ import { envConfig } from '@/config/env.config'
 
 // 核心服务
 export { httpClient } from './core/http.client'
-export { authService, auth } from './auth'
+export { authService, auth } from './core/auth.service'
 export { errorHandler, retryManager } from './core/error.handler'
 
 // 业务服务
