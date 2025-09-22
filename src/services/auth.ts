@@ -1,10 +1,16 @@
 /**
  * 认证服务 - 统一处理登录、注册等认证相关功能
  * 支持Mock和真实API自动切换
+ * 
+ * @deprecated 计划迁移到统一的AuthService架构
+ * @migration 目标：services/core/auth.service.ts
+ * @timeline 2024-Q1
+ * @note 当前版本与 core/auth.service.ts 功能重复，需要统一架构
  */
 
 import { api } from './api'
 import { envConfig } from '@/config/env.config'
+import { authConfig } from '@/config/auth.config'
 import type { User, ApiResponse } from '@/types'
 
 // 登录请求参数
@@ -180,7 +186,7 @@ class MockAuthService {
 
   async getCurrentUser(): Promise<ApiResponse<User> | null> {
     await delay(200)
-    const token = localStorage.getItem('access_token') // 使用统一的key
+    const token = localStorage.getItem(authConfig.tokenKey) // 使用配置化的key
     if (!token || !token.startsWith('mock_token_')) {
       return null
     }
@@ -303,17 +309,17 @@ export const auth = {
         permissions: loginData.userInfo.permissions
       }
       
-      // 保存token到localStorage - 使用统一的key
-      localStorage.setItem('access_token', loginData.token)
+      // 保存token到localStorage - 使用配置化的key
+      localStorage.setItem(authConfig.tokenKey, loginData.token)
       if (loginData.refresh_token) {
-        localStorage.setItem('refresh_token', loginData.refresh_token)
+        localStorage.setItem(authConfig.refreshTokenKey, loginData.refresh_token)
       }
       
       // 调试日志
       console.log('[登录成功] Token saved:', {
-        tokenExists: !!localStorage.getItem('access_token'),
+        tokenExists: !!localStorage.getItem(authConfig.tokenKey),
         tokenPrefix: loginData.token.substring(0, 20) + '...',
-        refreshTokenExists: !!localStorage.getItem('refresh_token')
+        refreshTokenExists: !!localStorage.getItem(authConfig.refreshTokenKey)
       })
       
       // 保存权限信息到权限store
@@ -349,9 +355,9 @@ export const auth = {
     } catch (error) {
       console.error('Logout failed:', error)
     } finally {
-      // 无论是否成功，都清除本地数据 - 使用统一的key
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
+      // 无论是否成功，都清除本地数据 - 使用配置化的key
+      localStorage.removeItem(authConfig.tokenKey)
+      localStorage.removeItem(authConfig.refreshTokenKey)
       
       // 清除权限信息
       try {
@@ -385,7 +391,7 @@ export const auth = {
    */
   async refreshToken(): Promise<boolean> {
     try {
-      const refreshToken = localStorage.getItem('refresh_token') // 使用统一的key
+      const refreshToken = localStorage.getItem(authConfig.refreshTokenKey) // 使用配置化的key
       if (!refreshToken) return false
 
       const apiResponse = await authService.refreshToken(refreshToken)
@@ -393,13 +399,13 @@ export const auth = {
         return false
       }
       
-      localStorage.setItem('access_token', apiResponse.data.token) // 使用统一的key
+      localStorage.setItem(authConfig.tokenKey, apiResponse.data.token) // 使用配置化的key
       return true
     } catch (error) {
       console.error('Refresh token failed:', error)
-      // 刷新失败，清除所有token - 使用统一的key
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
+      // 刷新失败，清除所有token - 使用配置化的key
+      localStorage.removeItem(authConfig.tokenKey)
+      localStorage.removeItem(authConfig.refreshTokenKey)
       return false
     }
   },
@@ -408,7 +414,7 @@ export const auth = {
    * 检查是否已登录
    */
   isLoggedIn(): boolean {
-    const token = localStorage.getItem('access_token') // 使用统一的key
+    const token = localStorage.getItem(authConfig.tokenKey) // 使用配置化的key
     return !!token
   },
 
@@ -416,6 +422,6 @@ export const auth = {
    * 获取当前token
    */
   getToken(): string | null {
-    return localStorage.getItem('access_token') // 使用统一的key
+    return localStorage.getItem(authConfig.tokenKey) // 使用配置化的key
   }
 }

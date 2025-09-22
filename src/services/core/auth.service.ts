@@ -1,6 +1,11 @@
 /**
- * 认证服务
+ * 认证服务 - 新架构版本
  * 处理登录、token管理、权限验证等
+ * 
+ * @status 新架构，计划替换 services/auth.ts
+ * @features 更完善的权限管理、配置化、自动刷新
+ * @migration 需要添加Mock支持后才能全面替换
+ * @warning 当前缺少Mock支持，不能直接使用
  */
 
 import { httpClient } from './http.client'

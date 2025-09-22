@@ -1,5 +1,6 @@
 import axios, { AxiosResponse, AxiosError } from 'axios'
 import { envConfig } from '@/config/env.config'
+import { authConfig } from '@/config/auth.config'
 import type { ApiResponse, ApiErrorResponse } from '@/types'
 import { extractErrorInfo, createAuthErrorDialogData } from '@/utils/errorHandler'
 import { useGlobalStore } from '@/store'
@@ -17,7 +18,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // 添加认证token
-    const token = localStorage.getItem('access_token')
+    const token = localStorage.getItem(authConfig.tokenKey)
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -56,8 +57,8 @@ api.interceptors.response.use(
       switch (status) {
         case 401:
           // 清除token
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('refresh_token')
+          localStorage.removeItem(authConfig.tokenKey)
+          localStorage.removeItem(authConfig.refreshTokenKey)
           
           // 提取错误信息
           if (data) {
