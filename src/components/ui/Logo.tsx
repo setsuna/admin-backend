@@ -56,7 +56,7 @@ export const Logo: React.FC<LogoProps> = ({
   const totalWidth = config.leafSize + textWidth - overlapWidth
   
   // 叶子在垂直方向的偏移调整
-  const leafOffsetY = -config.totalHeight * 0.28 // 向上偏移25%
+  const leafOffsetY = -config.totalHeight * 0.48 // 向上偏移25%
   
   return (
     <div className={`flex items-center justify-center ${className}`} style={{ height: config.totalHeight }}>
@@ -86,11 +86,15 @@ export const Logo: React.FC<LogoProps> = ({
         
         {/* 叶子SVG - 后渲染（在前面，遮挡文字） */}
         <g 
-          transform={`translate(0, ${config.totalHeight / 2 - config.leafSize / 2 + leafOffsetY}) scale(${config.leafSize / 600})`}
+          transform={`translate(0, ${config.totalHeight / 2 - config.leafSize / 2 + leafOffsetY}) scale(${config.leafSize / 500})`}
         >
           <path
             d="M140,713.7c-3.4-16.4-10.3-49.1-11.2-49.1c-145.7-87.1-128.4-238-80.2-324.2C59,449,251.2,524,139.1,656.8 c-0.9,1.7,5.2,22.4,10.3,41.4c22.4-37.9,56-83.6,54.3-87.9C65.9,273.9,496.9,248.1,586.6,39.4c40.5,201.8-20.7,513.9-367.2,593.2 c-1.7,0.9-62.9,108.6-65.5,109.5c0-1.7-25.9-0.9-22.4-9.5C133.1,727.4,136.6,720.6,140,713.7L140,713.7z M135.7,632.6 c44-50.9-7.8-137.9-38.8-166.4C149.5,556.7,146,609.3,135.7,632.6L135.7,632.6z"
             fill="#17541f"
+            stroke="#ffffff"
+            strokeWidth="8"
+            strokeLinejoin="round"
+            strokeLinecap="round"
           />
         </g>
       </svg>
