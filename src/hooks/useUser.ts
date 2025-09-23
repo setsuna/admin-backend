@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { userService, departmentService } from '@/services'
-import { useGlobalStore } from '@/store'
+import { useNotifications } from '@/hooks/useNotifications'
 import type { UserFilters, CreateUserRequest, UpdateUserRequest, UserSecurityLevel } from '@/types'
 
 export interface UseUserOptions {
@@ -11,6 +11,11 @@ export interface UseUserOptions {
   autoRefreshInterval?: number
 }
 
+/**
+ * 用户管理Hook
+ * 处理用户的增删改查和相关业务逻辑
+ * 注意：状态管理边界明确，只管理服务端数据同步，不涉及全局状态
+ */
 export const useUser = (options: UseUserOptions = {}) => {
   const { 
     initialFilters = {},
@@ -19,34 +24,34 @@ export const useUser = (options: UseUserOptions = {}) => {
     autoRefreshInterval = 30000
   } = options
   
-  const { addNotification } = useGlobalStore()
+  const { showSuccess, showError } = useNotifications()
   const queryClient = useQueryClient()
   
-  // 状态管理
+  // 本地状态管理 - 这些状态不需要全局共享
   const [filters, setFilters] = useState<UserFilters>(initialFilters)
   const [pagination, setPagination] = useState(initialPagination)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   
-  // 查询用户列表
+  // 服务端状态查询 - 使用TanStack Query管理
   const userQuery = useQuery({
     queryKey: ['users', filters, pagination],
     queryFn: () => userService.getUsers({ ...filters, ...pagination }),
     refetchInterval: enableAutoRefresh ? autoRefreshInterval : false
   })
   
-  // 查询部门选项（用于筛选和表单）
   const departmentOptionsQuery = useQuery({
     queryKey: ['departmentOptions'],
-    queryFn: () => departmentService.getDepartmentOptions()
+    queryFn: () => departmentService.getDepartmentOptions(),
+    staleTime: 10 * 60 * 1000, // 10分钟缓存
   })
   
-  // 查询用户统计
   const userStatsQuery = useQuery({
     queryKey: ['userStats'],
-    queryFn: () => userService.getUserStats()
+    queryFn: () => userService.getUserStats(),
+    staleTime: 5 * 60 * 1000, // 5分钟缓存
   })
   
-  // 刷新相关查询
+  // 缓存失效函数
   const invalidateQueries = () => {
     queryClient.invalidateQueries({ queryKey: ['users'] })
     queryClient.invalidateQueries({ queryKey: ['userStats'] })
@@ -56,15 +61,11 @@ export const useUser = (options: UseUserOptions = {}) => {
   const createMutation = useMutation({
     mutationFn: (data: CreateUserRequest) => userService.createUser(data),
     onSuccess: () => {
-      addNotification({ type: 'success', title: '创建成功', message: '用户已成功创建' })
+      showSuccess('创建成功', '用户已成功创建')
       invalidateQueries()
     },
     onError: (error: any) => {
-      addNotification({ 
-        type: 'error', 
-        title: '创建失败', 
-        message: error.message || '请稍后重试' 
-      })
+      showError('创建失败', error.message || '请稍后重试')
     }
   })
   
@@ -72,15 +73,11 @@ export const useUser = (options: UseUserOptions = {}) => {
   const updateMutation = useMutation({
     mutationFn: (data: UpdateUserRequest) => userService.updateUser(data),
     onSuccess: () => {
-      addNotification({ type: 'success', title: '更新成功', message: '用户信息已成功更新' })
+      showSuccess('更新成功', '用户信息已成功更新')
       invalidateQueries()
     },
     onError: (error: any) => {
-      addNotification({ 
-        type: 'error', 
-        title: '更新失败', 
-        message: error.message || '请稍后重试' 
-      })
+      showError('更新失败', error.message || '请稍后重试')
     }
   })
   
@@ -88,15 +85,11 @@ export const useUser = (options: UseUserOptions = {}) => {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => userService.deleteUser(id),
     onSuccess: () => {
-      addNotification({ type: 'success', title: '删除成功', message: '用户已成功删除' })
+      showSuccess('删除成功', '用户已成功删除')
       invalidateQueries()
     },
     onError: (error: any) => {
-      addNotification({ 
-        type: 'error', 
-        title: '删除失败', 
-        message: error.message || '请稍后重试' 
-      })
+      showError('删除失败', error.message || '请稍后重试')
     }
   })
   
@@ -104,16 +97,12 @@ export const useUser = (options: UseUserOptions = {}) => {
   const batchDeleteMutation = useMutation({
     mutationFn: (ids: string[]) => userService.batchDeleteUsers(ids),
     onSuccess: (_, ids) => {
-      addNotification({ type: 'success', title: '批量删除成功', message: `已删除 ${ids.length} 个用户` })
+      showSuccess('批量删除成功', `已删除 ${ids.length} 个用户`)
       setSelectedIds([])
       invalidateQueries()
     },
     onError: (error: any) => {
-      addNotification({ 
-        type: 'error', 
-        title: '批量删除失败', 
-        message: error.message || '请稍后重试' 
-      })
+      showError('批量删除失败', error.message || '请稍后重试')
     }
   })
   
@@ -121,14 +110,10 @@ export const useUser = (options: UseUserOptions = {}) => {
   const resetPasswordMutation = useMutation({
     mutationFn: (id: string) => userService.resetPassword(id),
     onSuccess: () => {
-      addNotification({ type: 'success', title: '重置成功', message: '用户密码已重置为默认密码' })
+      showSuccess('重置成功', '用户密码已重置为默认密码')
     },
     onError: (error: any) => {
-      addNotification({ 
-        type: 'error', 
-        title: '重置失败', 
-        message: error.message || '请稍后重试' 
-      })
+      showError('重置失败', error.message || '请稍后重试')
     }
   })
   
@@ -138,19 +123,11 @@ export const useUser = (options: UseUserOptions = {}) => {
       userService.updateUserStatus(id, status),
     onSuccess: (_, { status }) => {
       const statusMap = { active: '启用', inactive: '禁用', suspended: '停用' }
-      addNotification({ 
-        type: 'success', 
-        title: '状态更新成功', 
-        message: `用户已${statusMap[status]}` 
-      })
+      showSuccess('状态更新成功', `用户已${statusMap[status]}`)
       invalidateQueries()
     },
     onError: (error: any) => {
-      addNotification({ 
-        type: 'error', 
-        title: '状态更新失败', 
-        message: error.message || '请稍后重试' 
-      })
+      showError('状态更新失败', error.message || '请稍后重试')
     }
   })
   
@@ -160,19 +137,11 @@ export const useUser = (options: UseUserOptions = {}) => {
       userService.updateUserSecurityLevel(id, securityLevel),
     onSuccess: (_, { securityLevel }) => {
       const levelMap = { unknown: '未知', internal: '内部', confidential: '机密', secret: '绝密' }
-      addNotification({ 
-        type: 'success', 
-        title: '密级更新成功', 
-        message: `用户密级已调整为 ${levelMap[securityLevel]}` 
-      })
+      showSuccess('密级更新成功', `用户密级已调整为 ${levelMap[securityLevel]}`)
       invalidateQueries()
     },
     onError: (error: any) => {
-      addNotification({ 
-        type: 'error', 
-        title: '密级更新失败', 
-        message: error.message || '请稍后重试' 
-      })
+      showError('密级更新失败', error.message || '请稍后重试')
     }
   })
   
@@ -182,20 +151,12 @@ export const useUser = (options: UseUserOptions = {}) => {
       userService.batchUpdateSecurityLevel(ids, securityLevel),
     onSuccess: (_, { ids, securityLevel }) => {
       const levelMap = { unknown: '未知', internal: '内部', confidential: '机密', secret: '绝密' }
-      addNotification({ 
-        type: 'success', 
-        title: '批量密级更新成功', 
-        message: `已将 ${ids.length} 个用户的密级调整为 ${levelMap[securityLevel]}` 
-      })
+      showSuccess('批量密级更新成功', `已将 ${ids.length} 个用户的密级调整为 ${levelMap[securityLevel]}`)
       setSelectedIds([])
       invalidateQueries()
     },
     onError: (error: any) => {
-      addNotification({ 
-        type: 'error', 
-        title: '批量密级更新失败', 
-        message: error.message || '请稍后重试' 
-      })
+      showError('批量密级更新失败', error.message || '请稍后重试')
     }
   })
   

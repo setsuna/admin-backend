@@ -1,21 +1,24 @@
 import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useGlobalStore, usePermissionStore } from '@/store'
+import { useAuth } from '@/store'
 import { permissionApi } from '@/services/permission'
 import type { MenuItem } from '@/types'
 
-// 权限钩子
+/**
+ * 权限管理Hook
+ * 统一管理用户权限和菜单配置
+ */
 export function usePermission() {
-  const { user } = useGlobalStore()
   const {
+    user,
     permissions,
     menuConfig,
     setPermissions,
     setMenuConfig,
     hasPermission,
     hasAnyPermission,
-    clearPermissions
-  } = usePermissionStore()
+    clearAuth
+  } = useAuth()
 
   // 获取用户菜单配置
   const { data: userMenuConfig, isLoading } = useQuery({
@@ -31,9 +34,9 @@ export function usePermission() {
       setPermissions(userMenuConfig.userPermissions)
       setMenuConfig(userMenuConfig)
     } else if (!user) {
-      clearPermissions()
+      clearAuth()
     }
-  }, [userMenuConfig, user, setPermissions, setMenuConfig, clearPermissions])
+  }, [userMenuConfig, user, setPermissions, setMenuConfig, clearAuth])
 
   return {
     permissions,
@@ -44,7 +47,10 @@ export function usePermission() {
   }
 }
 
-// 菜单权限钩子
+/**
+ * 菜单权限Hook
+ * 获取用户可见的菜单项
+ */
 export function useMenuPermission() {
   const { menuConfig, isLoading } = usePermission()
   
@@ -58,7 +64,10 @@ export function useMenuPermission() {
   }
 }
 
-// 路由权限钩子
+/**
+ * 路由权限Hook
+ * 检查用户是否有访问特定路由的权限
+ */
 export function useRoutePermission(requiredPermissions: string[] = []) {
   const { hasAnyPermission, isLoading } = usePermission()
   

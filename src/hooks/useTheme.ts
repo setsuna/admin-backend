@@ -1,9 +1,12 @@
 import { useEffect } from 'react'
-import { useGlobalStore } from '@/store'
+import { useUI } from '@/store'
 
-// 主题切换hook
+/**
+ * 主题管理Hook
+ * 处理主题切换和系统主题检测
+ */
 export function useTheme() {
-  const { theme, setTheme } = useGlobalStore()
+  const { theme, setTheme } = useUI()
   
   useEffect(() => {
     const root = window.document.documentElement
@@ -16,6 +19,21 @@ export function useTheme() {
       root.classList.add(systemTheme)
     } else {
       root.classList.add(theme)
+    }
+  }, [theme])
+  
+  // 监听系统主题变化
+  useEffect(() => {
+    if (theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      const handleChange = () => {
+        const root = window.document.documentElement
+        root.classList.remove('light', 'dark', 'gov-red')
+        root.classList.add(mediaQuery.matches ? 'dark' : 'light')
+      }
+      
+      mediaQuery.addEventListener('change', handleChange)
+      return () => mediaQuery.removeEventListener('change', handleChange)
     }
   }, [theme])
   
