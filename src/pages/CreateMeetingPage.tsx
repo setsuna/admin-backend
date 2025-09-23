@@ -5,7 +5,8 @@ import { Allotment } from "allotment"
 import { Plus } from 'lucide-react'
 import { meetingApi } from '@/services/meeting'
 import { getFormattedExtensions } from '@/mock/fileFormats'
-import { useDialog, useNotifications } from '@/hooks'
+import { useDialog } from '@/hooks/useModal'
+import { useNotifications } from '@/hooks/useNotifications'
 import { DialogComponents } from '@/components/ui/DialogComponents'
 import type { 
   MeetingSecurityLevel, 
@@ -17,9 +18,9 @@ import type {
 } from '@/types'
 
 // 导入组件
-import BasicInfoForm from '@/components/meeting/BasicInfoForm'
-import AgendaForm from '@/components/meeting/AgendaForm'
-import OrganizationSelector from '@/components/meeting/OrganizationSelector'
+import BasicInfoForm from '@/components/business/meeting/BasicInfoForm'
+import AgendaForm from '@/components/business/meeting/AgendaForm'
+import OrganizationSelector from '@/components/business/meeting/OrganizationSelector'
 
 // 表单数据类型
 interface MeetingFormData {
