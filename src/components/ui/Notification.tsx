@@ -1,6 +1,6 @@
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react'
 import { cn } from '@/utils'
-import { useNotifications } from '@/hooks'
+import { useNotifications } from '@/hooks/useNotifications'
 import type { NotificationType } from '@/types'
 
 const notificationConfig = {

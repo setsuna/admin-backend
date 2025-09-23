@@ -1,4 +1,4 @@
-import { useRoutePermission } from '@/hooks'
+import { useRoutePermission } from '@/hooks/usePermission'
 
 interface PermissionGuardProps {
   children: React.ReactNode

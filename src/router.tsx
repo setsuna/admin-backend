@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import { MainLayout } from '@/components/layouts'
-import { PermissionGuard } from '@/components/PermissionGuard'
+import { PermissionGuard } from '@/components/business/permission/PermissionGuard'
 import { Loading } from '@/components/ui/Loading'
 import { useGlobalStore } from '@/store'
 

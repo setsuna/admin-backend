@@ -2,8 +2,8 @@ import { Outlet } from 'react-router-dom'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 import { NotificationContainer } from '@/components/ui/Notification'
-import { usePermission } from '@/hooks'
-import { PermissionDebugger } from '@/components/PermissionDebugger'
+import { usePermission } from '@/hooks/usePermission'
+import { PermissionDebugger } from '@/components/business/permission/PermissionDebugger'
 
 export function MainLayout() {
   // 初始化权限数据

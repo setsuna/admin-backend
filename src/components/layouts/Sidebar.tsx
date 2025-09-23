@@ -24,8 +24,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/utils'
 import { useGlobalStore } from '@/store'
-import { useMenuPermission } from '@/hooks'
-import { Button } from '@/components/ui'
+import { useMenuPermission } from '@/hooks/usePermission'
+import { Button } from '@/components/ui/Button'
 
 interface SidebarProps {
   className?: string

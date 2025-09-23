@@ -1,6 +1,6 @@
 import { Monitor, Moon, Sun, Building } from 'lucide-react'
-import { useTheme } from '@/hooks'
-import { Button } from '@/components/ui'
+import { useTheme } from '@/hooks/useTheme'
+import { Button } from '@/components/ui/Button'
 import type { Theme } from '@/types'
 
 const themeOptions = [
