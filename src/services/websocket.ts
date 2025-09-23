@@ -119,3 +119,6 @@ export class WebSocketService {
 
 // 创建全局WebSocket实例
 export const wsService = new WebSocketService(`ws://${window.location.host}/ws`)
+
+// 兼容性导出
+export const websocketService = wsService

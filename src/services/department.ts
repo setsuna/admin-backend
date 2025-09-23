@@ -1,155 +1,114 @@
-import { api } from './api'
-import { mockDepartmentService } from './mock/departmentData'
+/**
+ * 部门服务 - 重构后的简洁版本
+ * 直接使用HTTP客户端，移除Mock逻辑
+ */
+
+import { httpClient } from './core/http.client'
 import type { 
   Department, 
   DepartmentFilters, 
   CreateDepartmentRequest, 
   UpdateDepartmentRequest,
-  PaginatedResponse,
-  ApiResponse 
-} from '@/types'
+  PaginatedResponse 
+} from '../types'
 
-// 判断是否使用Mock数据
-const shouldUseMock = () => {
-  return import.meta.env.VITE_ENABLE_MOCK === 'true' || 
-         import.meta.env.NODE_ENV === 'development'
-}
+/**
+ * 部门服务类
+ * 封装部门相关的业务逻辑
+ */
+class DepartmentService {
+  private basePath = '/departments'
 
-export const departmentService = {
-  // 获取部门列表（分页）
-  async getDepartments(filters?: DepartmentFilters & { page?: number; pageSize?: number }) {
-    if (shouldUseMock()) {
-      return mockDepartmentService.getDepartments(filters, filters?.page, filters?.pageSize)
-    }
-    
-    const params = new URLSearchParams()
-    
-    if (filters?.keyword) params.append('keyword', filters.keyword)
-    if (filters?.status) params.append('status', filters.status)
-    if (filters?.parentId) params.append('parentId', filters.parentId)
-    if (filters?.page) params.append('page', filters.page.toString())
-    if (filters?.pageSize) params.append('pageSize', filters.pageSize.toString())
-
-    const response = await api.get<ApiResponse<PaginatedResponse<Department>>>(`/departments?${params}`)
-    return response.data
-  },
-
-  // 获取部门树形结构
-  async getDepartmentTree() {
-    if (shouldUseMock()) {
-      return mockDepartmentService.getDepartmentTree()
-    }
-    
-    const response = await api.get<ApiResponse<Department[]>>('/departments/tree')
-    return response.data
-  },
-
-  // 获取单个部门详情
-  async getDepartment(id: string) {
-    if (shouldUseMock()) {
-      return mockDepartmentService.getDepartment(id)
-    }
-    
-    const response = await api.get<ApiResponse<Department>>(`/departments/${id}`)
-    return response.data
-  },
-
-  // 创建部门
-  async createDepartment(data: CreateDepartmentRequest) {
-    if (shouldUseMock()) {
-      return mockDepartmentService.createDepartment(data)
-    }
-    
-    const response = await api.post<ApiResponse<Department>>('/departments', data)
-    return response.data
-  },
-
-  // 更新部门
-  async updateDepartment(data: UpdateDepartmentRequest) {
-    if (shouldUseMock()) {
-      return mockDepartmentService.updateDepartment(data)
-    }
-    
-    const { id, ...updateData } = data
-    const response = await api.put<ApiResponse<Department>>(`/departments/${id}`, updateData)
-    return response.data
-  },
-
-  // 删除部门
-  async deleteDepartment(id: string) {
-    if (shouldUseMock()) {
-      return mockDepartmentService.deleteDepartment(id)
-    }
-    
-    const response = await api.delete<ApiResponse<void>>(`/departments/${id}`)
-    return response.data
-  },
-
-  // 批量删除部门
-  async batchDeleteDepartments(ids: string[]) {
-    if (shouldUseMock()) {
-      return mockDepartmentService.batchDeleteDepartments(ids)
-    }
-    
-    const response = await api.delete<ApiResponse<void>>('/departments/batch', { data: { ids } })
-    return response.data
-  },
-
-  // 移动部门到指定父级
-  async moveDepartment(id: string, parentId?: string) {
-    if (shouldUseMock()) {
-      return { code: 200, message: 'success', data: {} as Department }
-    }
-    
-    const response = await api.put<ApiResponse<Department>>(`/departments/${id}/move`, { parentId })
-    return response.data
-  },
-
-  // 获取部门下级选项（用于下拉框）
-  async getDepartmentOptions(parentId?: string) {
-    if (shouldUseMock()) {
-      return mockDepartmentService.getDepartmentOptions()
-    }
-    
-    const params = parentId ? `?parentId=${parentId}` : ''
-    const response = await api.get<ApiResponse<Array<{ id: string; name: string; level: number }>>>(`/departments/options${params}`)
-    return response.data
-  },
-
-  // 验证部门编码是否可用
-  async checkDepartmentCode(code: string, excludeId?: string) {
-    if (shouldUseMock()) {
-      return { code: 200, message: 'success', data: { available: true } }
-    }
-    
-    const params = new URLSearchParams({ code })
-    if (excludeId) params.append('excludeId', excludeId)
-    
-    const response = await api.get<ApiResponse<{ available: boolean }>>(`/departments/check-code?${params}`)
-    return response.data
-  },
-
-  // 获取部门统计信息
-  async getDepartmentStats() {
-    if (shouldUseMock()) {
-      return {
-        code: 200,
-        message: 'success',
-        data: {
-          total: 9,
-          enabled: 8,
-          disabled: 1,
-          topLevel: 4
-        }
-      }
-    }
-    
-    const response = await api.get<ApiResponse<{
-      total: number
-      enabled: number
-      disabled: number
-      topLevel: number
-    }>>('/departments/stats')
+  /**
+   * 获取部门列表
+   */
+  async getDepartments(
+    filters: DepartmentFilters = {},
+    page: number = 1,
+    pageSize: number = 20
+  ): Promise<PaginatedResponse<Department>> {
+    const response = await httpClient.get<PaginatedResponse<Department>>(this.basePath, {
+      ...filters,
+      page,
+      pageSize
+    })
     return response.data
   }
+
+  /**
+   * 获取部门树形结构
+   */
+  async getDepartmentTree(): Promise<Department[]> {
+    const response = await httpClient.get<Department[]>(`${this.basePath}/tree`)
+    return response.data
+  }
+
+  /**
+   * 获取单个部门详情
+   */
+  async getDepartment(id: string): Promise<Department> {
+    const response = await httpClient.get<Department>(`${this.basePath}/${id}`)
+    return response.data
+  }
+
+  /**
+   * 创建部门
+   */
+  async createDepartment(departmentData: CreateDepartmentRequest): Promise<Department> {
+    const response = await httpClient.post<Department>(this.basePath, departmentData)
+    return response.data
+  }
+
+  /**
+   * 更新部门
+   */
+  async updateDepartment(id: string, departmentData: UpdateDepartmentRequest): Promise<Department> {
+    const response = await httpClient.put<Department>(`${this.basePath}/${id}`, departmentData)
+    return response.data
+  }
+
+  /**
+   * 删除部门
+   */
+  async deleteDepartment(id: string): Promise<boolean> {
+    const response = await httpClient.delete<{ success: boolean }>(`${this.basePath}/${id}`)
+    return response.data.success
+  }
+
+  /**
+   * 批量删除部门
+   */
+  async deleteDepartments(ids: string[]): Promise<boolean> {
+    const response = await httpClient.delete<{ successCount: number }>(`${this.basePath}/batch`, { ids })
+    return response.data.successCount === ids.length
+  }
+
+  /**
+   * 更新部门状态
+   */
+  async updateDepartmentStatus(id: string, status: 'active' | 'inactive'): Promise<boolean> {
+    const response = await httpClient.patch<{ success: boolean }>(`${this.basePath}/${id}/status`, { status })
+    return response.data.success
+  }
+
+  /**
+   * 获取部门下的用户
+   */
+  async getDepartmentUsers(id: string, page: number = 1, pageSize: number = 20): Promise<PaginatedResponse<any>> {
+    const response = await httpClient.get<PaginatedResponse<any>>(`${this.basePath}/${id}/users`, {
+      page,
+      pageSize
+    })
+    return response.data
+  }
+
+  /**
+   * 搜索部门
+   */
+  async searchDepartments(keyword: string): Promise<Department[]> {
+    const result = await this.getDepartments({ keyword }, 1, 100)
+    return result.items
+  }
 }
+
+export const departmentService = new DepartmentService()

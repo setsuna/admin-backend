@@ -1,130 +1,57 @@
-import { api } from './api'
-import { mockPolicyService } from './mock/policyData'
-import type { 
-  SecurityPolicy,
-  ApiResponse 
-} from '@/types'
+/**
+ * 安全策略服务 - 重构后的简洁版本
+ * 直接使用HTTP客户端，移除Mock逻辑
+ */
 
-// 判断是否使用Mock数据
-const shouldUseMock = () => {
-  return import.meta.env.VITE_ENABLE_MOCK === 'true' || 
-         import.meta.env.NODE_ENV === 'development'
-}
+import { httpClient } from './core/http.client'
+import type { SecurityPolicy } from '../types'
 
-export const policyService = {
-  // 获取当前策略配置
-  async getPolicyConfig() {
-    if (shouldUseMock()) {
-      return mockPolicyService.getPolicyConfig()
-    }
-    
-    const response = await api.get<ApiResponse<SecurityPolicy>>('/system/policy')
+/**
+ * 安全策略服务类
+ * 封装安全策略相关的业务逻辑
+ */
+class PolicyService {
+  private basePath = '/policies'
+
+  /**
+   * 获取当前策略配置
+   */
+  async getPolicyConfig(): Promise<SecurityPolicy> {
+    const response = await httpClient.get<SecurityPolicy>(`${this.basePath}/current`)
     return response.data
-  },
+  }
 
-  // 更新策略配置
-  async updatePolicyConfig(config: SecurityPolicy) {
-    if (shouldUseMock()) {
-      return mockPolicyService.updatePolicyConfig(config)
-    }
-    
-    const response = await api.put<ApiResponse<SecurityPolicy>>('/system/policy', config)
+  /**
+   * 更新策略配置
+   */
+  async updatePolicyConfig(config: Partial<SecurityPolicy>): Promise<SecurityPolicy> {
+    const response = await httpClient.put<SecurityPolicy>(`${this.basePath}/current`, config)
     return response.data
-  },
+  }
 
-  // 获取策略配置历史
-  async getPolicyHistory(limit: number = 20) {
-    if (shouldUseMock()) {
-      return mockPolicyService.getPolicyHistory(limit)
-    }
-    
-    const response = await api.get<ApiResponse<Array<{
-      id: string
-      version: number
-      config: SecurityPolicy
-      updatedBy: string
-      updatedByName: string
-      updatedAt: string
-      reason?: string
-    }>>>(`/system/policy/history?limit=${limit}`)
+  /**
+   * 重置策略配置为默认值
+   */
+  async resetPolicyConfig(): Promise<SecurityPolicy> {
+    const response = await httpClient.post<SecurityPolicy>(`${this.basePath}/reset`)
     return response.data
-  },
+  }
 
-  // 恢复到指定版本
-  async restorePolicyVersion(versionId: string) {
-    if (shouldUseMock()) {
-      return mockPolicyService.restorePolicyVersion(versionId)
-    }
-    
-    const response = await api.post<ApiResponse<SecurityPolicy>>(`/system/policy/restore/${versionId}`)
+  /**
+   * 获取策略历史记录
+   */
+  async getPolicyHistory(page: number = 1, pageSize: number = 20): Promise<any> {
+    const response = await httpClient.get(`${this.basePath}/history`, { page, pageSize })
     return response.data
-  },
+  }
 
-  // 验证策略配置
-  async validatePolicyConfig(config: SecurityPolicy) {
-    if (shouldUseMock()) {
-      return mockPolicyService.validatePolicyConfig(config)
-    }
-    
-    const response = await api.post<ApiResponse<{
-      valid: boolean
-      errors: string[]
-      warnings: string[]
-    }>>('/system/policy/validate', config)
-    return response.data
-  },
-
-  // 获取默认策略配置
-  async getDefaultPolicyConfig() {
-    if (shouldUseMock()) {
-      return mockPolicyService.getDefaultPolicyConfig()
-    }
-    
-    const response = await api.get<ApiResponse<SecurityPolicy>>('/system/policy/default')
-    return response.data
-  },
-
-  // 导出策略配置
-  async exportPolicyConfig() {
-    if (shouldUseMock()) {
-      return mockPolicyService.exportPolicyConfig()
-    }
-    
-    const response = await api.get('/system/policy/export', {
-      responseType: 'blob'
-    })
-    return response.data
-  },
-
-  // 导入策略配置
-  async importPolicyConfig(file: File) {
-    if (shouldUseMock()) {
-      return mockPolicyService.importPolicyConfig(file)
-    }
-    
-    const formData = new FormData()
-    formData.append('file', file)
-    
-    const response = await api.post<ApiResponse<SecurityPolicy>>('/system/policy/import', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
-    return response.data
-  },
-
-  // 获取策略影响分析
-  async getPolicyImpactAnalysis(config: SecurityPolicy) {
-    if (shouldUseMock()) {
-      return mockPolicyService.getPolicyImpactAnalysis(config)
-    }
-    
-    const response = await api.post<ApiResponse<{
-      affectedUsers: number
-      affectedSessions: number
-      systemChanges: string[]
-      riskAssessment: 'low' | 'medium' | 'high'
-    }>>('/system/policy/impact-analysis', config)
+  /**
+   * 验证策略配置
+   */
+  async validatePolicyConfig(config: SecurityPolicy): Promise<{ valid: boolean; errors?: string[] }> {
+    const response = await httpClient.post<{ valid: boolean; errors?: string[] }>(`${this.basePath}/validate`, config)
     return response.data
   }
 }
+
+export const policyService = new PolicyService()

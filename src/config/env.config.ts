@@ -9,7 +9,6 @@ export interface EnvConfig {
   API_BASE_URL: string
   REQUEST_TIMEOUT: number
   ENABLE_REQUEST_LOG: boolean
-  ENABLE_MOCK: boolean
 }
 
 export const envConfig: EnvConfig = {
@@ -18,8 +17,7 @@ export const envConfig: EnvConfig = {
   PROD: import.meta.env.PROD,
   API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1',
   REQUEST_TIMEOUT: Number(import.meta.env.VITE_REQUEST_TIMEOUT) || 10000,
-  ENABLE_REQUEST_LOG: import.meta.env.VITE_ENABLE_REQUEST_LOG === 'true',
-  ENABLE_MOCK: import.meta.env.VITE_ENABLE_MOCK === 'true'
+  ENABLE_REQUEST_LOG: import.meta.env.VITE_ENABLE_REQUEST_LOG === 'true'
 }
 
 // 应用配置
@@ -62,6 +60,5 @@ export const appConfig = {
 // 开发环境配置
 export const devConfig = {
   enableDevtools: envConfig.DEV,
-  mockDelay: 300, // mock API 延迟时间
   debugMode: envConfig.DEV && envConfig.ENABLE_REQUEST_LOG
 }
