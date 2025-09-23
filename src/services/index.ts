@@ -7,8 +7,17 @@
 // 核心服务导出
 // ========================================
 export { httpClient } from './core/http.client'
-export { authService, auth } from './core/auth.service' 
-export { errorHandler, retryManager } from './core/error.handler'
+
+// 延迟导入其他核心服务，避免初始化问题
+export * from './core/auth.service'
+export * from './core/error.handler'
+
+// ========================================
+// API服务导出 (services/api/*.ts)
+// ========================================
+export { dictApiService } from './api/dict.api'
+export { meetingApiService } from './api/meeting.api'
+export { userApiService, permissionApiService } from './api/user.api'
 
 // ========================================
 // 业务服务导出 (services/*.ts)
@@ -23,64 +32,122 @@ export { deviceService } from './device'
 export { websocketService } from './websocket'
 
 // ========================================
-// API服务导出 (services/api/*.ts)
-// ========================================
-export { dictApiService } from './api/dict.api'
-export { meetingApiService } from './api/meeting.api'
-export { userApiService, permissionApiService } from './api/user.api'
-
-// ========================================
 // 类型导出
 // ========================================
 export type * from './types/api.types'
-export type * from './types/dict.types'
+export type * from './types/dict.types'  
 export type * from './types/meeting.types'
 export type * from '../types'
 
 // ========================================
-// 统一API接口 (兼容性导出)
+// 兼容性API接口 - 简化版本
 // ========================================
 
-// 字典API - 直接导出，无需懒加载
+// 字典API兼容接口
 export const dictApi = {
-  getDictionaries: dictApiService.getDictionaries.bind(dictApiService),
-  getDictionary: dictApiService.getDictionary.bind(dictApiService),
-  createDictionary: dictApiService.createDictionary.bind(dictApiService),
-  updateDictionary: dictApiService.updateDictionary.bind(dictApiService),
-  deleteDictionary: dictApiService.deleteDictionary.bind(dictApiService),
-  deleteDictionaries: dictApiService.deleteDictionaries.bind(dictApiService),
-  updateDictionaryStatus: dictApiService.updateDictionaryStatus.bind(dictApiService),
-  getDictTypes: dictApiService.getDictTypes.bind(dictApiService),
-  syncToDevices: dictApiService.syncToDevices.bind(dictApiService),
-  exportDictionaries: dictApiService.exportDictionaries.bind(dictApiService)
+  async getDictionaries(filters = {}, page = 1, pageSize = 20) {
+    const { dictApiService } = await import('./api/dict.api')
+    return dictApiService.getDictionaries(filters, page, pageSize)
+  },
+  
+  async getDictionary(id: string) {
+    const { dictApiService } = await import('./api/dict.api')
+    return dictApiService.getDictionary(id)
+  },
+  
+  async createDictionary(data: any) {
+    const { dictApiService } = await import('./api/dict.api')
+    return dictApiService.createDictionary(data)
+  },
+  
+  async updateDictionary(id: string, data: any) {
+    const { dictApiService } = await import('./api/dict.api')
+    return dictApiService.updateDictionary(id, data)
+  },
+  
+  async deleteDictionary(id: string) {
+    const { dictApiService } = await import('./api/dict.api')
+    return dictApiService.deleteDictionary(id)
+  },
+  
+  async deleteDictionaries(ids: string[]) {
+    const { dictApiService } = await import('./api/dict.api')
+    return dictApiService.deleteDictionaries(ids)
+  },
+  
+  async updateDictionaryStatus(id: string, status: 'enabled' | 'disabled') {
+    const { dictApiService } = await import('./api/dict.api')
+    return dictApiService.updateDictionaryStatus(id, status)
+  },
+  
+  async getDictTypes() {
+    const { dictApiService } = await import('./api/dict.api')
+    return dictApiService.getDictTypes()
+  },
+  
+  async syncToDevices(dictIds: string[]) {
+    const { dictApiService } = await import('./api/dict.api')
+    return dictApiService.syncToDevices(dictIds)
+  },
+  
+  async exportDictionaries(dictIds?: string[]) {
+    const { dictApiService } = await import('./api/dict.api')
+    return dictApiService.exportDictionaries(dictIds)
+  }
 }
 
-// 会议API - 直接导出，无需懒加载
+// 会议API兼容接口
 export const meetingApi = {
-  getMeetings: meetingApiService.getMeetings.bind(meetingApiService),
-  getMyMeetings: meetingApiService.getMyMeetings.bind(meetingApiService),
-  getMeetingById: meetingApiService.getMeetingById.bind(meetingApiService),
-  createMeeting: meetingApiService.createMeeting.bind(meetingApiService),
-  createMeetingFromRequest: meetingApiService.createMeetingFromRequest.bind(meetingApiService),
-  updateMeeting: meetingApiService.updateMeeting.bind(meetingApiService),
-  deleteMeeting: meetingApiService.deleteMeeting.bind(meetingApiService),
-  batchUpdateMeetings: meetingApiService.batchUpdateMeetings.bind(meetingApiService),
+  async getMeetings(filters = {}, page = 1, pageSize = 10) {
+    const { meetingApiService } = await import('./api/meeting.api')
+    return meetingApiService.getMeetings(filters, page, pageSize)
+  },
   
-  // 草稿会议相关
-  createDraftMeeting: meetingApiService.createDraftMeeting.bind(meetingApiService),
-  saveDraftMeeting: meetingApiService.saveDraftMeeting.bind(meetingApiService),
-  submitDraftMeeting: meetingApiService.submitDraftMeeting.bind(meetingApiService),
+  async getMyMeetings(tabType: 'hosted' | 'participated' | 'all' = 'all', filters = {}, page = 1, pageSize = 10) {
+    const { meetingApiService } = await import('./api/meeting.api')
+    return meetingApiService.getMyMeetings(tabType, filters, page, pageSize)
+  },
   
-  // 文件管理相关
-  uploadMeetingFile: meetingApiService.uploadMeetingFile.bind(meetingApiService),
-  getMeetingFiles: meetingApiService.getMeetingFiles.bind(meetingApiService),
-  deleteMeetingFile: meetingApiService.deleteMeetingFile.bind(meetingApiService)
+  async getMeetingById(id: string) {
+    const { meetingApiService } = await import('./api/meeting.api')
+    return meetingApiService.getMeetingById(id)
+  },
+  
+  async createMeeting(meetingData: any) {
+    const { meetingApiService } = await import('./api/meeting.api')
+    return meetingApiService.createMeeting(meetingData)
+  },
+  
+  async updateMeeting(id: string, updates: any) {
+    const { meetingApiService } = await import('./api/meeting.api')
+    return meetingApiService.updateMeeting(id, updates)
+  },
+  
+  async deleteMeeting(id: string) {
+    const { meetingApiService } = await import('./api/meeting.api')
+    return meetingApiService.deleteMeeting(id)
+  }
 }
 
-// 权限API - 直接导出，无需懒加载
+// 权限API兼容接口
 export const permissionApi = {
-  getAllPermissions: permissionApiService.getAllPermissions.bind(permissionApiService),
-  getAllRoles: permissionApiService.getAllRoles.bind(permissionApiService),
-  getUserMenuConfig: permissionApiService.getUserMenuConfig.bind(permissionApiService),
-  checkUserPermission: permissionApiService.checkUserPermission.bind(permissionApiService)
+  async getAllPermissions() {
+    const { permissionApiService } = await import('./api/user.api')
+    return permissionApiService.getAllPermissions()
+  },
+  
+  async getAllRoles() {
+    const { permissionApiService } = await import('./api/user.api')
+    return permissionApiService.getAllRoles()
+  },
+  
+  async getUserMenuConfig(user: any) {
+    const { permissionApiService } = await import('./api/user.api')
+    return permissionApiService.getUserMenuConfig(user)
+  },
+  
+  async checkUserPermission(userId: string, permission: string) {
+    const { permissionApiService } = await import('./api/user.api')
+    return permissionApiService.checkUserPermission(userId, permission)
+  }
 }
