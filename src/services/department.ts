@@ -10,7 +10,7 @@ import type {
   CreateDepartmentRequest, 
   UpdateDepartmentRequest,
   PaginatedResponse 
-} from '../types'
+} from '@/types'
 
 /**
  * 部门服务类

@@ -4,15 +4,25 @@
 
 import { httpClient } from '@/services/core/http.client'
 import { API_PATHS } from '@/config/api.config'
-import {
+import type {
   Permission,
   Role,
   User,
-  CreateRoleRequest,
-  UpdateRoleRequest,
-  MenuConfig
-} from './user.api'
-import { OperationResult } from '@/services/types/api.types'
+  MenuConfig,
+  OperationResult
+} from '@/types'
+
+// 角色相关请求类型
+export interface CreateRoleRequest {
+  name: string
+  code: string
+  permissions: string[]
+  description?: string
+}
+
+export interface UpdateRoleRequest extends Partial<CreateRoleRequest> {
+  id: string
+}
 
 export class PermissionApiService {
   private basePath = API_PATHS.PERMISSIONS

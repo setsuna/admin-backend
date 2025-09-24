@@ -4,7 +4,7 @@
  */
 
 import { httpClient } from './core/http.client'
-import type { SecurityPolicy } from '../types'
+import type { SecurityPolicy } from '@/types'
 
 /**
  * 安全策略服务类

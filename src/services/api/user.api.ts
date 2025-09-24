@@ -4,67 +4,20 @@
 
 import { httpClient } from '@/services/core/http.client'
 import { API_PATHS } from '@/config/api.config'
-import {
+import type {
+  User,
+  CreateUserRequest,
+  UpdateUserRequest,
+  UserFilters,
   PaginatedResponse,
   OperationResult,
-  FilterParams
-} from '@/services/types/api.types'
+  Permission,
+  Role,
+  MenuConfig,
+  MenuItem
+} from '@/types'
 
-// 用户相关类型定义
-export interface User {
-  id: string
-  username: string
-  email: string
-  role: 'admin' | 'user' | 'meeting_admin' | 'auditor' | 'security_admin'
-  avatar?: string
-  department?: string
-  position?: string
-  phone?: string
-  status: 'active' | 'inactive' | 'suspended'
-  lastLoginAt?: string
-  createdAt: string
-  updatedAt: string
-  permissions?: string[]
-}
-
-export interface CreateUserRequest {
-  username: string
-  email: string
-  password: string
-  role: string
-  department?: string
-  position?: string
-  phone?: string
-}
-
-export interface UpdateUserRequest extends Partial<CreateUserRequest> {
-  id: string
-  status?: 'active' | 'inactive' | 'suspended'
-}
-
-export interface UserFilters extends FilterParams {
-  role?: string
-  department?: string
-  status?: string
-}
-
-export interface Permission {
-  id: string
-  name: string
-  code: string
-  description?: string
-  category?: string
-}
-
-export interface Role {
-  id: string
-  name: string
-  code: string
-  permissions: string[]
-  description?: string
-  isSystem?: boolean
-}
-
+// 角色相关请求类型
 export interface CreateRoleRequest {
   name: string
   code: string
@@ -76,20 +29,11 @@ export interface UpdateRoleRequest extends Partial<CreateRoleRequest> {
   id: string
 }
 
-export interface MenuConfig {
-  menus: MenuItem[]
-  userPermissions: string[]
-}
-
-export interface MenuItem {
-  key: string
-  label: string
-  icon?: string
-  path?: string
-  children?: MenuItem[]
-  type?: 'group' | 'item'
-  permissions?: string[]
-  visible?: boolean
+// 重置密码响应类型
+export interface ResetPasswordResponse {
+  tempPassword: string
+  expiresIn: number
+  requireChange: boolean
 }
 
 export class UserApiService {
@@ -144,20 +88,37 @@ export class UserApiService {
   }
 
   /**
+   * 批量删除用户
+   */
+  async deleteUsers(ids: string[]): Promise<{ successCount: number; failedCount: number }> {
+    const response = await httpClient.post<{ successCount: number; failedCount: number }>(
+      `${this.basePath}/batch-delete`,
+      { ids }
+    )
+    return response.data
+  }
+
+  /**
    * 重置用户密码
    */
-  async resetPassword(id: string, newPassword: string): Promise<OperationResult> {
-    const response = await httpClient.post<OperationResult>(`${this.basePath}/${id}/reset-password`, {
-      password: newPassword
-    })
+  async resetUserPassword(id: string): Promise<ResetPasswordResponse> {
+    const response = await httpClient.post<ResetPasswordResponse>(`${this.basePath}/${id}/reset-password`)
     return response.data
   }
 
   /**
    * 更新用户状态
    */
-  async updateUserStatus(id: string, status: 'active' | 'inactive' | 'suspended'): Promise<OperationResult> {
+  async updateUserStatus(id: string, status: 'active' | 'inactive'): Promise<OperationResult> {
     const response = await httpClient.patch<OperationResult>(`${this.basePath}/${id}/status`, { status })
+    return response.data
+  }
+
+  /**
+   * 获取用户安全等级选项
+   */
+  async getUserSecurityLevels(): Promise<string[]> {
+    const response = await httpClient.get<string[]>(`${this.basePath}/security-levels`)
     return response.data
   }
 
@@ -255,5 +216,6 @@ export class PermissionApiService {
   }
 }
 
+// 导出服务实例
 export const userApiService = new UserApiService()
 export const permissionApiService = new PermissionApiService()

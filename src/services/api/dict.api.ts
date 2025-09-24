@@ -4,20 +4,30 @@
 
 import { httpClient } from '@/services/core/http.client'
 import { API_PATHS } from '@/config/api.config'
-import {
+import type {
   DataDict,
   DictFilters,
   CreateDictRequest,
   UpdateDictRequest,
-  DictSyncRequest,
-  DictExportConfig
-} from '@/services/types/dict.types'
-import {
   PaginatedResponse,
   BatchRequest,
   BatchResponse,
   OperationResult
-} from '@/services/types/api.types'
+} from '@/types'
+
+// 字典特有的扩展类型
+export interface DictSyncRequest {
+  dictIds: string[]
+  deviceIds?: string[]
+  force?: boolean
+}
+
+export interface DictExportConfig {
+  dictIds?: string[]
+  includeItems: boolean
+  format: 'json' | 'excel' | 'csv'
+  encoding?: 'utf8' | 'gbk'
+}
 
 export class DictApiService {
   private basePath = API_PATHS.DICTIONARIES

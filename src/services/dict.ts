@@ -10,7 +10,7 @@ import type {
   CreateDictRequest,
   UpdateDictRequest,
   PaginatedResponse 
-} from './types/dict.types'
+} from '@/types'
 
 /**
  * 字典服务类

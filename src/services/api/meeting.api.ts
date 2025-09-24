@@ -4,7 +4,7 @@
 
 import { httpClient } from '@/services/core/http.client'
 import { API_PATHS } from '@/config/api.config'
-import {
+import type {
   Meeting,
   MeetingFilters,
   CreateMeetingRequest,
@@ -13,14 +13,12 @@ import {
   DraftMeeting,
   MeetingStats,
   MeetingTemplate,
-  MeetingSettings
-} from '@/services/types/meeting.types'
-import {
+  MeetingSettings,
   PaginatedResponse,
   OperationResult,
   FileUploadResponse,
   BatchResponse
-} from '@/services/types/api.types'
+} from '@/types'
 
 export class MeetingApiService {
   private basePath = API_PATHS.MEETINGS

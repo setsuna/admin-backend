@@ -13,7 +13,7 @@ import type {
   MenuItemConfig, 
   PermissionGroup, 
   RolePermissionMatrix 
-} from '../types'
+} from '@/types'
 
 /**
  * 权限服务类

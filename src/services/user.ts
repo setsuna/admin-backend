@@ -11,7 +11,7 @@ import type {
   UpdateUserRequest,
   PaginatedResponse,
   UserSecurityLevel 
-} from '../types'
+} from '@/types'
 
 /**
  * 用户服务类

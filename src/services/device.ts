@@ -4,7 +4,7 @@
  */
 
 import { httpClient } from './core/http.client'
-import type { Device, DeviceStats, PaginationParams, PaginatedResponse } from '../types'
+import type { Device, DeviceStats, PaginationParams, PaginatedResponse } from '@/types'
 
 /**
  * 设备服务类
