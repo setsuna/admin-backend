@@ -3,8 +3,7 @@
  */
 
 import { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios'
-import { apiConfig, HTTP_STATUS } from '@/config/api.config'
-import { JWT_CONFIG } from '@/config/auth.config'
+import { getConfig, HTTP_STATUS, JWT_CONFIG } from '@/config'
 import { ApiResponse } from '@/services/types/api.types'
 import { errorHandler } from './error.handler'
 // 使用统一的认证服务
@@ -52,7 +51,8 @@ export const requestInterceptor = async (config: InternalAxiosRequestConfig): Pr
   }
 
   // 开发环境请求日志
-  if (apiConfig.enableRequestLog) {
+  const appConfig = getConfig()
+  if (appConfig.api.enableRequestLog) {
     console.group(`🚀 API Request [${reqId}]`)
     console.log('URL:', `${config.baseURL}${config.url}`)
     console.log('Method:', config.method?.toUpperCase())
@@ -82,7 +82,8 @@ export const responseInterceptor = (response: AxiosResponse<ApiResponse>): Axios
   }
 
   // 开发环境响应日志
-  if (apiConfig.enableRequestLog) {
+  const appConfig = getConfig()
+  if (appConfig.api.enableRequestLog) {
     console.group(`✅ API Response [${requestId}] - ${duration}ms`)
     console.log('Status:', response.status)
     console.log('Data:', data)
@@ -110,7 +111,8 @@ export const errorInterceptor = async (error: AxiosError<ApiResponse>): Promise<
   const duration = startTime ? Date.now() - startTime : 0
 
   // 开发环境错误日志
-  if (apiConfig.enableRequestLog) {
+  const appConfig = getConfig()
+  if (appConfig.api.enableRequestLog) {
     console.group(`❌ API Error [${requestId}] - ${duration}ms`)
     console.error('Error:', error.message)
     console.error('Config:', config)

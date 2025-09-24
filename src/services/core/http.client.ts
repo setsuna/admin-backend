@@ -4,7 +4,7 @@
  */
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import { apiConfig } from '@/config/api.config'
+import { getConfig } from '@/config'
 import { ApiResponse } from '@/services/types/api.types'
 import { requestInterceptor, responseInterceptor, errorInterceptor } from './interceptors'
 
@@ -12,9 +12,10 @@ export class HttpClient {
   private instance: AxiosInstance
 
   constructor() {
+    const config = getConfig()
     this.instance = axios.create({
-      baseURL: apiConfig.baseURL,
-      timeout: apiConfig.timeout,
+      baseURL: config.api.baseURL,
+      timeout: config.api.timeout,
       headers: {
         'Content-Type': 'application/json'
       }

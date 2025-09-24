@@ -3,7 +3,7 @@
  */
 
 import { httpClient } from '@/services/core/http.client'
-import { API_PATHS } from '@/config/api.config'
+import { API_PATHS } from '@/config'
 import type {
   User,
   CreateUserRequest,

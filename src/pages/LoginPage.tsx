@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Logo } from '@/components/ui/Logo'
 import { useGlobalStore } from '@/store'
 import { auth } from '@/services/core/auth.service'
-import { envConfig } from '@/config/env.config'
+import { isDevelopment } from '@/config'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -52,9 +52,7 @@ const LoginPage = () => {
     
     try {
       console.log('Login attempt:', { 
-        username: formData.username,
-        mockMode: envConfig.ENABLE_MOCK,
-        apiBaseUrl: envConfig.API_BASE_URL 
+        username: formData.username
       })
       
       // 使用统一的认证服务
@@ -81,8 +79,8 @@ const LoginPage = () => {
   
   // 获取测试账号提示
   const getTestAccountHints = () => {
-    // 只有在Mock模式下才显示测试账号
-    if (!envConfig.ENABLE_MOCK) {
+    // 只有在开发环境下才显示测试账号
+    if (!isDevelopment()) {
       return null
     }
     

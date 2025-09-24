@@ -3,8 +3,7 @@
  */
 
 import { api } from '../api'
-import { authConfig } from '@/config/auth.config'
-import { API_PATHS } from '@/config/api.config'
+import { getConfig, API_PATHS } from '@/config'
 import type { User, ApiResponse } from '@/types'
 
 export interface LoginRequest {
@@ -20,8 +19,9 @@ export interface LoginResponse {
 }
 
 class AuthService {
-  private tokenKey = authConfig.tokenKey
-  private refreshTokenKey = authConfig.refreshTokenKey
+  private config = getConfig()
+  private tokenKey = this.config.auth.tokenKey
+  private refreshTokenKey = this.config.auth.refreshTokenKey
   private currentUser: User | null = null
 
   /**
@@ -226,7 +226,7 @@ class AuthService {
       const currentTime = Date.now() / 1000
       const timeUntilExpiry = payload.exp - currentTime
       
-      return timeUntilExpiry < authConfig.autoRefreshThreshold / 1000
+      return timeUntilExpiry < this.config.auth.autoRefreshThreshold / 1000
     } catch {
       return false
     }

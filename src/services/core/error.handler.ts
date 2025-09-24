@@ -2,7 +2,7 @@
  * 统一错误处理器
  */
 
-import { envConfig } from '@/config/env.config'
+import { getConfig } from '@/config'
 
 export type ErrorType = 
   | 'NETWORK_ERROR'
@@ -55,7 +55,8 @@ class DefaultErrorHandler implements ErrorHandler {
    */
   showError(message: string, type: ErrorType = 'API_ERROR'): void {
     // 这里可以集成具体的通知组件
-    if (envConfig.DEV) {
+    const config = getConfig()
+    if (config.env.isDevelopment) {
       console.error(`[${type}] ${message}`)
     }
 
@@ -70,7 +71,8 @@ class DefaultErrorHandler implements ErrorHandler {
    */
   logError(errorInfo: ErrorInfo): void {
     // 开发环境控制台输出
-    if (envConfig.DEV) {
+    const config = getConfig()
+    if (config.env.isDevelopment) {
       console.group(`🔴 Error [${errorInfo.type}]`)
       console.error('Message:', errorInfo.message)
       console.error('Code:', errorInfo.code)
@@ -81,7 +83,7 @@ class DefaultErrorHandler implements ErrorHandler {
     }
 
     // 生产环境发送到日志服务
-    if (envConfig.PROD) {
+    if (config.env.isProduction) {
       this.sendToLogService(errorInfo)
     }
   }

@@ -9,7 +9,7 @@ import { usePermission } from '@/hooks/usePermission'
 import { useGlobalStore } from '@/store'
 import { permissionApi } from '@/services/permission'
 import { Card, Button } from '@/components/ui'
-import { envConfig } from '@/config/env.config'
+import { isDevelopment } from '@/config'
 
 export function PermissionDebugger() {
   const { user } = useGlobalStore()
@@ -30,7 +30,7 @@ export function PermissionDebugger() {
   })
 
   // 如果不是开发环境，不显示
-  if (!envConfig.DEV) {
+  if (!isDevelopment()) {
     return null
   }
 
@@ -248,7 +248,7 @@ export function PermissionTester() {
   }
 
   // 如果不是开发环境，不显示
-  if (!envConfig.DEV) {
+  if (!isDevelopment()) {
     return null
   }
 
