@@ -38,6 +38,7 @@ src/types/
 - 原有单文件2000+行代码拆分为多个专业文件
 - 消除了User、Meeting、Permission等核心类型的重复定义
 - 统一了BaseEntity、PaginationParams等通用类型
+- 解决了DeviceType类型冲突（拆分为ClientDeviceType和SystemDeviceType）
 
 ### 4. 类型导入路径规范统一 ✅
 - 统一使用 `@/types` 作为主导入路径
@@ -67,6 +68,12 @@ import type { ApiResponse } from '@/types/api'
 
 // 3. 按具体文件导入
 import type { User } from '@/types/domain/user.types'
+
+// 4. 设备类型明确区分（避免冲突）
+import type { 
+  SystemDeviceType,      // IT设备类型：'server' | 'workstation' | ...
+  ClientDeviceType       // 用户设备类型：'desktop' | 'tablet' | 'mobile'
+} from '@/types'
 ```
 
 ### 常用类型别名
@@ -166,5 +173,59 @@ export const mockUsers: User[] = [...]
 - ✅ 单文件代码行数控制在400行内
 - ✅ 保持向下兼容性
 - ✅ 服务层导入路径已更新
+- ✅ 解决DeviceType类型冲突问题
+
+## 类型冲突解决方案
+
+在重构过程中遇到了 `DeviceType` 类型冲突的问题，成功通过以下方式解决：
+
+### 问题描述
+```typescript
+// 两个不同领域的DeviceType定义产生冲突
+// common/base.types.ts: 用户前端设备
+export type DeviceType = 'desktop' | 'tablet' | 'mobile'
+
+// domain/system.types.ts: IT系统设备
+export type DeviceType = 'server' | 'workstation' | 'laptop' | 'tablet' | 'phone' | 'iot' | 'network' | 'storage'
+```
+
+### 解决方案
+```typescript
+// 1. 重命名用户设备类型（更精确的命名）
+export type ClientDeviceType = 'desktop' | 'tablet' | 'mobile'
+
+// 2. 系统设备类型通过别名导出
+export type {
+  DeviceType as SystemDeviceType,
+  DeviceStatus as SystemDeviceStatus
+} from './system.types'
+
+// 3. 在主导出文件中明确区分
+export type {
+  SystemDeviceType,    // IT设备管理
+  SystemDeviceStatus,  // IT设备状态
+  ClientDeviceType     // 用户设备类型
+} from './domain'
+```
+
+### 使用示例
+```typescript
+import type { 
+  SystemDeviceType,  // 'server' | 'workstation' | ...
+  ClientDeviceType   // 'desktop' | 'tablet' | 'mobile'
+} from '@/types'
+
+// IT设备管理
+const serverDevice: SystemDeviceType = 'server'
+
+// 用户设备检测
+const userDevice: ClientDeviceType = 'desktop'
+```
+
+### 解决方案优势
+- 🎯 **语义明确**: 不同用途的设备类型区分清晰
+- 🔧 **编译通过**: 完全解决TypeScript类型冲突
+- 📖 **代码可读**: 使用时意图更加明确
+- 🚀 **易于扩展**: 两个类型可独立演进
 
 重构工作已完成，新的类型架构为项目的长期维护和扩展奠定了坚实基础。

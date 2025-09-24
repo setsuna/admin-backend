@@ -12,3 +12,6 @@ export * from './ui.types'
 // 常用类型别名
 export type { ID, ISODateString, UnixTimestamp } from './base.types'
 export type { NotificationType, ActionButton, BatchAction } from './ui.types'
+
+// 设备相关类型别名
+export type { ClientDeviceType, BrowserType, OSType } from './base.types'

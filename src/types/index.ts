@@ -54,6 +54,16 @@ export type {
   Device
 } from './domain'
 
+// 设备类型（明确区分）
+export type {
+  SystemDeviceType,
+  SystemDeviceStatus
+} from './domain'
+
+export type {
+  ClientDeviceType
+} from './common'
+
 // UI类型
 export type {
   NotificationType,
