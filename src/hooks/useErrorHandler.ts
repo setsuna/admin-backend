@@ -45,11 +45,14 @@ export function useErrorHandler() {
       
       // 如果有具体的错误码，使用API错误处理
       if (code && typeof code === 'number') {
+        console.log('[全局错误监听器] 使用API错误处理:', code, message)
         showApiError(code, message, validationErrors)
         return
       }
       
       // 根据错误类型分别处理
+      console.log('[全局错误监听器] 按类型处理错误:', type, message)
+      
       switch (type) {
         case 'NETWORK_ERROR':
           showNetworkError(message)
@@ -79,6 +82,8 @@ export function useErrorHandler() {
             showWarning('操作提示', message)
           }
       }
+      
+      console.log('[全局错误监听器] 错误处理完成')
     }
     
     // 🎯 监听表单验证错误事件

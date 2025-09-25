@@ -5,9 +5,13 @@ import { router } from './router'
 import { PerformanceMonitor, DevPerformanceTools } from './components/PerformanceMonitor'
 import { DialogProvider } from '@/components/ui/DialogProvider'
 import { AuthErrorModal } from '@/components/ui/AuthErrorModal'
+// 🔧 修复：导入通知组件
+import { NotificationContainer } from '@/components/ui/Notification'
 import { useGlobalStore } from '@/store'
 import { checkAndShowExpirationWarning } from '@/utils/errorHandler'
 import { showAlert } from '@/components/ui/DialogProvider'
+// 🔧 修复：导入全局错误处理Hook
+import { useErrorHandler } from '@/hooks/useErrorHandler'
 import './styles/globals.css'
 
 // 创建QueryClient实例
@@ -27,6 +31,9 @@ const queryClient = new QueryClient({
 function App() {
   const isDevelopment = import.meta.env.DEV
   const { showAuthManagement } = useGlobalStore()
+  
+  // 🔧 修复：启用全局错误处理
+  useErrorHandler()
   
   // 动态设置页面标题
   useEffect(() => {
@@ -81,6 +88,8 @@ function App() {
         {isDevelopment && <DevPerformanceTools />}
         <RouterProvider router={router} />
         <AuthErrorModal />
+        {/* 🔧 修复：添加通知组件 */}
+        <NotificationContainer />
       </DialogProvider>
     </QueryClientProvider>
   )

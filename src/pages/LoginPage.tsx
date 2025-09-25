@@ -8,10 +8,14 @@ import { Logo } from '@/components/ui/Logo'
 import { useGlobalStore } from '@/store'
 import { auth } from '@/services/core/auth.service'
 import { isDevelopment } from '@/config'
+// 🔧 修复：导入通知Hook用于处理特殊情况
+import { useNotifications } from '@/hooks/useNotifications'
 
 const LoginPage = () => {
   const navigate = useNavigate()
   const { setUser } = useGlobalStore()
+  // 🔧 修复：使用通知系统显示成功消息
+  const { showSuccess } = useNotifications()
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
@@ -55,7 +59,7 @@ const LoginPage = () => {
         username: formData.username
       })
       
-      // 使用统一的认证服务
+      // 🔧 修复：使用统一的认证服务，错误会自动在全局拦截器中处理
       const result = await auth.login({
         username: formData.username,
         password: formData.password
@@ -66,12 +70,35 @@ const LoginPage = () => {
       // 保存用户信息到全局状态
       setUser(result.user)
       
+      // 显示成功消息
+      showSuccess('登录成功', `欢迎回来，${result.user.username}!`)
+      
       // 跳转到首页
       navigate('/')
     } catch (error) {
       console.error('Login error:', error)
-      const errorMessage = error instanceof Error ? error.message : '登录失败，请重试'
-      setErrors({ submit: errorMessage })
+      
+      // 🔧 修复：错误信息已在全局拦截器中处理和显示
+      // 这里只需要处理本地状态，不再重复显示错误
+      
+      // 只有在特殊情况下（比如表单验证错误）才显示在表单中
+      if (error && typeof error === 'object' && 'code' in error) {
+        const errorCode = (error as any).code
+        if (errorCode === 1004) { // 表单验证错误
+          const validationErrors = (error as any).errors
+          if (validationErrors && Array.isArray(validationErrors)) {
+            const formErrors: Record<string, string> = {}
+            validationErrors.forEach((err: any) => {
+              if (err.field) {
+                formErrors[err.field] = err.message
+              }
+            })
+            setErrors(formErrors)
+          }
+        }
+      }
+      
+      // 其他错误不在这里处理，由全局错误处理系统显示
     } finally {
       setLoading(false)
     }

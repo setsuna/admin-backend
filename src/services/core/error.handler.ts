@@ -157,6 +157,8 @@ class DefaultErrorHandler implements ErrorHandler {
       }
     }
 
+    console.log(`[错误处理器] 触发全局错误事件 - 消息: ${message}, 类型: ${type}`)
+
     // 🆕 触发增强的全局错误事件
     window.dispatchEvent(new CustomEvent('app:error', {
       detail: { 
@@ -170,6 +172,8 @@ class DefaultErrorHandler implements ErrorHandler {
         validationErrors: errorInfo?.validationErrors
       }
     }))
+    
+    console.log(`[错误处理器] 全局错误事件已触发`)
   }
 
   /**

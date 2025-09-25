@@ -1,10 +1,10 @@
 /**
- * 认证服务 - 统一架构版本
+ * 认证服务 - 统一架构版本 (修复错误信息显示)
  */
 
-import { api } from '../api'
+import { httpClient } from './http.client' // 🔧 修复：使用修复后的httpClient
 import { getConfig, API_PATHS } from '@/config'
-import type { User, ApiResponse } from '@/types'
+import type { User } from '@/types'
 
 export interface LoginRequest {
   username: string
@@ -25,60 +25,68 @@ class AuthService {
   private currentUser: User | null = null
 
   /**
-   * 用户登录
+   * 🔧 修复：用户登录 - 使用修复后的httpClient
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
-      const response = await api.post(API_PATHS.AUTH_LOGIN, credentials)
-      const apiResponse = response.data as ApiResponse<any>
+      console.log('[认证服务] 开始登录请求:', { username: credentials.username })
       
-      if (apiResponse.code === 200 && apiResponse.data) {
-        const { token, refresh_token, expiresIn, userInfo } = apiResponse.data
-        
-        // 映射后端数据结构到前端格式
-        const user: User = {
-          id: userInfo.id,
-          username: userInfo.username,
-          email: userInfo.email,
-          role: userInfo.roles[0] || 'user',
-          avatar: '',
-          department: '',
-          position: '',
-          status: 'active',
-          securityLevel: 'internal',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          permissions: userInfo.permissions
-        }
-        
-        const loginResult: LoginResponse = {
-          token,
-          refreshToken: refresh_token,
-          user,
-          expiresIn
-        }
-        
-        this.setToken(token)
-        this.setRefreshToken(refresh_token)
-        this.currentUser = user
-        
-        localStorage.setItem('user', JSON.stringify(user))
-        
-        // 更新权限store
-        try {
-          const { usePermissionStore } = await import('@/store')
-          const { setPermissions } = usePermissionStore.getState()
-          setPermissions(userInfo.permissions || [])
-        } catch (error) {
-          console.warn('Failed to update permissions store:', error)
-        }
-        
-        return loginResult
-      } else {
-        throw new Error(apiResponse.message || '登录失败')
+      // 🔧 修复：使用httpClient，错误会在拦截器中处理
+      const response = await httpClient.post(API_PATHS.AUTH_LOGIN, credentials)
+      
+      console.log('[认证服务] 登录响应:', response)
+      
+      // 🔧 修复：直接使用response，因为httpClient已经提取了data字段
+      const { token, refresh_token, expiresIn, userInfo } = response
+      
+      if (!token || !userInfo) {
+        throw new Error('登录响应数据不完整')
       }
+      
+      // 映射后端数据结构到前端格式
+      const user: User = {
+        id: userInfo.id,
+        username: userInfo.username,
+        email: userInfo.email,
+        role: userInfo.roles?.[0] || 'user',
+        avatar: '',
+        department: '',
+        position: '',
+        status: 'active',
+        securityLevel: 'internal',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        permissions: userInfo.permissions || []
+      }
+      
+      const loginResult: LoginResponse = {
+        token,
+        refreshToken: refresh_token,
+        user,
+        expiresIn
+      }
+      
+      this.setToken(token)
+      this.setRefreshToken(refresh_token)
+      this.currentUser = user
+      
+      localStorage.setItem('user', JSON.stringify(user))
+      
+      // 更新权限store
+      try {
+        const { usePermissionStore } = await import('@/store')
+        const { setPermissions } = usePermissionStore.getState()
+        setPermissions(userInfo.permissions || [])
+      } catch (error) {
+        console.warn('Failed to update permissions store:', error)
+      }
+      
+      console.log('[认证服务] 登录成功')
+      return loginResult
+      
     } catch (error) {
-      console.error('Login failed:', error)
+      console.error('[认证服务] 登录失败:', error)
+      // 🔧 修复：直接抛出错误，让上层处理。错误信息已在拦截器中处理
       throw error
     }
   }
