@@ -1,15 +1,23 @@
 /**
- * API响应相关类型定义
- * 包含所有API响应的数据类型
+ * API响应相关类型定义 (重构后支持新错误码系统)
+ * 包含所有API响应的数据类型，适配1xxx-9xxx错误码分类体系
  */
 
 import type { BaseEntity, ErrorCode, ISODateString } from '../common'
 
-// 标准API响应格式
-export interface ApiResponse<T = any> {
-  code: number
+// 🆕 表单验证错误详情
+export interface ValidationError {
+  field: string
   message: string
-  data: T
+  code?: number
+}
+
+// 🔄 更新：标准API响应格式 - 支持新错误码系统
+export interface ApiResponse<T = any> {
+  code: number           // 新错误码：200成功，1xxx-9xxx错误分类
+  message: string
+  data: T | null        // 错误时为null
+  errors?: ValidationError[]  // 🆕 表单验证错误列表 (错误码1004时使用)
   timestamp: number
   requestId?: string
 }
@@ -74,7 +82,7 @@ export interface ExportResult {
   expiresAt?: ISODateString
 }
 
-// 文件上传响应
+// 🔄 更新：文件上传响应 - 适配文件操作错误码 (3xxx)
 export interface FileUploadResponse {
   id: string
   name: string
@@ -86,21 +94,29 @@ export interface FileUploadResponse {
   uploadedAt: ISODateString
   hash?: string
   securityLevel?: string
+  maxSize?: number      // 🆕 最大文件大小限制 (用于3003错误)
+  allowedTypes?: string[] // 🆕 允许的文件类型 (用于3004错误)
 }
 
-// 错误响应格式
+// 🔄 更新：错误响应格式 - 支持新错误码系统
 export interface ApiErrorResponse {
-  code: number
+  code: number          // 新错误码分类：1xxx-9xxx
   message: string
   data: null | AuthErrorData
-  errors?: Array<{
-    field: string
-    message: string
-    code?: ErrorCode
-  }>
+  errors?: ValidationError[]  // 🔄 使用新的ValidationError类型
   timestamp: number
   requestId?: string
   path?: string
+  severity?: 'low' | 'medium' | 'high' | 'critical'  // 🆕 错误严重级别
+}
+
+// 🆕 错误分类信息
+export interface ErrorClassification {
+  category: 'general' | 'auth' | 'file' | 'database' | 'business' | 'authorization' | 'system'
+  needsRetry: boolean
+  autoRedirect?: string
+  userAction?: string
+  severity: 'low' | 'medium' | 'high' | 'critical'
 }
 
 // 授权错误的特殊数据结构

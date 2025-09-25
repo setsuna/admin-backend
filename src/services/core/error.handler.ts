@@ -31,38 +31,144 @@ export interface ErrorHandler {
 
 class DefaultErrorHandler implements ErrorHandler {
   /**
-   * 处理错误
+   * 🔄 更新：处理错误 - 支持新错误码系统
    */
-  handleError(error: Error, type: ErrorType, details?: any): void {
-    const errorInfo: ErrorInfo = {
-      type,
-      message: error.message,
-      code: (error as any).code,
-      details,
-      timestamp: Date.now(),
-      requestId: (error as any).requestId
+  handleError(error: Error | number, type?: ErrorType, details?: any): void {
+    let errorInfo: ErrorInfo
+    
+    // 🆕 支持直接传入错误码
+    if (typeof error === 'number') {
+      errorInfo = this.createErrorInfoFromCode(error, details)
+    } else {
+      errorInfo = this.createErrorInfoFromError(error, type, details)
     }
 
     // 记录错误日志
     this.logError(errorInfo)
 
     // 显示用户友好的错误信息
-    this.showError(this.getUserFriendlyMessage(errorInfo), type)
+    this.showError(errorInfo.message, errorInfo.type, errorInfo)
+  }
+  
+  /**
+   * 🆕 从错误码创建错误信息
+   */
+  private createErrorInfoFromCode(code: number, details?: any): ErrorInfo {
+    const category = getErrorCategory(code)
+    const message = getErrorMessage(code)
+    const type = this.mapCategoryToType(category)
+    
+    return {
+      type,
+      message,
+      code,
+      details,
+      timestamp: Date.now(),
+      category,
+      severity: this.getSeverityByCode(code),
+      retryable: isRetryableError(code),
+      userAction: this.getUserActionByCode(code),
+      validationErrors: details?.errors
+    }
+  }
+  
+  /**
+   * 🆕 从 Error 对象创建错误信息
+   */
+  private createErrorInfoFromError(error: Error, type?: ErrorType, details?: any): ErrorInfo {
+    return {
+      type: type || 'API_ERROR',
+      message: error.message,
+      code: (error as any).code,
+      details,
+      timestamp: Date.now(),
+      requestId: (error as any).requestId,
+      category: (error as any).category,
+      retryable: (error as any).retryable || false
+    }
+  }
+  
+  /**
+   * 🆕 将错误分类映射到错误类型
+   */
+  private mapCategoryToType(category: string): ErrorType {
+    const mapping: Record<string, ErrorType> = {
+      'general': 'VALIDATION_ERROR',
+      'auth': 'AUTH_ERROR',
+      'file': 'FILE_ERROR',
+      'database': 'SERVER_ERROR',
+      'business': 'BUSINESS_ERROR',
+      'authorization': 'PERMISSION_DENIED',
+      'system': 'SYSTEM_ERROR'
+    }
+    
+    return mapping[category] || 'API_ERROR'
+  }
+  
+  /**
+   * 🆕 根据错误码获取严重程度
+   */
+  private getSeverityByCode(code: number): 'low' | 'medium' | 'high' | 'critical' {
+    // 认证错误 - 高
+    if (code >= 2001 && code <= 2999) return 'high'
+    // 系统错误 - 严重
+    if (code >= 9001 && code <= 9999) return 'critical'
+    // 授权错误 - 高
+    if (code >= 6001 && code <= 6999) return 'high'
+    // 数据库错误 - 中等
+    if (code >= 4001 && code <= 4999) return 'medium'
+    // 其他 - 低
+    return 'low'
+  }
+  
+  /**
+   * 🆕 根据错误码获取用户建议操作
+   */
+  private getUserActionByCode(code: number): string {
+    switch (true) {
+      case code >= 2001 && code <= 2003:
+      case code === 2009:
+        return '请重新登录'
+      case code === 2004:
+        return '请联系管理员申请权限'
+      case code === 3003:
+        return '请选择较小的文件'
+      case code === 3004:
+        return '请选择支持的文件格式'
+      case code >= 6001 && code <= 6999:
+        return '请联系系统管理员'
+      case code >= 9001 && code <= 9999:
+        return '请稍后重试或联系技术支持'
+      default:
+        return '请重试或联系支持人员'
+    }
   }
 
   /**
-   * 显示错误信息给用户
+   * 🔄 更新：显示错误信息给用户
    */
-  showError(message: string, type: ErrorType = 'API_ERROR'): void {
+  showError(message: string, type: ErrorType = 'API_ERROR', errorInfo?: ErrorInfo): void {
     // 这里可以集成具体的通知组件
     const config = getConfig()
     if (config.env.isDevelopment) {
       console.error(`[${type}] ${message}`)
+      if (errorInfo) {
+        console.error('错误详情:', errorInfo)
+      }
     }
 
-    // 触发全局错误事件
+    // 🆕 触发增强的全局错误事件
     window.dispatchEvent(new CustomEvent('app:error', {
-      detail: { message, type }
+      detail: { 
+        message, 
+        type, 
+        errorInfo,
+        code: errorInfo?.code,
+        severity: errorInfo?.severity,
+        userAction: errorInfo?.userAction,
+        retryable: errorInfo?.retryable,
+        validationErrors: errorInfo?.validationErrors
+      }
     }))
   }
 

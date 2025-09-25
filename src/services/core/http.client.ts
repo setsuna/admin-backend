@@ -1,11 +1,11 @@
 /**
- * 统一HTTP客户端
+ * 统一HTTP客户端 (重构后支持新错误码系统)
  * 基于axios封装，提供统一的请求/响应处理
  */
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import { getConfig } from '@/config'
-import { ApiResponse } from '@/services/types/api.types'
+import { getConfig, ERROR_CODES } from '@/config'
+import { ApiResponse } from '@/types/api/response.types'
 import { requestInterceptor, responseInterceptor, errorInterceptor } from './interceptors'
 
 export class HttpClient {
@@ -38,91 +38,122 @@ export class HttpClient {
     )
   }
 
-  // GET请求
+  // 🔄 更新：GET请求 - 支持新错误码系统
   async get<T = any>(
     url: string, 
     params?: any, 
     config?: AxiosRequestConfig
-  ): Promise<ApiResponse<T>> {
-    const response = await this.instance.get(url, { 
-      params, 
-      ...config 
-    })
-    return response.data
+  ): Promise<T> {
+    try {
+      const response = await this.instance.get(url, { 
+        params, 
+        ...config 
+      })
+      // 直接返回data字段，错误已经在拦截器中处理
+      return response.data?.data || response.data
+    } catch (error: any) {
+      // 拦截器已经处理了错误，这里只需要抛出
+      throw error
+    }
   }
 
-  // POST请求
+  // 🔄 更新：POST请求
   async post<T = any>(
     url: string, 
     data?: any, 
     config?: AxiosRequestConfig
-  ): Promise<ApiResponse<T>> {
-    const response = await this.instance.post(url, data, config)
-    return response.data
+  ): Promise<T> {
+    try {
+      const response = await this.instance.post(url, data, config)
+      return response.data?.data || response.data
+    } catch (error: any) {
+      throw error
+    }
   }
 
-  // PUT请求
+  // 🔄 更新：PUT请求
   async put<T = any>(
     url: string, 
     data?: any, 
     config?: AxiosRequestConfig
-  ): Promise<ApiResponse<T>> {
-    const response = await this.instance.put(url, data, config)
-    return response.data
+  ): Promise<T> {
+    try {
+      const response = await this.instance.put(url, data, config)
+      return response.data?.data || response.data
+    } catch (error: any) {
+      throw error
+    }
   }
 
-  // PATCH请求
+  // 🔄 更新：PATCH请求
   async patch<T = any>(
     url: string, 
     data?: any, 
     config?: AxiosRequestConfig
-  ): Promise<ApiResponse<T>> {
-    const response = await this.instance.patch(url, data, config)
-    return response.data
+  ): Promise<T> {
+    try {
+      const response = await this.instance.patch(url, data, config)
+      return response.data?.data || response.data
+    } catch (error: any) {
+      throw error
+    }
   }
 
-  // DELETE请求
+  // 🔄 更新：DELETE请求
   async delete<T = any>(
     url: string, 
     params?: any, 
     config?: AxiosRequestConfig
-  ): Promise<ApiResponse<T>> {
-    const response = await this.instance.delete(url, { 
-      params, 
-      ...config 
-    })
-    return response.data
+  ): Promise<T> {
+    try {
+      const response = await this.instance.delete(url, { 
+        params, 
+        ...config 
+      })
+      return response.data?.data || response.data
+    } catch (error: any) {
+      throw error
+    }
   }
 
-  // 文件上传
+  // 🔄 更新：文件上传 - 支持文件错误码处理
   async upload<T = any>(
     url: string,
     formData: FormData,
     config?: AxiosRequestConfig & {
       onUploadProgress?: (progressEvent: any) => void
     }
-  ): Promise<ApiResponse<T>> {
-    const response = await this.instance.post(url, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      },
-      ...config
-    })
-    return response.data
+  ): Promise<T> {
+    try {
+      const response = await this.instance.post(url, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        ...config
+      })
+      return response.data?.data || response.data
+    } catch (error: any) {
+      // 文件上传错误已在拦截器中处理（如文件过大、类型不支持等）
+      throw error
+    }
   }
 
-  // 文件下载
+  // 🔄 更新：文件下载
   async download(
     url: string,
     params?: any,
     config?: AxiosRequestConfig
   ): Promise<Blob> {
-    const response = await this.instance.get(url, {
-      params,
-      responseType: 'blob',
-      ...config
-    })
-    return response.data
+    try {
+      const response = await this.instance.get(url, {
+        params,
+        responseType: 'blob',
+        ...config
+      })
+      return response.data
+    } catch (error: any) {
+      throw error
+    }
   }
 
   // 获取原始axios实例（高级用法）
