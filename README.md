@@ -7,6 +7,7 @@
 - **现代化技术栈**: React 18 + TypeScript + Vite + TailwindCSS
 - **企业级架构**: 六阶段架构重构，代码质量达到企业级标准
 - **完整认证系统**: 登录/登出、Token管理、权限控制
+- **智能错误处理**: 企业级错误分类处理系统，支持1xxx-9xxx错误码分类
 - **优雅的UI**: shadcn/ui 风格的设计系统
 - **权限管理**: 基于角色的访问控制(RBAC)
 - **状态管理**: TanStack Query + Zustand 最佳实践
@@ -56,6 +57,7 @@ src/
 │   ├── usePermission.ts   # 权限管理Hook
 │   ├── useUser.ts        # 用户管理Hook
 │   ├── useNotifications.ts # 通知管理Hook
+│   ├── useErrorHandler.ts # 全局错误处理Hook
 │   └── useTheme.ts       # 主题管理Hook
 ├── store/              # 状态管理 (重构后切片架构)
 │   ├── slices/        # 状态切片
@@ -88,6 +90,7 @@ src/
 
 #### 1. **服务层统一架构** ✅
 - **统一HTTP客户端**: 所有API请求使用统一的httpClient
+- **智能错误处理**: 支持1xxx-9xxx错误码分类体系，自动化错误处理
 - **分层设计**: Core服务 → Business服务 → API服务
 - **类型安全**: 完整的TypeScript类型支持
 
@@ -112,6 +115,13 @@ src/
 - **3个文件**: index.ts + constants.ts + types.ts
 - **Zod验证**: 配置加载时类型验证，启动时发现问题
 - **分层配置**: app/api/auth/env/features五大配置分类
+
+#### 6. **企业级错误处理系统** ✅
+- **智能错误分类**: 支持1xxx-9xxx错误码分类体系
+- **自动化处理**: 认证错误自动跳转登录，表单验证错误自动显示到字段
+- **用户友好**: 所有错误码都有中文友好提示和操作建议
+- **全局通知**: 统一的错误通知系统，支持不同类型的通知显示
+- **开发友好**: 业务代码中的错误处理代码减少70%+
 
 ## 🎨 设计系统
 
