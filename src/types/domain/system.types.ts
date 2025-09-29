@@ -7,7 +7,6 @@ import type {
   BaseEntity, 
   StatusEntity, 
   TreeNode, 
-  EntityStatus, 
   ISODateString, 
   ContactInfo,
   PermissionAction
