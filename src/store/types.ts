@@ -40,6 +40,7 @@ export interface UISlice {
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void
   removeNotification: (id: string) => void
   clearNotifications: () => void
+  clearNotificationsByType?: (type: string) => void  // 🆕 添加按类型清除方法
   
   // 全局加载状态
   globalLoading: boolean

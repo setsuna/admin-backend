@@ -15,20 +15,30 @@ export function useNotifications() {
   } = useUI()
   
   // 便捷方法
-  const showSuccess = (title: string, message?: string) => {
-    addNotification({ type: 'success', title, message })
+  interface NotificationOptions {
+    duration?: number
+    actions?: Array<{
+      label: string
+      action: () => void
+      type?: 'primary' | 'secondary'
+    }>
+    persistent?: boolean
   }
   
-  const showError = (title: string, message?: string) => {
-    addNotification({ type: 'error', title, message })
+  const showSuccess = (title: string, message?: string, options?: NotificationOptions) => {
+    addNotification({ type: 'success', title, message, ...options })
   }
   
-  const showWarning = (title: string, message?: string) => {
-    addNotification({ type: 'warning', title, message })
+  const showError = (title: string, message?: string, options?: NotificationOptions) => {
+    addNotification({ type: 'error', title, message, ...options })
   }
   
-  const showInfo = (title: string, message?: string) => {
-    addNotification({ type: 'info', title, message })
+  const showWarning = (title: string, message?: string, options?: NotificationOptions) => {
+    addNotification({ type: 'warning', title, message, ...options })
+  }
+  
+  const showInfo = (title: string, message?: string, options?: NotificationOptions) => {
+    addNotification({ type: 'info', title, message, ...options })
   }
   
   // 🆕 API错误专用通知方法
@@ -67,7 +77,9 @@ export function useNotifications() {
         break
         
       // 授权相关错误
-      case [ERROR_CODES.AUTHORIZATION_CODE_INVALID, ERROR_CODES.AUTHORIZATION_CODE_EXPIRED, ERROR_CODES.AUTHORIZATION_CODE_NOT_EXIST].includes(code):
+      case code === ERROR_CODES.AUTHORIZATION_CODE_INVALID ||
+           code === ERROR_CODES.AUTHORIZATION_CODE_EXPIRED ||
+           code === ERROR_CODES.AUTHORIZATION_CODE_NOT_EXIST:
         showError('系统授权异常', errorMessage + '，请联系系统管理员')
         break
         

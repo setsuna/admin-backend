@@ -12,6 +12,9 @@ export type EntityStatus = 'enabled' | 'disabled'
 export type ActiveStatus = 'active' | 'inactive' | 'suspended'
 export type OperationStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
+// 主题类型
+export type Theme = 'light' | 'dark' | 'system' | 'gov-red'
+
 // 安全等级
 export type UserSecurityLevel = 'unknown' | 'internal' | 'confidential' | 'secret'
 export type SystemSecurityLevel = 'internal' | 'confidential' | 'secret'

@@ -39,36 +39,3 @@ export type {
   DeviceType as SystemDeviceType,
   DeviceStatus as SystemDeviceStatus
 } from './system.types'
-
-// 常用类型别名
-export type {
-  User,
-  UserRole,
-  UserProfile,
-  UserPreferences,
-  UserSession
-} from './user.types'
-
-export type {
-  Meeting,
-  MeetingType,
-  MeetingStatus,
-  MeetingParticipant,
-  MeetingAgenda,
-  MeetingMaterial,
-  ParticipantRole,
-  ParticipantStatus
-} from './meeting.types'
-
-export type {
-  Department,
-  Role,
-  Permission,
-  Device,
-  DeviceType,
-  DeviceStatus,
-  DataDict,
-  DictItem,
-  ConfigItem,
-  SecurityPolicy
-} from './system.types'

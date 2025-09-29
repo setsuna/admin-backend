@@ -2,11 +2,15 @@
  * 统一错误处理器
  */
 
-import { getConfig } from '@/config'
+import { getConfig, getErrorCategory, getErrorMessage, isRetryableError } from '@/config'
+import type { ValidationError } from '@/types/api/response.types'
 
 export type ErrorType = 
   | 'NETWORK_ERROR'
   | 'API_ERROR'
+  | 'AUTH_ERROR'
+  | 'FILE_ERROR'
+  | 'SYSTEM_ERROR'
   | 'PERMISSION_DENIED'
   | 'NOT_FOUND'
   | 'SERVER_ERROR'
@@ -21,6 +25,11 @@ export interface ErrorInfo {
   details?: any
   timestamp: number
   requestId?: string
+  category?: string
+  severity?: 'low' | 'medium' | 'high' | 'critical'
+  retryable?: boolean
+  userAction?: string
+  validationErrors?: ValidationError[]
 }
 
 export interface ErrorHandler {
@@ -196,26 +205,6 @@ class DefaultErrorHandler implements ErrorHandler {
     if (config.env.isProduction) {
       this.sendToLogService(errorInfo)
     }
-  }
-
-  /**
-   * 获取用户友好的错误信息
-   */
-  private getUserFriendlyMessage(errorInfo: ErrorInfo): string {
-    const { type, message } = errorInfo
-
-    const friendlyMessages: Record<ErrorType, string> = {
-      NETWORK_ERROR: '网络连接失败，请检查网络设置后重试',
-      API_ERROR: '服务请求失败，请稍后再试',
-      PERMISSION_DENIED: '权限不足，请联系管理员',
-      NOT_FOUND: '请求的资源不存在',
-      SERVER_ERROR: '服务器内部错误，请稍后再试',
-      CONFIG_ERROR: '配置错误，请联系管理员',
-      VALIDATION_ERROR: '数据验证失败，请检查输入信息',
-      BUSINESS_ERROR: message
-    }
-
-    return friendlyMessages[type] || message
   }
 
   /**

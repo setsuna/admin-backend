@@ -27,44 +27,39 @@ class DepartmentService {
     page: number = 1,
     pageSize: number = 20
   ): Promise<PaginatedResponse<Department>> {
-    const response = await httpClient.get<PaginatedResponse<Department>>(this.basePath, {
+    return await httpClient.get<PaginatedResponse<Department>>(this.basePath, {
       ...filters,
       page,
       pageSize
     })
-    return response.data
   }
 
   /**
    * 获取部门树形结构
    */
   async getDepartmentTree(): Promise<Department[]> {
-    const response = await httpClient.get<Department[]>(`${this.basePath}/tree`)
-    return response.data
+    return await httpClient.get<Department[]>(`${this.basePath}/tree`)
   }
 
   /**
    * 获取单个部门详情
    */
   async getDepartment(id: string): Promise<Department> {
-    const response = await httpClient.get<Department>(`${this.basePath}/${id}`)
-    return response.data
+    return await httpClient.get<Department>(`${this.basePath}/${id}`)
   }
 
   /**
    * 创建部门
    */
   async createDepartment(departmentData: CreateDepartmentRequest): Promise<Department> {
-    const response = await httpClient.post<Department>(this.basePath, departmentData)
-    return response.data
+    return await httpClient.post<Department>(this.basePath, departmentData)
   }
 
   /**
    * 更新部门
    */
   async updateDepartment(id: string, departmentData: UpdateDepartmentRequest): Promise<Department> {
-    const response = await httpClient.put<Department>(`${this.basePath}/${id}`, departmentData)
-    return response.data
+    return await httpClient.put<Department>(`${this.basePath}/${id}`, departmentData)
   }
 
   /**
@@ -72,7 +67,7 @@ class DepartmentService {
    */
   async deleteDepartment(id: string): Promise<boolean> {
     const response = await httpClient.delete<{ success: boolean }>(`${this.basePath}/${id}`)
-    return response.data.success
+    return response.success
   }
 
   /**
@@ -80,7 +75,7 @@ class DepartmentService {
    */
   async deleteDepartments(ids: string[]): Promise<boolean> {
     const response = await httpClient.delete<{ successCount: number }>(`${this.basePath}/batch`, { ids })
-    return response.data.successCount === ids.length
+    return response.successCount === ids.length
   }
 
   /**
@@ -88,18 +83,17 @@ class DepartmentService {
    */
   async updateDepartmentStatus(id: string, status: 'active' | 'inactive'): Promise<boolean> {
     const response = await httpClient.patch<{ success: boolean }>(`${this.basePath}/${id}/status`, { status })
-    return response.data.success
+    return response.success
   }
 
   /**
    * 获取部门下的用户
    */
   async getDepartmentUsers(id: string, page: number = 1, pageSize: number = 20): Promise<PaginatedResponse<any>> {
-    const response = await httpClient.get<PaginatedResponse<any>>(`${this.basePath}/${id}/users`, {
+    return await httpClient.get<PaginatedResponse<any>>(`${this.basePath}/${id}/users`, {
       page,
       pageSize
     })
-    return response.data
   }
 
   /**

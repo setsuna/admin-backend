@@ -24,7 +24,8 @@ export type {
   ActiveStatus,
   UserSecurityLevel,
   SystemSecurityLevel,
-  MeetingSecurityLevel
+  MeetingSecurityLevel,
+  Theme
 } from './common'
 
 // API类型

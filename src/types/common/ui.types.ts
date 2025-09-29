@@ -4,7 +4,7 @@
  */
 
 import type { ReactNode } from 'react'
-import type { BaseFilters, PaginationParams, SelectOption } from './base.types'
+import type { BaseFilters, PaginationParams, SelectOption, FileInfo } from './base.types'
 
 // 通知相关
 export type NotificationType = 'success' | 'error' | 'warning' | 'info'
@@ -17,6 +17,8 @@ export interface Notification {
   duration?: number
   timestamp: number
   actions?: NotificationAction[]
+  persistent?: boolean  // 🆕 是否持久显示(不自动消失)
+  category?: 'api' | 'validation' | 'network' | 'system' | 'business'  // 🆕 通知分类
 }
 
 export interface NotificationAction {
