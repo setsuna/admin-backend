@@ -32,12 +32,11 @@ export class MeetingApiService {
     page: number = 1,
     pageSize: number = 10
   ): Promise<PaginatedResponse<Meeting>> {
-    const response = await httpClient.get<PaginatedResponse<Meeting>>(this.basePath, {
+    return await httpClient.get<PaginatedResponse<Meeting>>(this.basePath, {
       ...filters,
       page,
       pageSize
     })
-    return response.data
   }
 
   /**
@@ -49,73 +48,65 @@ export class MeetingApiService {
     page: number = 1,
     pageSize: number = 10
   ): Promise<PaginatedResponse<Meeting>> {
-    const response = await httpClient.get<PaginatedResponse<Meeting>>(`${this.basePath}/my`, {
+    return await httpClient.get<PaginatedResponse<Meeting>>(`${this.basePath}/my`, {
       tabType,
       ...filters,
       page,
       pageSize
     })
-    return response.data
   }
 
   /**
    * 获取单个会议详情
    */
   async getMeetingById(id: string): Promise<Meeting> {
-    const response = await httpClient.get<Meeting>(`${this.basePath}/${id}`)
-    return response.data
+    return await httpClient.get<Meeting>(`${this.basePath}/${id}`)
   }
 
   /**
    * 创建会议
    */
   async createMeeting(meetingData: Omit<Meeting, 'id' | 'createdAt' | 'updatedAt'>): Promise<Meeting> {
-    const response = await httpClient.post<Meeting>(this.basePath, meetingData)
-    return response.data
+    return await httpClient.post<Meeting>(this.basePath, meetingData)
   }
 
   /**
    * 使用CreateMeetingRequest创建会议
    */
   async createMeetingFromRequest(request: CreateMeetingRequest): Promise<Meeting> {
-    const response = await httpClient.post<Meeting>(this.basePath, request)
-    return response.data
+    return await httpClient.post<Meeting>(this.basePath, request)
   }
 
   /**
    * 更新会议
    */
   async updateMeeting(id: string, updates: UpdateMeetingRequest): Promise<Meeting> {
-    const response = await httpClient.put<Meeting>(`${this.basePath}/${id}`, updates)
-    return response.data
+    return await httpClient.put<Meeting>(`${this.basePath}/${id}`, updates)
   }
 
   /**
    * 更新会议状态
    */
   async updateMeetingStatus(id: string, request: UpdateMeetingStatusRequest): Promise<OperationResult> {
-    const response = await httpClient.patch<OperationResult>(`${this.basePath}/${id}/status`, request)
-    return response.data
+    return await httpClient.patch<OperationResult>(`${this.basePath}/${id}/status`, request)
   }
 
   /**
    * 删除会议（仅关闭状态可删除）
    */
   async deleteMeeting(id: string): Promise<OperationResult> {
-    const response = await httpClient.delete<OperationResult>(`${this.basePath}/${id}`)
-    return response.data
+    return await httpClient.delete<OperationResult>(`${this.basePath}/${id}`)
   }
 
   /**
    * 批量操作会议
    */
   async batchUpdateMeetings(ids: string[], updates: Partial<Meeting>): Promise<BatchResponse<Meeting>> {
-    const response = await httpClient.post<BatchResponse<Meeting>>(`${this.basePath}/batch`, {
+    return await httpClient.post<BatchResponse<Meeting>>(`${this.basePath}/batch`, {
       ids,
       action: 'update',
       data: updates
     })
-    return response.data
   }
 
   // ===== 草稿会议相关 =====
@@ -124,32 +115,28 @@ export class MeetingApiService {
    * 创建草稿会议
    */
   async createDraftMeeting(): Promise<DraftMeeting> {
-    const response = await httpClient.post<DraftMeeting>(this.draftPath)
-    return response.data
+    return await httpClient.post<DraftMeeting>(this.draftPath)
   }
 
   /**
    * 保存草稿会议数据
    */
   async saveDraftMeeting(meetingId: string, meetingData: Partial<CreateMeetingRequest>): Promise<OperationResult> {
-    const response = await httpClient.put<OperationResult>(`${this.draftPath}/${meetingId}`, meetingData)
-    return response.data
+    return await httpClient.put<OperationResult>(`${this.draftPath}/${meetingId}`, meetingData)
   }
 
   /**
    * 提交草稿会议（发布）
    */
   async submitDraftMeeting(meetingId: string, meetingData: CreateMeetingRequest): Promise<Meeting> {
-    const response = await httpClient.post<Meeting>(`${this.draftPath}/${meetingId}/submit`, meetingData)
-    return response.data
+    return await httpClient.post<Meeting>(`${this.draftPath}/${meetingId}/submit`, meetingData)
   }
 
   /**
    * 删除草稿会议
    */
   async deleteDraftMeeting(meetingId: string): Promise<OperationResult> {
-    const response = await httpClient.delete<OperationResult>(`${this.draftPath}/${meetingId}`)
-    return response.data
+    return await httpClient.delete<OperationResult>(`${this.draftPath}/${meetingId}`)
   }
 
   // ===== 文件管理相关 =====
@@ -168,27 +155,24 @@ export class MeetingApiService {
       formData.append('agendaId', agendaId)
     }
 
-    const response = await httpClient.upload<FileUploadResponse>(
+    return await httpClient.upload<FileUploadResponse>(
       `${this.basePath}/${meetingId}/files`,
       formData
     )
-    return response.data
   }
 
   /**
    * 获取会议文件列表
    */
   async getMeetingFiles(meetingId: string): Promise<FileUploadResponse[]> {
-    const response = await httpClient.get<FileUploadResponse[]>(`${this.basePath}/${meetingId}/files`)
-    return response.data
+    return await httpClient.get<FileUploadResponse[]>(`${this.basePath}/${meetingId}/files`)
   }
 
   /**
    * 删除会议文件
    */
   async deleteMeetingFile(meetingId: string, fileId: string): Promise<OperationResult> {
-    const response = await httpClient.delete<OperationResult>(`${this.basePath}/${meetingId}/files/${fileId}`)
-    return response.data
+    return await httpClient.delete<OperationResult>(`${this.basePath}/${meetingId}/files/${fileId}`)
   }
 
   // ===== 统计和其他功能 =====
@@ -197,40 +181,35 @@ export class MeetingApiService {
    * 获取会议统计信息
    */
   async getMeetingStats(): Promise<MeetingStats> {
-    const response = await httpClient.get<MeetingStats>(`${this.basePath}/stats`)
-    return response.data
+    return await httpClient.get<MeetingStats>(`${this.basePath}/stats`)
   }
 
   /**
    * 获取会议模板
    */
   async getMeetingTemplates(): Promise<MeetingTemplate[]> {
-    const response = await httpClient.get<MeetingTemplate[]>(`${this.basePath}/templates`)
-    return response.data
+    return await httpClient.get<MeetingTemplate[]>(`${this.basePath}/templates`)
   }
 
   /**
    * 根据模板创建会议
    */
   async createMeetingFromTemplate(templateId: string, data: Partial<CreateMeetingRequest>): Promise<Meeting> {
-    const response = await httpClient.post<Meeting>(`${this.basePath}/templates/${templateId}/create`, data)
-    return response.data
+    return await httpClient.post<Meeting>(`${this.basePath}/templates/${templateId}/create`, data)
   }
 
   /**
    * 获取会议设置
    */
   async getMeetingSettings(): Promise<MeetingSettings> {
-    const response = await httpClient.get<MeetingSettings>(`${this.basePath}/settings`)
-    return response.data
+    return await httpClient.get<MeetingSettings>(`${this.basePath}/settings`)
   }
 
   /**
    * 更新会议设置
    */
   async updateMeetingSettings(settings: Partial<MeetingSettings>): Promise<OperationResult> {
-    const response = await httpClient.put<OperationResult>(`${this.basePath}/settings`, settings)
-    return response.data
+    return await httpClient.put<OperationResult>(`${this.basePath}/settings`, settings)
   }
 }
 

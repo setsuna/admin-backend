@@ -158,7 +158,7 @@ export const useDepartment = (options: UseDepartmentOptions = {}) => {
   }
   
   const toggleSelectAll = () => {
-    const allIds = departmentQuery.data?.data.items.map(dept => dept.id) || []
+    const allIds = departmentQuery.data?.items.map((dept: Department) => dept.id) || []
     setSelectedIds(selectedIds.length === allIds.length ? [] : allIds)
   }
   
@@ -187,11 +187,11 @@ export const useDepartment = (options: UseDepartmentOptions = {}) => {
   
   return {
     // 数据
-    departments: departmentQuery.data?.data.items || [],
-    departmentTree: departmentTreeQuery.data?.data || [],
-    departmentOptions: departmentOptionsQuery.data?.data || [],
-    departmentStats: departmentStatsQuery.data?.data,
-    pagination: departmentQuery.data?.data.pagination,
+    departments: departmentQuery.data?.items || [],
+    departmentTree: departmentTreeQuery.data || [],
+    departmentOptions: departmentOptionsQuery.data || [],
+    departmentStats: departmentStatsQuery.data,
+    pagination: departmentQuery.data?.pagination,
     
     // 状态
     filters,

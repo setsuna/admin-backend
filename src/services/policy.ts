@@ -38,16 +38,14 @@ class PolicyService {
    * 获取策略历史记录
    */
   async getPolicyHistory(page: number = 1, pageSize: number = 20): Promise<any> {
-    const response = await httpClient.get(`${this.basePath}/history`, { page, pageSize })
-    return response.data
+    return await httpClient.get(`${this.basePath}/history`, { page, pageSize })
   }
 
   /**
    * 验证策略配置
    */
   async validatePolicyConfig(config: SecurityPolicy): Promise<{ valid: boolean; errors?: string[] }> {
-    const response = await httpClient.post<{ valid: boolean; errors?: string[] }>(`${this.basePath}/validate`, config)
-    return response.data
+    return await httpClient.post<{ valid: boolean; errors?: string[] }>(`${this.basePath}/validate`, config)
   }
 }
 

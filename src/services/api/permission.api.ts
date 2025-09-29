@@ -32,73 +32,65 @@ export class PermissionApiService {
    * 获取所有权限
    */
   async getAllPermissions(): Promise<Permission[]> {
-    const response = await httpClient.get<Permission[]>(this.basePath)
-    return response.data
+    return await httpClient.get<Permission[]>(this.basePath)
   }
 
   /**
    * 获取权限分组
    */
   async getPermissionGroups(): Promise<Record<string, Permission[]>> {
-    const response = await httpClient.get<Record<string, Permission[]>>(`${this.basePath}/groups`)
-    return response.data
+    return await httpClient.get<Record<string, Permission[]>>(`${this.basePath}/groups`)
   }
 
   /**
    * 获取所有角色
    */
   async getAllRoles(): Promise<Role[]> {
-    const response = await httpClient.get<Role[]>(this.rolePath)
-    return response.data
+    return await httpClient.get<Role[]>(this.rolePath)
   }
 
   /**
    * 获取单个角色详情
    */
   async getRole(id: string): Promise<Role> {
-    const response = await httpClient.get<Role>(`${this.rolePath}/${id}`)
-    return response.data
+    return await httpClient.get<Role>(`${this.rolePath}/${id}`)
   }
 
   /**
    * 创建角色
    */
   async createRole(data: CreateRoleRequest): Promise<Role> {
-    const response = await httpClient.post<Role>(this.rolePath, data)
-    return response.data
+    return await httpClient.post<Role>(this.rolePath, data)
   }
 
   /**
    * 更新角色
    */
   async updateRole(id: string, data: UpdateRoleRequest): Promise<Role> {
-    const response = await httpClient.put<Role>(`${this.rolePath}/${id}`, data)
-    return response.data
+    return await httpClient.put<Role>(`${this.rolePath}/${id}`, data)
   }
 
   /**
    * 删除角色
    */
   async deleteRole(id: string): Promise<OperationResult> {
-    const response = await httpClient.delete<OperationResult>(`${this.rolePath}/${id}`)
-    return response.data
+    return await httpClient.delete<OperationResult>(`${this.rolePath}/${id}`)
   }
 
   /**
    * 获取用户菜单配置
    */
   async getUserMenuConfig(user: User): Promise<MenuConfig> {
-    const response = await httpClient.get<MenuConfig>('/menus/user-config', {
+    return await httpClient.get<MenuConfig>('/menus/user-config', {
       userId: user.id
     })
-    return response.data
   }
 
   /**
    * 检查用户权限
    */
   async checkUserPermission(userId: string, permission: string): Promise<boolean> {
-    const response = await httpClient.get<{ hasPermission: boolean }>(
+    const response =  await httpClient.get<{ hasPermission: boolean }>(
       `/users/${userId}/permissions/check`,
       { permission }
     )
@@ -109,25 +101,23 @@ export class PermissionApiService {
    * 分配角色给用户
    */
   async assignRoleToUser(userId: string, roleId: string): Promise<OperationResult> {
-    const response = await httpClient.post<OperationResult>(`/users/${userId}/roles`, {
+    return await httpClient.post<OperationResult>(`/users/${userId}/roles`, {
       roleId
     })
-    return response.data
   }
 
   /**
    * 移除用户角色
    */
   async removeRoleFromUser(userId: string, roleId: string): Promise<OperationResult> {
-    const response = await httpClient.delete<OperationResult>(`/users/${userId}/roles/${roleId}`)
-    return response.data
+    return await httpClient.delete<OperationResult>(`/users/${userId}/roles/${roleId}`)
   }
 
   /**
    * 获取用户的所有权限
    */
   async getUserPermissions(userId: string): Promise<string[]> {
-    const response = await httpClient.get<{ permissions: string[] }>(`/users/${userId}/permissions`)
+    return await httpClient.get<{ permissions: string[] }>(`/users/${userId}/permissions`)
     return response.data.permissions
   }
 

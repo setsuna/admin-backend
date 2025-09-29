@@ -75,6 +75,7 @@ class PermissionService {
     // 暂时返回true，实际使用时需要调用API
     return true
   }
+  
 }
 
 export const permissionService = new PermissionService()

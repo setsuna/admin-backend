@@ -23,12 +23,11 @@ class DepartmentService {
    * 获取部门列表
    */
   async getDepartments(
-    filters: DepartmentFilters = {},
-    page: number = 1,
-    pageSize: number = 20
+    filters: DepartmentFilters & { page?: number; pageSize?: number } = {}
   ): Promise<PaginatedResponse<Department>> {
+    const { page = 1, pageSize = 20, ...restFilters } = filters
     return await httpClient.get<PaginatedResponse<Department>>(this.basePath, {
-      ...filters,
+      ...restFilters,
       page,
       pageSize
     })
@@ -58,7 +57,8 @@ class DepartmentService {
   /**
    * 更新部门
    */
-  async updateDepartment(id: string, departmentData: UpdateDepartmentRequest): Promise<Department> {
+  async updateDepartment(data: UpdateDepartmentRequest): Promise<Department> {
+    const { id, ...departmentData } = data
     return await httpClient.put<Department>(`${this.basePath}/${id}`, departmentData)
   }
 
@@ -76,6 +76,60 @@ class DepartmentService {
   async deleteDepartments(ids: string[]): Promise<boolean> {
     const response = await httpClient.delete<{ successCount: number }>(`${this.basePath}/batch`, { ids })
     return response.successCount === ids.length
+  }
+
+  /**
+   * 批量删除部门 (别名)
+   */
+  async batchDeleteDepartments(ids: string[]): Promise<boolean> {
+    return this.deleteDepartments(ids)
+  }
+
+  /**
+   * 移动部门
+   */
+  async moveDepartment(id: string, parentId?: string): Promise<Department> {
+    return await httpClient.patch<Department>(`${this.basePath}/${id}/move`, { parentId })
+  }
+
+  /**
+   * 获取部门选项列表
+   */
+  async getDepartmentOptions(): Promise<Array<{ label: string; value: string }>> {
+    const departments = await this.getDepartmentTree()
+    const options: Array<{ label: string; value: string }> = []
+    
+    const traverse = (depts: Department[], prefix = '') => {
+      depts.forEach(dept => {
+        options.push({
+          label: prefix + dept.name,
+          value: dept.id
+        })
+        if (dept.children && dept.children.length > 0) {
+          traverse(dept.children, prefix + dept.name + ' / ')
+        }
+      })
+    }
+    
+    traverse(departments)
+    return options
+  }
+
+  /**
+   * 获取部门统计信息
+   */
+  async getDepartmentStats(): Promise<{
+    total: number
+    active: number
+    inactive: number
+    avgEmployees: number
+  }> {
+    return await httpClient.get<{
+      total: number
+      active: number
+      inactive: number
+      avgEmployees: number
+    }>(`${this.basePath}/stats`)
   }
 
   /**

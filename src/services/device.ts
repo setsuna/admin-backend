@@ -17,32 +17,28 @@ class DeviceService {
    * 获取设备列表
    */
   async getDevices(params?: PaginationParams & { search?: string; status?: string }): Promise<PaginatedResponse<Device>> {
-    const response = await httpClient.get<PaginatedResponse<Device>>(this.basePath, params)
-    return response.data
+    return await httpClient.get<PaginatedResponse<Device>>(this.basePath, params)
   }
 
   /**
    * 获取设备详情
    */
   async getDevice(id: string): Promise<Device> {
-    const response = await httpClient.get<Device>(`${this.basePath}/${id}`)
-    return response.data
+    return await httpClient.get<Device>(`${this.basePath}/${id}`)
   }
 
   /**
    * 创建设备
    */
   async createDevice(data: Omit<Device, 'id' | 'createdAt' | 'updatedAt'>): Promise<Device> {
-    const response = await httpClient.post<Device>(this.basePath, data)
-    return response.data
+    return await httpClient.post<Device>(this.basePath, data)
   }
 
   /**
    * 更新设备
    */
   async updateDevice(id: string, data: Partial<Device>): Promise<Device> {
-    const response = await httpClient.put<Device>(`${this.basePath}/${id}`, data)
-    return response.data
+    return await httpClient.put<Device>(`${this.basePath}/${id}`, data)
   }
 
   /**
@@ -65,8 +61,7 @@ class DeviceService {
    * 获取设备统计
    */
   async getDeviceStats(): Promise<DeviceStats> {
-    const response = await httpClient.get<DeviceStats>(`${this.basePath}/stats`)
-    return response.data
+    return await httpClient.get<DeviceStats>(`${this.basePath}/stats`)
   }
 
   /**
@@ -81,7 +76,7 @@ class DeviceService {
    * 更新设备配置
    */
   async updateDeviceConfig(id: string, config: Record<string, any>): Promise<boolean> {
-    const response = await httpClient.put<{ success: boolean }>(`${this.basePath}/${id}/config`, config)
+    return await httpClient.put<{ success: boolean }>(`${this.basePath}/${id}/config`, config)
     return response.data.success
   }
 }
