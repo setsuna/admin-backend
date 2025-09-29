@@ -2,8 +2,42 @@ import React, { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { X } from 'lucide-react'
-import { mockApi, type OrgDepartment, type OrgUser } from '@/services/mockApi'
-import type { MeetingParticipant } from '@/types'
+import type { MeetingParticipant, Department, User } from '@/types'
+
+/**
+ * 组织架构选择器的视图模型 (ViewModel)
+ * 
+ * 注：这些类型是为UI层专门设计的轻量级节点类型，不同于领域层的 Department/User 类型。
+ * - 领域类型 (Department/User): 完整的业务实体，包含所有业务字段
+ * - 视图类型 (OrgNode): 只包含UI渲染所需的字段，用于组件显示
+ * 
+ * 这样设计的好处：
+ * 1. 降低耦合：组件不直接依赖完整的领域模型
+ * 2. 提升性能：减少不必要的数据传输
+ * 3. 易于维护：类型定义靠近使用位置
+ * 
+ * 数据转换应在 API/Service 层完成：Department/User → OrgNode
+ */
+
+// 用户节点：用于显示可选择的人员
+interface OrgUserNode {
+  id: string
+  name: string
+  department: string
+  position?: string
+  type: 'user'
+}
+
+// 部门节点：用于组织架构的树形结构
+interface OrgDeptNode {
+  id: string
+  name: string
+  type: 'department'
+  children?: OrgNode[]
+}
+
+// 统一的节点类型，方便递归渲染
+type OrgNode = OrgDeptNode | OrgUserNode
 
 interface OrganizationSelectorProps {
   isOpen: boolean
@@ -18,11 +52,11 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
   selectedParticipants,
   onParticipantsChange
 }) => {
-  const [orgData, setOrgData] = useState<OrgDepartment[]>([])
+  const [orgData, setOrgData] = useState<OrgDeptNode[]>([])
   const [loading, setLoading] = useState(false)
   const [expandedNodes, setExpandedNodes] = useState<string[]>([])
   const [searchKeyword, setSearchKeyword] = useState('')
-  const [searchResults, setSearchResults] = useState<OrgUser[]>([])
+  const [searchResults, setSearchResults] = useState<OrgUserNode[]>([])
 
   useEffect(() => {
     if (isOpen) {
@@ -41,9 +75,10 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
   const loadOrganization = async () => {
     try {
       setLoading(true)
-      const data = await mockApi.getOrganization()
+      // TODO: 替换为实际的API调用
+      const data: OrgDeptNode[] = []
       setOrgData(data)
-      setExpandedNodes(data.map(dept => dept.id))
+      setExpandedNodes(data.map((dept: OrgDeptNode) => dept.id))
     } catch (error) {
       console.error('Load organization failed:', error)
     } finally {
@@ -53,7 +88,8 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
 
   const searchUsers = async () => {
     try {
-      const users = await mockApi.searchUsers(searchKeyword)
+      // TODO: 替换为实际的API调用
+      const users: OrgUserNode[] = []
       setSearchResults(users)
     } catch (error) {
       console.error('Search users failed:', error)
@@ -68,31 +104,37 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
     )
   }
 
-  const handleUserSelect = (user: OrgUser) => {
-    const isSelected = selectedParticipants.some(p => p.id === user.id)
+  const handleUserSelect = (user: OrgUserNode) => {
+    const isSelected = selectedParticipants.some(p => p.userId === user.id)
     
     if (isSelected) {
       onParticipantsChange(
-        selectedParticipants.filter(p => p.id !== user.id)
+        selectedParticipants.filter(p => p.userId !== user.id)
       )
     } else {
       const newParticipant: MeetingParticipant = {
-        id: user.id,
-        name: user.name,
-        email: undefined, // OrgUser不包含email属性
-        department: user.department,
+        id: `participant-${Date.now()}-${user.id}`,
+        meetingId: '', // 将在保存时填充
         userId: user.id,
-        role: 'participant'
+        userName: user.name,
+        email: undefined,
+        department: user.department,
+        departmentName: user.department,
+        role: 'participant',
+        status: 'invited',
+        invitedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
       onParticipantsChange([...selectedParticipants, newParticipant])
     }
   }
 
   const isUserSelected = (userId: string) => {
-    return selectedParticipants.some(p => p.id === userId)
+    return selectedParticipants.some(p => p.userId === userId)
   }
 
-  const renderOrgNode = (item: any, level: number = 0) => {
+  const renderOrgNode = (item: OrgNode, level: number = 0) => {
     const isExpanded = expandedNodes.includes(item.id)
     const marginLeft = level * 16
 
@@ -136,9 +178,9 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
           </span>
         </div>
         
-        {isExpanded && item.children && (
+        {isExpanded && item.type === 'department' && item.children && (
           <div>
-            {item.children.map((child: any) => renderOrgNode(child, level + 1))}
+            {item.children.map((child: OrgNode) => renderOrgNode(child, level + 1))}
           </div>
         )}
       </div>
