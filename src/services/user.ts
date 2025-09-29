@@ -85,7 +85,8 @@ class UserService {
    * 获取用户安全等级选项
    */
   async getUserSecurityLevels(): Promise<UserSecurityLevel[]> {
-    return userApiService.getUserSecurityLevels()
+    const levels = await userApiService.getUserSecurityLevels()
+    return levels as UserSecurityLevel[]
   }
 
   /**
