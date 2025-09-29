@@ -150,15 +150,16 @@ export interface AuthErrorDialogData {
 
 // 登录响应
 export interface LoginResponse {
-  token: string
-  refreshToken?: string
-  expiresIn: number
+  access_token: string
+  refresh_token: string
+  token_type: string
+  expires_in: number
   user: {
     id: string
     username: string
     email: string
     role: string
-    permissions: string[]
+    status: string
     avatar?: string
     lastLoginAt?: ISODateString
   }

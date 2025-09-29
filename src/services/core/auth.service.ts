@@ -1,21 +1,15 @@
 /**
- * 认证服务 - 统一架构版本 (修复错误信息显示)
+ * 认证服务 - 统一架构版本 (适配新的后台数据结构)
  */
 
-import { httpClient } from './http.client' // 🔧 修复：使用修复后的httpClient
+import { httpClient } from './http.client'
 import { getConfig, API_PATHS } from '@/config'
 import type { User } from '@/types'
+import type { LoginResponse } from '@/types/api/response.types'
 
 export interface LoginRequest {
   username: string
   password: string
-}
-
-export interface LoginResponse {
-  token: string
-  refreshToken: string
-  user: User
-  expiresIn?: number
 }
 
 class AuthService {
@@ -25,60 +19,73 @@ class AuthService {
   private currentUser: User | null = null
 
   /**
-   * 🔧 修复：用户登录 - 使用修复后的httpClient
+   * 🔧 修复：用户登录 - 适配新的后台数据结构
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
       console.log('[认证服务] 开始登录请求:', { username: credentials.username })
       
       // 🔧 修复：使用httpClient，错误会在拦截器中处理
-      const response = await httpClient.post(API_PATHS.AUTH_LOGIN, credentials)
+      const response = await httpClient.post<LoginResponse>(API_PATHS.AUTH_LOGIN, credentials)
       
       console.log('[认证服务] 登录响应:', response)
       
-      // 🔧 修复：直接使用response，因为httpClient已经提取了data字段
-      const { token, refresh_token, expiresIn, userInfo } = response
+      // 🆕 适配新的数据结构
+      const { access_token, refresh_token, expires_in, user } = response
       
-      if (!token || !userInfo) {
+      if (!access_token || !user) {
         throw new Error('登录响应数据不完整')
       }
       
       // 映射后端数据结构到前端格式
-      const user: User = {
-        id: userInfo.id,
-        username: userInfo.username,
-        email: userInfo.email,
-        role: userInfo.roles?.[0] || 'user',
-        avatar: '',
+      const userInfo: User = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar || '',
         department: '',
         position: '',
-        status: 'active',
+        status: user.status as any,
         securityLevel: 'internal',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        permissions: userInfo.permissions || []
+        permissions: [] // 权限从 JWT token 中解析
+      }
+      
+      // 🆕 从 JWT token 中解析权限
+      try {
+        const payload = JSON.parse(atob(access_token.split('.')[1]))
+        if (payload.permissions && Array.isArray(payload.permissions)) {
+          userInfo.permissions = payload.permissions
+        }
+      } catch (error) {
+        console.warn('[认证服务] 解析 token 权限失败:', error)
       }
       
       const loginResult: LoginResponse = {
-        token,
-        refreshToken: refresh_token,
-        user,
-        expiresIn
+        access_token,
+        refresh_token,
+        token_type: 'Bearer',
+        expires_in,
+        user
       }
       
-      this.setToken(token)
+      // 保存 token 和用户信息
+      this.setToken(access_token)
       this.setRefreshToken(refresh_token)
-      this.currentUser = user
+      this.currentUser = userInfo
       
-      localStorage.setItem('user', JSON.stringify(user))
+      localStorage.setItem('user', JSON.stringify(userInfo))
       
       // 更新权限store
       try {
-        const { usePermissionStore } = await import('@/store')
-        const { setPermissions } = usePermissionStore.getState()
-        setPermissions(userInfo.permissions || [])
+        const { useAuth } = await import('@/store')
+        const { setUser, setPermissions } = useAuth.getState()
+        setUser(userInfo)
+        setPermissions(userInfo.permissions)
       } catch (error) {
-        console.warn('Failed to update permissions store:', error)
+        console.warn('Failed to update auth store:', error)
       }
       
       console.log('[认证服务] 登录成功')
@@ -96,18 +103,18 @@ class AuthService {
    */
   async logout(): Promise<void> {
     try {
-      await api.post(API_PATHS.AUTH_LOGOUT)
+      await httpClient.post(API_PATHS.AUTH_LOGOUT)
     } catch (error) {
       console.warn('Logout API warning:', error)
     } finally {
       this.clearStorage()
       
       try {
-        const { usePermissionStore } = await import('@/store')
-        const { clearPermissions } = usePermissionStore.getState()
-        clearPermissions()
+        const { useAuth } = await import('@/store')
+        const { clearAuth } = useAuth.getState()
+        clearAuth()
       } catch (error) {
-        console.warn('Failed to clear permissions store:', error)
+        console.warn('Failed to clear auth store:', error)
       }
     }
   }
@@ -122,13 +129,12 @@ class AuthService {
     }
 
     try {
-      const response = await api.post(API_PATHS.AUTH_REFRESH, { refreshToken })
-      const apiResponse = response.data as ApiResponse<{ token: string; refreshToken: string }>
+      const response = await httpClient.post<{ access_token: string; refresh_token: string }>(API_PATHS.AUTH_REFRESH, { refreshToken })
 
-      if (apiResponse.code === 200 && apiResponse.data) {
-        this.setToken(apiResponse.data.token)
-        this.setRefreshToken(apiResponse.data.refreshToken)
-        return apiResponse.data.token
+      if (response.access_token) {
+        this.setToken(response.access_token)
+        this.setRefreshToken(response.refresh_token)
+        return response.access_token
       }
 
       throw new Error('Failed to refresh token')
@@ -154,13 +160,12 @@ class AuthService {
         return this.currentUser!
       }
 
-      const response = await api.get(API_PATHS.AUTH_PROFILE)
-      const apiResponse = response.data as ApiResponse<User>
+      const response = await httpClient.get<User>(API_PATHS.AUTH_PROFILE)
       
-      if (apiResponse.code === 200 && apiResponse.data) {
-        this.currentUser = apiResponse.data
-        localStorage.setItem('user', JSON.stringify(apiResponse.data))
-        return apiResponse.data
+      if (response) {
+        this.currentUser = response
+        localStorage.setItem('user', JSON.stringify(response))
+        return response
       }
       
       return null
@@ -269,9 +274,9 @@ export const auth = {
     const result = await authService.login(credentials)
     return {
       user: result.user,
-      token: result.token,
-      refreshToken: result.refreshToken,
-      expiresIn: result.expiresIn || 86400
+      token: result.access_token,
+      refreshToken: result.refresh_token,
+      expiresIn: result.expires_in
     }
   },
   
