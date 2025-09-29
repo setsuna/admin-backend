@@ -17,24 +17,21 @@ class PolicyService {
    * 获取当前策略配置
    */
   async getPolicyConfig(): Promise<SecurityPolicy> {
-    const response = await httpClient.get<SecurityPolicy>(`${this.basePath}/current`)
-    return response.data
+    return await httpClient.get<SecurityPolicy>(`${this.basePath}/current`)
   }
 
   /**
    * 更新策略配置
    */
   async updatePolicyConfig(config: Partial<SecurityPolicy>): Promise<SecurityPolicy> {
-    const response = await httpClient.put<SecurityPolicy>(`${this.basePath}/current`, config)
-    return response.data
+    return await httpClient.put<SecurityPolicy>(`${this.basePath}/current`, config)
   }
 
   /**
    * 重置策略配置为默认值
    */
   async resetPolicyConfig(): Promise<SecurityPolicy> {
-    const response = await httpClient.post<SecurityPolicy>(`${this.basePath}/reset`)
-    return response.data
+    return await httpClient.post<SecurityPolicy>(`${this.basePath}/reset`)
   }
 
   /**

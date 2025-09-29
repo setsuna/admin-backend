@@ -21,6 +21,6 @@ export type {
   EntityStatus,
   PaginationParams,
   SortParams,
-  FilterParams,
+  BaseFilters,  // 使用 BaseFilters 替代 FilterParams
   QueryParams
 } from '@/types'
