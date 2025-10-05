@@ -18,15 +18,16 @@ import { DataTable } from '@/components/features/DataTable'
 import { Card, CardContent } from '@/components/ui/Card'
 import DictEditModal from '@/components/features/DictEditModal'
 import { dictApi } from '@/services/dict'
-import { envConfig } from '@/config/env.config'
+import { getConfig } from '@/config'
 import { debounce } from '@/utils'
 import type { 
   DataDict, 
   DictItem, 
   DictFilters, 
-  DictStatus, 
+  EntityStatus,
   TableColumn,
-  CreateDictRequest 
+  CreateDictRequest,
+  UpdateDictRequest
 } from '@/types'
 
 const statusConfig = {
@@ -36,12 +37,13 @@ const statusConfig = {
 
 const DataDictionaryPage: React.FC = () => {
   // 显示当前使用的API模式
-  console.log('📋 Dict Page: API Mode =', envConfig.ENABLE_MOCK ? 'Mock' : 'Real')
+  const config = getConfig()
+  console.log('📋 Dict Page: API Base URL =', config.api.baseURL)
   const [dictionaries, setDictionaries] = useState<DataDict[]>([])
   const [loading, setLoading] = useState(false)
   const [searchText, setSearchText] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
-  const [statusFilter, setStatusFilter] = useState<DictStatus | ''>('')
+  const [statusFilter, setStatusFilter] = useState<EntityStatus | ''>('')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [expandedDict, setExpandedDict] = useState<string | null>(null)
   const [dictTypes, setDictTypes] = useState<{ label: string; value: string }[]>([])
@@ -114,7 +116,7 @@ const DataDictionaryPage: React.FC = () => {
   }
 
   const handleStatusFilter = (status: string) => {
-    setStatusFilter(status as DictStatus | '')
+    setStatusFilter(status as EntityStatus | '')
   }
 
   const handleSelectAll = (checked: boolean) => {
@@ -229,7 +231,12 @@ const DataDictionaryPage: React.FC = () => {
   const handleSaveDict = async (data: CreateDictRequest) => {
     try {
       if (editingDict) {
-        await dictApi.updateDictionary(editingDict.id, data)
+        // 更新时需要添加id
+        const updateData: UpdateDictRequest = {
+          ...data,
+          id: editingDict.id
+        }
+        await dictApi.updateDictionary(editingDict.id, updateData)
       } else {
         await dictApi.createDictionary(data)
       }
@@ -242,8 +249,10 @@ const DataDictionaryPage: React.FC = () => {
     }
   }
 
-  const renderStatus = (status: DictStatus) => {
-    const config = statusConfig[status]
+  const renderStatus = (status: EntityStatus) => {
+    // 将EntityStatus映射到statusConfig的键
+    const statusKey = status === 'active' ? 'enabled' : 'disabled'
+    const config = statusConfig[statusKey]
     const Icon = config.icon
     return (
       <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${config.bgColor} ${config.color}`}>
@@ -353,7 +362,7 @@ const DataDictionaryPage: React.FC = () => {
       key: 'status',
       title: '状态',
       width: 80,
-      render: (status: DictStatus) => renderStatus(status),
+      render: (status: EntityStatus) => renderStatus(status),
     },
     {
       key: 'actions',
@@ -446,8 +455,8 @@ const DataDictionaryPage: React.FC = () => {
               className="rounded-md border bg-background px-3 py-2 text-sm"
             >
               <option value="">状态</option>
-              <option value="enabled">启用</option>
-              <option value="disabled">禁用</option>
+              <option value="active">启用</option>
+              <option value="inactive">禁用</option>
             </select>
           </div>
         </div>
