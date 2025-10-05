@@ -281,6 +281,63 @@ import { userApi, dictApi } from '@/services'
 import { httpClient, authService } from '@/services'
 ```
 
+#### ⚠️ API服务层开发关键规则
+
+**重要：httpClient 已经自动提取了 response.data.data，不需要再次访问 .data**
+
+```typescript
+// ✅ 正确：直接返回 httpClient 的结果
+class DictApiService {
+  async getDictionaries(filters: DictFilters): Promise<PaginatedResponse<DataDict>> {
+    // httpClient.get 已经返回 response.data.data，直接返回
+    return await httpClient.get<PaginatedResponse<DataDict>>(this.basePath, filters)
+  }
+  
+  async getDictionary(id: string): Promise<DataDict> {
+    // 直接返回，不需要 .data
+    return await httpClient.get<DataDict>(`${this.basePath}/${id}`)
+  }
+}
+
+// ❌ 错误：不要再次访问 .data（会导致返回 undefined）
+class DictApiService {
+  async getDictionaries(filters: DictFilters): Promise<PaginatedResponse<DataDict>> {
+    const response = await httpClient.get<PaginatedResponse<DataDict>>(this.basePath, filters)
+    return response.data  // ❌ 错误！response 已经是数据了
+  }
+}
+```
+
+**原理说明：**
+
+1. 后端返回格式：
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": { "items": [...], "pagination": {...} },
+  "timestamp": 1234567890
+}
+```
+
+2. `httpClient.get()` 内部处理：
+```typescript
+// 在 http.client.ts 中
+return response.data?.data || response.data  // 自动提取 data 字段
+```
+
+3. 所以 API 服务层得到的已经是：
+```typescript
+{ items: [...], pagination: {...} }  // 已经是最终数据
+```
+
+**所有 API 服务方法都应遵守此规则：**
+- `httpClient.get()` → 直接返回
+- `httpClient.post()` → 直接返回
+- `httpClient.put()` → 直接返回
+- `httpClient.patch()` → 直接返回
+- `httpClient.delete()` → 直接返回
+
 ### 添加新功能
 
 1. **新页面**: `src/pages/` + 路由配置

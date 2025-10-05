@@ -91,4 +91,123 @@ import { UserCard } from '@/components'         // 已移除
 
 ---
 
+### 2. 服务层 (Services)
+
+#### 设计理念
+- **分层架构**: Core服务 → API服务 → Business服务
+- **统一HTTP客户端**: 所有请求使用统一的 httpClient
+- **自动数据提取**: httpClient 自动提取 response.data.data
+- **类型安全**: 完整的 TypeScript 类型支持
+
+#### 目录结构
+```
+services/
+├── core/              # 核心服务
+│   ├── http.client.ts   # 统一HTTP客户端
+│   ├── auth.service.ts  # 认证服务
+│   ├── error.handler.ts # 错误处理器
+│   └── interceptors.ts  # 请求/响应拦截器
+├── api/               # API服务层
+│   ├── dict.api.ts      # 字典API服务
+│   ├── user.api.ts      # 用户API服务
+│   └── meeting.api.ts   # 会议API服务
+└── *.ts               # 业务服务层
+    ├── dict.ts          # 字典业务服务
+    ├── user.ts          # 用户业务服务
+    └── meeting.ts       # 会议业务服务
+```
+
+#### ⚠️ 关键开发规则（必须遵守）
+
+**重要：httpClient 已经自动提取了 response.data.data，不需要再次访问 .data**
+
+```typescript
+// ✅ 正确：API服务层直接返回 httpClient 的结果
+export class DictApiService {
+  private basePath = API_PATHS.DICTIONARIES
+
+  async getDictionaries(
+    filters: DictFilters,
+    page: number,
+    pageSize: number
+  ): Promise<PaginatedResponse<DataDict>> {
+    // httpClient.get 已经返回 response.data.data，直接返回
+    return await httpClient.get<PaginatedResponse<DataDict>>(this.basePath, {
+      ...filters,
+      page,
+      pageSize
+    })
+  }
+  
+  async getDictionary(id: string): Promise<DataDict> {
+    // 直接返回，不需要 .data
+    return await httpClient.get<DataDict>(`${this.basePath}/${id}`)
+  }
+  
+  async createDictionary(data: CreateDictRequest): Promise<DataDict> {
+    // POST/PUT/PATCH/DELETE 同样直接返回
+    return await httpClient.post<DataDict>(this.basePath, data)
+  }
+}
+
+// ❌ 错误：不要再次访问 .data
+export class DictApiService {
+  async getDictionaries(...): Promise<PaginatedResponse<DataDict>> {
+    const response = await httpClient.get<PaginatedResponse<DataDict>>(...)
+    return response.data  // ❌ 错误！会返回 undefined
+  }
+}
+```
+
+**原理说明：**
+
+1. **后端返回的标准格式**：
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": { "items": [...], "pagination": {...} },
+  "timestamp": 1234567890
+}
+```
+
+2. **httpClient 的内部处理** (http.client.ts)：
+```typescript
+async get<T>(url: string, params?: any): Promise<T> {
+  const response = await this.instance.get(url, { params })
+  // 自动提取 data 字段
+  return response.data?.data || response.data
+}
+```
+
+3. **API服务层得到的已经是最终数据**：
+```typescript
+{ items: [...], pagination: {...} }  // 已经是业务数据
+```
+
+**所有 httpClient 方法都遵循此规则：**
+- `httpClient.get<T>()` → 直接返回 `T`
+- `httpClient.post<T>()` → 直接返回 `T`
+- `httpClient.put<T>()` → 直接返回 `T`
+- `httpClient.patch<T>()` → 直接返回 `T`
+- `httpClient.delete<T>()` → 直接返回 `T`
+
+#### 使用规范
+```typescript
+// ✅ 正确：在页面或组件中使用
+import { dictApi } from '@/services/dict'
+import { userApi } from '@/services/user'
+
+// API调用
+const response = await dictApi.getDictionaries(filters, page, pageSize)
+// response 已经是 { items: [...], pagination: {...} }
+setDictionaries(response.items)
+
+// ❌ 错误：不要再次访问 .data
+const response = await dictApi.getDictionaries(filters, page, pageSize)
+setDictionaries(response.data.items)  // ❌ response.data 是 undefined
+```
+
+---
+
 **本架构文档随项目演进持续更新，请确保团队成员都能访问到最新版本。**
