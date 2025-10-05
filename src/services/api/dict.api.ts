@@ -45,47 +45,43 @@ export class DictApiService {
       page,
       pageSize
     })
-    return response.data
+    // httpClient.get 已经返回了 data 字段，直接返回 response
+    return response
   }
 
   /**
    * 获取单个数据字典详情
    */
   async getDictionary(id: string): Promise<DataDict> {
-    const response = await httpClient.get<DataDict>(`${this.basePath}/${id}`)
-    return response.data
+    return await httpClient.get<DataDict>(`${this.basePath}/${id}`)
   }
 
   /**
    * 根据字典代码获取字典
    */
   async getDictionaryByCode(dictCode: string): Promise<DataDict> {
-    const response = await httpClient.get<DataDict>(`${this.basePath}/code/${dictCode}`)
-    return response.data
+    return await httpClient.get<DataDict>(`${this.basePath}/code/${dictCode}`)
   }
 
   /**
    * 创建数据字典
    */
   async createDictionary(data: CreateDictRequest): Promise<DataDict> {
-    const response = await httpClient.post<DataDict>(this.basePath, data)
-    return response.data
+    return await httpClient.post<DataDict>(this.basePath, data)
   }
 
   /**
    * 更新数据字典
    */
   async updateDictionary(id: string, data: Partial<UpdateDictRequest>): Promise<DataDict> {
-    const response = await httpClient.put<DataDict>(`${this.basePath}/${id}`, data)
-    return response.data
+    return await httpClient.put<DataDict>(`${this.basePath}/${id}`, data)
   }
 
   /**
    * 删除数据字典
    */
   async deleteDictionary(id: string): Promise<OperationResult> {
-    const response = await httpClient.delete<OperationResult>(`${this.basePath}/${id}`)
-    return response.data
+    return await httpClient.delete<OperationResult>(`${this.basePath}/${id}`)
   }
 
   /**
@@ -96,8 +92,7 @@ export class DictApiService {
       ids,
       action: 'delete'
     }
-    const response = await httpClient.post<BatchResponse>(`${this.basePath}/batch`, batchRequest)
-    return response.data
+    return await httpClient.post<BatchResponse>(`${this.basePath}/batch`, batchRequest)
   }
 
   /**
@@ -107,21 +102,19 @@ export class DictApiService {
     id: string, 
     status: 'enabled' | 'disabled'
   ): Promise<OperationResult> {
-    const response = await httpClient.patch<OperationResult>(
+    return await httpClient.patch<OperationResult>(
       `${this.basePath}/${id}/status`,
       { status }
     )
-    return response.data
   }
 
   /**
    * 获取字典类型列表
    */
   async getDictTypes(): Promise<Array<{ label: string; value: string }>> {
-    const response = await httpClient.get<Array<{ label: string; value: string }>>(
+    return await httpClient.get<Array<{ label: string; value: string }>>(
       `${this.basePath}/types`
     )
-    return response.data
   }
 
   /**
@@ -133,7 +126,7 @@ export class DictApiService {
       `${this.basePath}/sync`,
       request
     )
-    return response.data.success
+    return response.success
   }
 
   /**

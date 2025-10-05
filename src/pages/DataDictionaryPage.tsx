@@ -70,11 +70,12 @@ const DataDictionaryPage: React.FC = () => {
         dictType: typeFilter || undefined,
         status: statusFilter || undefined
       }
+      
       const response = await dictApi.getDictionaries(filters, pagination.page, pagination.pageSize)
       setDictionaries(response.items)
       setPagination(prev => ({ ...prev, total: response.pagination.total }))
     } catch (error) {
-      console.error('Failed to load dictionaries:', error)
+      console.error('❌ Failed to load dictionaries:', error)
       setDictionaries([])
       setPagination(prev => ({ ...prev, total: 0 }))
     } finally {
@@ -86,9 +87,10 @@ const DataDictionaryPage: React.FC = () => {
   const loadDictTypes = async () => {
     try {
       const types = await dictApi.getDictTypes()
-      setDictTypes(types)
+      setDictTypes(types || [])
     } catch (error) {
       console.error('Failed to load dict types:', error)
+      setDictTypes([])
     }
   }
 
@@ -250,9 +252,12 @@ const DataDictionaryPage: React.FC = () => {
   }
 
   const renderStatus = (status: EntityStatus) => {
-    // 将EntityStatus映射到statusConfig的键
-    const statusKey = status === 'active' ? 'enabled' : 'disabled'
-    const config = statusConfig[statusKey]
+    // EntityStatus 已经是 'enabled' | 'disabled'，直接使用
+    const config = statusConfig[status]
+    if (!config) {
+      console.warn('未知状态:', status)
+      return <span>{status}</span>
+    }
     const Icon = config.icon
     return (
       <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${config.bgColor} ${config.color}`}>
@@ -444,9 +449,11 @@ const DataDictionaryPage: React.FC = () => {
               className="rounded-md border bg-background px-3 py-2 text-sm"
             >
               <option value="">字典类型</option>
-              {dictTypes.map(type => (
-                <option key={type.value} value={type.value}>{type.label}</option>
-              ))}
+              {dictTypes && dictTypes.length > 0 ? (
+                dictTypes.map(type => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
+                ))
+              ) : null}
             </select>
             
             <select
@@ -455,8 +462,8 @@ const DataDictionaryPage: React.FC = () => {
               className="rounded-md border bg-background px-3 py-2 text-sm"
             >
               <option value="">状态</option>
-              <option value="active">启用</option>
-              <option value="inactive">禁用</option>
+              <option value="enabled">启用</option>
+              <option value="disabled">禁用</option>
             </select>
           </div>
         </div>

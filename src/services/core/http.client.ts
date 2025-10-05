@@ -44,17 +44,12 @@ export class HttpClient {
     params?: any, 
     config?: AxiosRequestConfig
   ): Promise<T> {
-    try {
-      const response = await this.instance.get(url, { 
-        params, 
-        ...config 
-      })
-      // 直接返回data字段，错误已经在拦截器中处理
-      return response.data?.data || response.data
-    } catch (error: any) {
-      // 拦截器已经处理了错误，这里只需要抛出
-      throw error
-    }
+    const response = await this.instance.get(url, { 
+      params, 
+      ...config 
+    })
+    // 直接返回data字段，错误已经在拦截器中处理
+    return response.data?.data || response.data
   }
 
   // 🔄 更新：POST请求
