@@ -54,6 +54,16 @@ export default function PermissionManagePage() {
   // 默认展开所有权限组
   useEffect(() => {
     if (permissionGroups.length > 0) {
+      // 调试：输出权限组数据结构
+      console.log('Permission Groups:', permissionGroups)
+      permissionGroups.forEach((group, index) => {
+        console.log(`Group ${index}:`, {
+          key: group.key,
+          name: group.name,
+          permissions: group.permissions,
+          isArray: Array.isArray(group.permissions)
+        })
+      })
       setExpandedGroups(permissionGroups.map(group => group.key))
     }
   }, [permissionGroups])
@@ -186,7 +196,7 @@ export default function PermissionManagePage() {
   // 全选/取消全选权限组
   const handleGroupToggle = (roleId: string, groupKey: string, isSelected: boolean) => {
     const group = permissionGroups.find(g => g.key === groupKey)
-    if (!group) return
+    if (!group || !Array.isArray(group.permissions)) return
 
     const roleMatrix = rolePermissionMatrix.find(rm => rm.roleId === roleId)
     if (!roleMatrix) return
@@ -218,6 +228,11 @@ export default function PermissionManagePage() {
     const roleMatrix = rolePermissionMatrix.find(rm => rm.roleId === roleId)
     
     if (!group || !roleMatrix) return false
+    
+    // 安全检查：确保 permissions 是数组
+    if (!Array.isArray(group.permissions) || group.permissions.length === 0) {
+      return false
+    }
 
     const groupPermissionCodes = group.permissions.map(p => p.code)
     return groupPermissionCodes.every(code => roleMatrix.permissions[code])
@@ -277,7 +292,7 @@ export default function PermissionManagePage() {
                     </div>
 
                     {/* 权限项详情 */}
-                    {isExpanded && (
+                    {isExpanded && Array.isArray(group.permissions) && group.permissions.length > 0 && (
                       <div>
                         {group.permissions.map(permission => (
                           <div key={permission.id} className="px-6 py-2 pl-6 border-b border-gray-100 last:border-b-0 h-[56px] flex items-center">
@@ -362,7 +377,7 @@ export default function PermissionManagePage() {
                       </div>
 
                       {/* 权限项角色复选框 */}
-                      {isExpanded && (
+                      {isExpanded && Array.isArray(group.permissions) && group.permissions.length > 0 && (
                         <div>
                           {group.permissions.map(permission => (
                             <div key={permission.id} className="flex border-b border-gray-100 last:border-b-0 h-[56px]">

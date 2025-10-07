@@ -3,7 +3,7 @@
  * 直接使用API服务，移除Mock逻辑
  */
 
-import { permissionApiService } from './api/user.api'
+import { permissionApi as permissionApiService } from './api/permission.api'
 import type { 
   MenuConfig, 
   Permission, 
@@ -49,6 +49,79 @@ class PermissionService {
   }
 
   /**
+   * 获取权限分组
+   */
+  async getPermissionGroups(): Promise<PermissionGroup[]> {
+    const result = await permissionApiService.getPermissionGroups()
+    
+    // 处理不同的响应格式
+    if (Array.isArray(result)) {
+      // 如果已经是数组，确保每个分组的permissions也是数组
+      return result.map(group => ({
+        ...group,
+        permissions: Array.isArray(group.permissions) ? group.permissions : []
+      }))
+    }
+    
+    // 如果是Record<string, Permission[]>格式，转换为PermissionGroup[]
+    return Object.entries(result).map(([key, permissions]) => ({
+      id: key,
+      key,
+      name: key,
+      permissions: Array.isArray(permissions) ? permissions : [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      type: 'business' as const,
+      sort: 0
+    }))
+  }
+
+  /**
+   * 获取角色权限矩阵
+   */
+  async getRolePermissionMatrix(): Promise<RolePermissionMatrix[]> {
+    const roles = await permissionApiService.getAllRoles()
+    
+    return roles.map(role => ({
+      roleId: role.id,
+      roleName: role.name,
+      permissions: role.permissions.reduce((acc, code) => {
+        acc[code] = true
+        return acc
+      }, {} as Record<string, boolean>),
+      effectivePermissions: role.permissions
+    }))
+  }
+
+  /**
+   * 更新角色权限
+   */
+  async updateRolePermissions(roleId: string, permissions: string[]): Promise<Role> {
+    return permissionApiService.updateRole(roleId, { permissions })
+  }
+
+  /**
+   * 创建角色
+   */
+  async createRole(roleData: any): Promise<Role> {
+    return permissionApiService.createRole(roleData)
+  }
+
+  /**
+   * 更新角色
+   */
+  async updateRole(roleId: string, roleData: any): Promise<Role> {
+    return permissionApiService.updateRole(roleId, roleData)
+  }
+
+  /**
+   * 删除角色
+   */
+  async deleteRole(roleId: string): Promise<any> {
+    return permissionApiService.deleteRole(roleId)
+  }
+
+  /**
    * 根据用户角色过滤菜单项
    */
   filterMenuByUserRole(menuItems: MenuItem[], userRoles: string[]): MenuItem[] {
@@ -85,5 +158,11 @@ export const permissionApi = {
   getAllPermissions: permissionService.getAllPermissions.bind(permissionService),
   getAllRoles: permissionService.getAllRoles.bind(permissionService),
   getUserMenuConfig: permissionService.getUserMenuConfig.bind(permissionService),
-  checkUserPermission: permissionService.checkUserPermission.bind(permissionService)
+  checkUserPermission: permissionService.checkUserPermission.bind(permissionService),
+  getPermissionGroups: permissionService.getPermissionGroups.bind(permissionService),
+  getRolePermissionMatrix: permissionService.getRolePermissionMatrix.bind(permissionService),
+  updateRolePermissions: permissionService.updateRolePermissions.bind(permissionService),
+  createRole: permissionService.createRole.bind(permissionService),
+  updateRole: permissionService.updateRole.bind(permissionService),
+  deleteRole: permissionService.deleteRole.bind(permissionService)
 }

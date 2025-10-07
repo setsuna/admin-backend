@@ -32,21 +32,32 @@ export class PermissionApiService {
    * 获取所有权限
    */
   async getAllPermissions(): Promise<Permission[]> {
-    return await httpClient.get<Permission[]>(this.basePath)
+    const response = await httpClient.get<{ items: Permission[], pagination?: any } | Permission[]>(this.basePath)
+    // 兼容两种响应格式：分页格式和数组格式
+    return Array.isArray(response) ? response : (response.items || [])
   }
 
   /**
    * 获取权限分组
    */
-  async getPermissionGroups(): Promise<Record<string, Permission[]>> {
-    return await httpClient.get<Record<string, Permission[]>>(`${this.basePath}/groups`)
+  async getPermissionGroups(): Promise<any> {
+    const response = await httpClient.get<any>(`${this.basePath}/groups`)
+    
+    // 处理分页响应格式: { items: [...] }
+    if (response && response.items) {
+      return response.items
+    }
+    
+    // 处理直接返回数组或对象
+    return response
   }
 
   /**
    * 获取所有角色
    */
   async getAllRoles(): Promise<Role[]> {
-    return await httpClient.get<Role[]>(this.rolePath)
+    const response = await httpClient.get<{ items: Role[], pagination: any }>(this.rolePath)
+    return response.items || []
   }
 
   /**
@@ -90,11 +101,11 @@ export class PermissionApiService {
    * 检查用户权限
    */
   async checkUserPermission(userId: string, permission: string): Promise<boolean> {
-    const response =  await httpClient.get<{ hasPermission: boolean }>(
+    const response = await httpClient.get<{ hasPermission: boolean }>(
       `/users/${userId}/permissions/check`,
       { permission }
     )
-    return response.data.hasPermission
+    return response.hasPermission || false
   }
 
   /**
@@ -117,19 +128,18 @@ export class PermissionApiService {
    * 获取用户的所有权限
    */
   async getUserPermissions(userId: string): Promise<string[]> {
-    return await httpClient.get<{ permissions: string[] }>(`/users/${userId}/permissions`)
-    return response.data.permissions
+    const response = await httpClient.get<{ permissions: string[] }>(`/users/${userId}/permissions`)
+    return response.permissions || []
   }
 
   /**
    * 批量检查用户权限
    */
   async checkMultiplePermissions(userId: string, permissions: string[]): Promise<Record<string, boolean>> {
-    const response = await httpClient.post<Record<string, boolean>>(
+    return await httpClient.post<Record<string, boolean>>(
       `/users/${userId}/permissions/check-batch`,
       { permissions }
     )
-    return response.data
   }
 }
 
