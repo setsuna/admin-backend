@@ -98,14 +98,31 @@ class AuthService {
     }
   }
 
+  // 🆕 防止重复logout的标志
+  private isLoggingOut = false
+
   /**
-   * 用户登出
+   * 🔧 修复：用户登出 - 防止重复调用
    */
   async logout(): Promise<void> {
+    // 防止重复调用
+    if (this.isLoggingOut) {
+      console.log('[AuthService] 正在登出中，忽略重复调用')
+      return
+    }
+
+    this.isLoggingOut = true
+    
     try {
-      await httpClient.post(API_PATHS.AUTH_LOGOUT)
+      // 先检查是否还有token，如果已经清理过就不再调用API
+      const token = this.getToken()
+      if (token) {
+        await httpClient.post(API_PATHS.AUTH_LOGOUT)
+      } else {
+        console.log('[AuthService] 无token，跳过登出API调用')
+      }
     } catch (error) {
-      console.warn('Logout API warning:', error)
+      console.warn('[AuthService] Logout API warning:', error)
     } finally {
       this.clearStorage()
       
@@ -114,8 +131,13 @@ class AuthService {
         const { clearAuth } = useAuth.getState()
         clearAuth()
       } catch (error) {
-        console.warn('Failed to clear auth store:', error)
+        console.warn('[AuthService] Failed to clear auth store:', error)
       }
+      
+      // 500ms后重置标志位
+      setTimeout(() => {
+        this.isLoggingOut = false
+      }, 500)
     }
   }
 

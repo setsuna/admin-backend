@@ -10,7 +10,7 @@ export const API_PATHS = {
   
   // 会议管理
   MEETINGS: '/meetings',
-  MEETING_DRAFTS: '/meetings/drafts',
+  MEETING_DRAFTS: '/meetings/draft',
   MEETING_FILES: '/meetings/{id}/files',
   
   // 用户管理

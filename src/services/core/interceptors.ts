@@ -233,15 +233,34 @@ async function handleApiError(
   }
 }
 
+// 🆕 添加防止重复logout的标志位
+let isLoggingOut = false
+
 /**
- * 🔧 修复：认证错误处理 - 使用后端原始消息
+ * 🔧 修复：认证错误处理 - 使用后端原始消息 + 防止重复logout
  */
 async function handleAuthError(code: number, backendMessage: string, userMessage: string, requestId?: string) {
   // 需要自动跳转登录的错误码
   if (needsAutoLogin(code)) {
     console.log(`[认证错误] 自动登出并跳转登录: ${code}, 消息: ${backendMessage}`)
-    await auth.logout()
-    window.location.href = '/login'
+    
+    // 🔧 防止重复logout
+    if (isLoggingOut) {
+      console.log('[认证错误] 正在登出中，忽略重复请求')
+      return
+    }
+    
+    isLoggingOut = true
+    
+    try {
+      await auth.logout()
+      window.location.href = '/login'
+    } finally {
+      // 1秒后重置标志位，防止永久锁定
+      setTimeout(() => {
+        isLoggingOut = false
+      }, 1000)
+    }
     return
   }
   
