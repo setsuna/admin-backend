@@ -1,0 +1,55 @@
+      const meetingRequest: CreateMeetingRequest = {
+        name: formData.name,
+        securityLevel: formData.securityLevel,
+        type: formData.type,
+        startTime: new Date(formData.startTime).toISOString(),
+        endTime: new Date(formData.endTime).toISOString(),
+        location: formData.location,
+        description: formData.description,
+        participants: formData.participants
+          .filter(p => p.role !== 'host')
+          .map(p => ({
+            userId: p.userId,
+            role: p.role as 'participant' | 'observer'
+          })),
+        agendas: formData.agendas
+      }
+
+      const meeting = await meetingApi.submitDraftMeeting(draftMeetingId, meetingRequest)
+      addNotification({
+        type: 'success',
+        title: '创建成功',
+        message: '会议创建成功'
+      })
+      console.log('会议创建成功:', meeting)
+      navigate('/meetings')
+    } catch (error) {
+      console.error('提交失败:', error)
+      addNotification({
+        type: 'error',
+        title: '提交失败',
+        message: '提交失败，请重试'
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCancel = async () => {
+    const confirmed = await confirm({
+      title: '确定要取消吗？',
+      message: '未保存的内容将丢失。',
+      type: 'warning',
+      confirmText: '确定取消',
+      cancelText: '继续编辑'
+    })
+    
+    if (confirmed) {
+      // 清理草稿数据（可选）
+      if (draftMeetingId) {
+        // 这里可以调用删除草稿的API
+        console.log('取消创建，草稿会议ID:', draftMeetingId)
+      }
+      navigate('/meetings')
+    }
+  }

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { DataTable } from '@/components/features/DataTable'
 import { meetingApi } from '@/services/meeting'
-import { envConfig } from '@/config/env.config'
+import { getConfig } from '@/config'
 import { debounce, formatDate } from '@/utils'
 import type { Meeting, MeetingFilters, MeetingStatus, MeetingSecurityLevel, MeetingType, TableColumn } from '@/types'
 
@@ -29,7 +29,8 @@ const typeConfig = {
 
 const MeetingListPage: React.FC = () => {
   // 显示当前使用的API模式
-  console.log('📊 Meeting List: API Mode =', envConfig.ENABLE_MOCK ? 'Mock' : 'Real')
+  const config = getConfig()
+  console.log('📊 Meeting List: API Mode =', config.env.isDevelopment ? 'Development' : 'Production')
   const navigate = useNavigate()
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [loading, setLoading] = useState(false)
@@ -60,8 +61,9 @@ const MeetingListPage: React.FC = () => {
         type: typeFilter || undefined
       }
       const response = await meetingApi.getMeetings(filters, pagination.page, pagination.pageSize)
-      setMeetings(response.items)
-      setPagination(prev => ({ ...prev, total: response.pagination.total }))
+      console.log('API Response:', response) // 调试日志
+      setMeetings(response.items || [])
+      setPagination(prev => ({ ...prev, total: response.pagination?.total || 0 }))
     } catch (error) {
       console.error('Failed to load meetings:', error)
       setMeetings([])

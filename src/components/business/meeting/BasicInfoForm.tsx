@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { mockApi, type MeetingCategory, type SecurityLevel } from '@/services/mockApi'
 import type { MeetingSecurityLevel, MeetingType, MeetingParticipant } from '@/types'
+
+type MeetingCategory = { name: string; value: string }
+type SecurityLevel = { value: string; label: string; color: string }
 
 // 导入子组件
 import MeetingTypeSelect from './forms/MeetingTypeSelect'
@@ -49,10 +51,17 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   const loadOptions = async () => {
     try {
       setLoading(true)
-      const [categoriesData, securityData] = await Promise.all([
-        mockApi.getMeetingCategories(),
-        mockApi.getSecurityLevels()
-      ])
+      // TODO: 从后端 API 获取数据
+      const categoriesData: MeetingCategory[] = [
+        { name: '部门例会', value: 'department' },
+        { name: '项目会议', value: 'project' },
+        { name: '全体会议', value: 'all' }
+      ]
+      const securityData: SecurityLevel[] = [
+        { value: 'internal', label: '内部', color: 'bg-green-600' },
+        { value: 'confidential', label: '秘密', color: 'bg-yellow-600' },
+        { value: 'secret', label: '机密', color: 'bg-red-600' }
+      ]
       setCategories(categoriesData)
       setSecurityLevels(securityData)
     } catch (error) {

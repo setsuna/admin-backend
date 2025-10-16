@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react'
 import { FileText, File, Image, Upload } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
-import { getDropzoneAccept, isFileSupported } from '@/mock/fileFormats'
+import { getDropzoneAccept, isFileSupported } from '@/utils'
 import SortableAgendaList from './SortableAgendaList'
 import type { MeetingAgenda, MeetingMaterial, MeetingSecurityLevel } from '@/types'
 

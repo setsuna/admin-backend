@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { Allotment } from "allotment"
 import { Plus } from 'lucide-react'
 import { meetingApi } from '@/services/meeting'
-import { getFormattedExtensions } from '@/mock/fileFormats'
+import { getFormattedExtensions } from '@/utils'
 import { useDialog } from '@/hooks/useModal'
 import { useNotifications } from '@/hooks/useNotifications'
 import { DialogComponents } from '@/components/ui/DialogComponents'
@@ -155,21 +155,20 @@ const CreateMeetingPage: React.FC = () => {
     if (!files || files.length === 0 || !draftMeetingId) return
 
     try {
-      // 使用 mock 文件上传
-      const { mockFileUpload } = await import('@/mock/fileUpload')
-      
       const uploadPromises = files.map(async (file) => {
         console.log(`上传文件: ${file.name} 到会议: ${draftMeetingId}`)
-        const uploadedFile = await mockFileUpload(draftMeetingId, file, agendaId)
+        
+        // 使用真实的 API 上传文件
+        const uploadedFile = await meetingApi.uploadMeetingFile(draftMeetingId, file, agendaId)
         
         // 转换为 MeetingMaterial 格式
         const material: MeetingMaterial = {
           id: uploadedFile.id,
           name: uploadedFile.name,
           size: uploadedFile.size,
-          type: uploadedFile.type,
+          type: uploadedFile.mimeType || file.type,
           securityLevel: formData.securityLevel,
-          uploadedAt: uploadedFile.uploadedAt
+          uploadedAt: uploadedFile.uploadedAt || new Date().toISOString()
         }
         
         return material
@@ -207,9 +206,8 @@ const CreateMeetingPage: React.FC = () => {
     if (!draftMeetingId) return
     
     try {
-      // 使用 mock 文件删除
-      const { mockFileDelete } = await import('@/mock/fileUpload')
-      await mockFileDelete(draftMeetingId, materialId)
+      // 使用真实的 API 删除文件
+      await meetingApi.deleteMeetingFile(draftMeetingId, materialId)
       
       // 更新本地状态
       setFormData(prev => ({
@@ -222,6 +220,11 @@ const CreateMeetingPage: React.FC = () => {
       }))
       
       console.log(`删除文件: ${materialId}`)
+      addNotification({
+        type: 'success',
+        title: '删除成功',
+        message: '文件已删除'
+      })
     } catch (error) {
       console.error('删除文件失败:', error)
       addNotification({
@@ -262,16 +265,18 @@ const CreateMeetingPage: React.FC = () => {
         )
       }))
       
-      // 调用 API 更新服务器排序
-      const { mockUpdateMaterialOrder } = await import('@/mock/fileUpload')
-      const materialIds = newMaterials.map(m => m.id)
-      await mockUpdateMaterialOrder(draftMeetingId, agendaId, materialIds)
+      // TODO: 调用后端 API 更新材料排序
+      // const materialIds = newMaterials.map(m => m.id)
+      // await meetingApi.updateMaterialOrder(draftMeetingId, agendaId, materialIds)
       
       console.log('材料排序更新成功')
     } catch (error) {
       console.error('材料排序更新失败:', error)
-      // 如果 API 失败，可以选择显示错误信息但保持本地状态
-      // 或者回滚本地状态
+      addNotification({
+        type: 'error',
+        title: '排序失败',
+        message: '材料排序更新失败'
+      })
     }
   }
 
@@ -285,15 +290,18 @@ const CreateMeetingPage: React.FC = () => {
         agendas: newAgendas
       }))
       
-      // 调用 API 更新服务器排序
-      const { mockUpdateAgendaOrder } = await import('@/mock/fileUpload')
-      const agendaIds = newAgendas.map(a => a.id)
-      await mockUpdateAgendaOrder(draftMeetingId, agendaIds)
+      // TODO: 调用后端 API 更新议题排序
+      // const agendaIds = newAgendas.map(a => a.id)
+      // await meetingApi.updateAgendaOrder(draftMeetingId, agendaIds)
       
       console.log('议题排序更新成功')
     } catch (error) {
       console.error('议题排序更新失败:', error)
-      // 如果 API 失败，可以选择显示错误信息但保持本地状态
+      addNotification({
+        type: 'error',
+        title: '排序失败',
+        message: '议题排序更新失败'
+      })
     }
   }
 
@@ -343,7 +351,13 @@ const CreateMeetingPage: React.FC = () => {
       const draftData: Partial<CreateMeetingRequest> = {
         name: formData.name,
         description: formData.description,
-        // 可以根据需要添加更多字段
+        securityLevel: formData.securityLevel,
+        type: formData.type,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        location: formData.location,
+        participants: formData.participants,
+        agendas: formData.agendas
       }
 
       await meetingApi.saveDraftMeeting(draftMeetingId, draftData)
