@@ -20,34 +20,12 @@ export function usePermission() {
     clearAuth
   } = useAuth()
 
-  // 🔧 修复：获取用户菜单配置 - 增强认证检查
+  // 获取用户菜单配置
   const { data: userMenuConfig, isLoading } = useQuery({
     queryKey: ['userMenuConfig', user?.id],
-    queryFn: async () => {
-      if (!user) return null
-      
-      // 检查是否有有效的token
-      const token = localStorage.getItem('access_token')
-      if (!token) {
-        console.log('[usePermission] 无有效token，跳过菜单加载')
-        return null
-      }
-      
-      try {
-        return await permissionApi.getUserMenuConfig(user)
-      } catch (error: any) {
-        console.error('[usePermission] 加载菜单配置失败:', error)
-        // 如果是认证错误，不再重试
-        if (error.code === 1101 || error.httpStatus === 401) {
-          console.log('[usePermission] 认证失败，停止加载菜单')
-          return null
-        }
-        throw error
-      }
-    },
-    enabled: !!user && !!localStorage.getItem('access_token'), // 同时检查user和token
+    queryFn: () => user ? permissionApi.getUserMenuConfig(user) : Promise.resolve(null),
+    enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5分钟缓存
-    retry: false, // 禁用重试，避免循环
   })
 
   // 更新权限状态
