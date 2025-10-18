@@ -200,19 +200,19 @@ const CreateMeetingPage: React.FC = () => {
           id: uploadedFile.id,
           meetingId: draftMeetingId,
           agendaId,
-          name: uploadedFile.name,
-          originalName: file.name,
-          size: uploadedFile.size,
-          type: uploadedFile.mimeType || file.type,
+          name: (uploadedFile as any).original_name || file.name,  // ✅ 使用下划线字段
+          originalName: (uploadedFile as any).original_name || file.name,
+          size: (uploadedFile as any).file_size || file.size,  // ✅ 使用下划线字段
+          type: (uploadedFile as any).mime_type || file.type,  // ✅ 使用下划线字段
           url: uploadedFile.url || '',
           securityLevel: formData.securityLevel,
-          uploadedBy: '', // 后端会自动设置
+          uploadedBy: (uploadedFile as any).uploaded_by || '',  // ✅ 使用下划线字段
           uploadedByName: '',
           downloadCount: 0,
           version: 1,
           isPublic: false,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          createdAt: (uploadedFile as any).created_at || new Date().toISOString(),  // ✅ 使用下划线字段
+          updatedAt: (uploadedFile as any).updated_at || new Date().toISOString()   // ✅ 使用下划线字段
         }
         
         return material

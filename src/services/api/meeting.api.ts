@@ -152,7 +152,7 @@ export class MeetingApiService {
     const formData = new FormData()
     formData.append('file', file)
     if (agendaId) {
-      formData.append('agendaId', agendaId)
+      formData.append('agenda_id', agendaId)  // ✅ 改为下划线
     }
 
     return await httpClient.upload<FileUploadResponse>(
