@@ -181,7 +181,7 @@ const MeetingListPage: React.FC = () => {
       ),
     },
     {
-      key: 'startTime',
+      key: 'start_time',  // ✅ 改为下划线
       title: '会议时间',
       width: 150,
       render: (startTime: string) => formatDateTime(startTime),
@@ -203,7 +203,7 @@ const MeetingListPage: React.FC = () => {
       render: (status: MeetingStatus) => renderStatus(status),
     },
     {
-      key: 'securityLevel',
+      key: 'security_level',  // ✅ 改为下划线
       title: '会议密级',
       width: 120,
       render: (level: MeetingSecurityLevel) => renderSecurityLevel(level),

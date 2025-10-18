@@ -11,7 +11,6 @@ import { DialogComponents } from '@/components/ui/DialogComponents'
 import type { 
   MeetingSecurityLevel, 
   MeetingType, 
-  CreateMeetingRequest, 
   MeetingParticipant, 
   MeetingAgenda, 
   MeetingMaterial 
@@ -393,13 +392,13 @@ const CreateMeetingPage: React.FC = () => {
     try {
       setLoading(true)
       
-      const draftData: Partial<CreateMeetingRequest> = {
+      const draftData: any = {
         name: formData.name,
         description: formData.description,
-        securityLevel: formData.securityLevel,
+        security_level: formData.securityLevel,  // ✅ 下划线
         type: formData.type,
-        startTime: formData.startTime,
-        endTime: formData.endTime,
+        start_time: formData.startTime,           // ✅ 下划线
+        end_time: formData.endTime,               // ✅ 下划线
         location: formData.location,
         participants: formData.participants
           .filter(p => p.role !== 'host')
@@ -447,12 +446,13 @@ const CreateMeetingPage: React.FC = () => {
     try {
       setLoading(true)
       
-      const meetingRequest: CreateMeetingRequest = {
+      const meetingRequest: any = {
         name: formData.name,
-        securityLevel: formData.securityLevel,
+        security_level: formData.securityLevel,   // ✅ 下划线
         type: formData.type,
-        startTime: new Date(formData.startTime).toISOString(),
-        endTime: new Date(formData.endTime).toISOString(),
+        status: 'preparation',                     // ✅ 必须添加！
+        start_time: new Date(formData.startTime).toISOString(),  // ✅ 下划线
+        end_time: new Date(formData.endTime).toISOString(),      // ✅ 下划线
         location: formData.location,
         description: formData.description,
         participants: formData.participants
