@@ -13,7 +13,7 @@ interface SortableAgendaItemProps {
   onDragOver: (index: number) => void
   onDragEnd: () => void
   onRemove: (id: string) => void
-  onUpdateName: (id: string, name: string) => void
+  onUpdateName: (id: string, title: string) => void
   onStartEdit: (id: string) => void
   onStopEdit: () => void
   onRemoveMaterial: (agendaId: string, materialId: string) => void
@@ -80,7 +80,7 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
             </div>
             {editingAgenda === agenda.id ? (
               <Input
-                value={agenda.name}
+                value={agenda.title}
                 onChange={(e) => onUpdateName(agenda.id, e.target.value)}
                 onBlur={onStopEdit}
                 onKeyDown={(e) => {
@@ -98,9 +98,9 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
                 onClick={() => onStartEdit(agenda.id)}
               >
                 <span className="text-sm font-medium text-gray-900">
-                  {agenda.name || `议题 ${index + 1}`}
+                  {agenda.title || `议题 ${index + 1}`}
                 </span>
-                {!agenda.name && (
+                {!agenda.title && (
                   <span className="text-xs text-gray-500 ml-2">点击编辑</span>
                 )}
               </div>

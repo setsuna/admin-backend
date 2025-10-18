@@ -122,7 +122,7 @@ export class MeetingApiService {
    * 保存草稿会议数据
    */
   async saveDraftMeeting(meetingId: string, meetingData: Partial<CreateMeetingRequest>): Promise<OperationResult> {
-    return await httpClient.put<OperationResult>(`${this.draftPath}/${meetingId}`, meetingData)
+    return await httpClient.patch<OperationResult>(`${this.draftPath}/${meetingId}`, meetingData)
   }
 
   /**

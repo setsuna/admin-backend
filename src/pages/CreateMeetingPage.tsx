@@ -68,7 +68,17 @@ const CreateMeetingPage: React.FC = () => {
       type: 'standard',
       description: '',
       participants: [],
-      agendas: [{ id: '1', name: '', description: '', materials: [], order: 1 }],
+      agendas: [{ 
+        id: '1', 
+        meetingId: '',
+        title: '', 
+        description: '', 
+        materials: [], 
+        order: 1,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }],
       password: '',
       expiryType: 'none',
       expiryDate: '',
@@ -86,12 +96,33 @@ const CreateMeetingPage: React.FC = () => {
 
   const initializeDraftMeeting = async () => {
     try {
-      console.log('创建草稿会议...')
+      console.log('初始化草稿会议...')
+      // 后端幂等接口：有草稿返回现有，无则创建新的
       const draftMeeting = await meetingApi.createDraftMeeting()
       setDraftMeetingId(draftMeeting.id)
-      console.log('草稿会议创建成功:', draftMeeting.id)
+      
+      // 如果有草稿数据，恢复到表单
+      if (draftMeeting.data) {
+        // 处理草稿数据，确保必要字段存在
+        const draftData = draftMeeting.data as any
+        setFormData(prev => ({
+          ...prev,
+          ...draftData,
+          // 确保 agendas 有完整的字段
+          agendas: draftData.agendas?.map((a: any) => ({
+            ...a,
+            meetingId: draftMeetingId,
+            status: a.status || 'pending',
+            createdAt: a.createdAt || new Date().toISOString(),
+            updatedAt: a.updatedAt || new Date().toISOString()
+          })) || prev.agendas
+        }))
+        console.log('已恢复草稿数据:', draftMeeting.id)
+      } else {
+        console.log('草稿会议创建成功:', draftMeeting.id)
+      }
     } catch (error) {
-      console.error('创建草稿会议失败:', error)
+      console.error('初始化草稿失败:', error)
       await alert({
         type: 'error',
         title: '初始化失败',
@@ -123,10 +154,14 @@ const CreateMeetingPage: React.FC = () => {
   const addAgenda = () => {
     const newAgenda: MeetingAgenda = {
       id: Date.now().toString(),
-      name: '',
+      meetingId: draftMeetingId || '',
+      title: '',
       description: '',
       materials: [],
-      order: formData.agendas.length + 1
+      order: formData.agendas.length + 1,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     }
     setFormData(prev => ({
       ...prev,
@@ -141,11 +176,11 @@ const CreateMeetingPage: React.FC = () => {
     }))
   }
 
-  const updateAgendaName = (agendaId: string, name: string) => {
+  const updateAgendaName = (agendaId: string, title: string) => {
     setFormData(prev => ({
       ...prev,
       agendas: prev.agendas.map(agenda => 
-        agenda.id === agendaId ? { ...agenda, name } : agenda
+        agenda.id === agendaId ? { ...agenda, title } : agenda
       )
     }))
   }
@@ -164,11 +199,21 @@ const CreateMeetingPage: React.FC = () => {
         // 转换为 MeetingMaterial 格式
         const material: MeetingMaterial = {
           id: uploadedFile.id,
+          meetingId: draftMeetingId,
+          agendaId,
           name: uploadedFile.name,
+          originalName: file.name,
           size: uploadedFile.size,
           type: uploadedFile.mimeType || file.type,
+          url: uploadedFile.url || '',
           securityLevel: formData.securityLevel,
-          uploadedAt: uploadedFile.uploadedAt || new Date().toISOString()
+          uploadedBy: '', // 后端会自动设置
+          uploadedByName: '',
+          downloadCount: 0,
+          version: 1,
+          isPublic: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         }
         
         return material
@@ -356,8 +401,19 @@ const CreateMeetingPage: React.FC = () => {
         startTime: formData.startTime,
         endTime: formData.endTime,
         location: formData.location,
-        participants: formData.participants,
-        agendas: formData.agendas
+        participants: formData.participants
+          .filter(p => p.role !== 'host')
+          .map(p => ({
+            userId: p.userId,
+            role: p.role as 'participant' | 'observer'
+          })),
+        agendas: formData.agendas.map(a => ({
+          title: a.title,
+          description: a.description,
+          duration: a.duration,
+          presenter: a.presenter,
+          order: a.order
+        }))
       }
 
       await meetingApi.saveDraftMeeting(draftMeetingId, draftData)
@@ -405,7 +461,13 @@ const CreateMeetingPage: React.FC = () => {
             userId: p.userId,
             role: p.role as 'participant' | 'observer'
           })),
-        agendas: formData.agendas
+        agendas: formData.agendas.map(a => ({
+          title: a.title,
+          description: a.description,
+          duration: a.duration,
+          presenter: a.presenter,
+          order: a.order
+        }))
       }
 
       const meeting = await meetingApi.submitDraftMeeting(draftMeetingId, meetingRequest)
@@ -431,18 +493,14 @@ const CreateMeetingPage: React.FC = () => {
   const handleCancel = async () => {
     const confirmed = await confirm({
       title: '确定要取消吗？',
-      message: '未保存的内容将丢失。',
+      message: '当前的编辑内容将保存为草稿。',
       type: 'warning',
       confirmText: '确定取消',
       cancelText: '继续编辑'
     })
     
     if (confirmed) {
-      // 清理草稿数据（可选）
-      if (draftMeetingId) {
-        // 这里可以调用删除草稿的API
-        console.log('取消创建，草稿会议ID:', draftMeetingId)
-      }
+      // 草稿保留，下次进来自动恢复
       navigate('/meetings')
     }
   }
