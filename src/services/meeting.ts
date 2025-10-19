@@ -11,7 +11,7 @@ import type {
   CreateMeetingRequest,
   MeetingAgenda,
   OperationResult
-} from './types/meeting.types'
+} from '@/types'  // ✅ 直接从 @/types 导入
 
 /**
  * 会议服务类
@@ -112,6 +112,40 @@ class MeetingService {
     const result = await meetingApiService.deleteMeetingFile(meetingId, fileId)
     return result.success
   }
+
+  // 议题管理相关
+  async getAgendas(meetingId: string): Promise<MeetingAgenda[]> {
+    return meetingApiService.getAgendas(meetingId)
+  }
+
+  async getAgenda(meetingId: string, agendaId: string): Promise<MeetingAgenda> {
+    return meetingApiService.getAgenda(meetingId, agendaId)
+  }
+
+  async createAgenda(meetingId: string, agendaData: {
+    title: string
+    description?: string
+    duration?: number
+    presenter?: string
+    order_num: number
+  }): Promise<MeetingAgenda> {
+    return meetingApiService.createAgenda(meetingId, agendaData)
+  }
+
+  async updateAgenda(meetingId: string, agendaId: string, updates: {
+    title?: string
+    description?: string
+    duration?: number
+    presenter?: string
+    order_num?: number
+  }): Promise<MeetingAgenda> {
+    return meetingApiService.updateAgenda(meetingId, agendaId, updates)
+  }
+
+  async deleteAgenda(meetingId: string, agendaId: string): Promise<boolean> {
+    const result = await meetingApiService.deleteAgenda(meetingId, agendaId)
+    return result.success
+  }
 }
 
 export const meetingService = new MeetingService()
@@ -135,5 +169,12 @@ export const meetingApi = {
   // 文件管理相关
   uploadMeetingFile: meetingService.uploadMeetingFile.bind(meetingService),
   getMeetingFiles: meetingService.getMeetingFiles.bind(meetingService),
-  deleteMeetingFile: meetingService.deleteMeetingFile.bind(meetingService)
+  deleteMeetingFile: meetingService.deleteMeetingFile.bind(meetingService),
+  
+  // 议题管理相关
+  getAgendas: meetingService.getAgendas.bind(meetingService),
+  getAgenda: meetingService.getAgenda.bind(meetingService),
+  createAgenda: meetingService.createAgenda.bind(meetingService),
+  updateAgenda: meetingService.updateAgenda.bind(meetingService),
+  deleteAgenda: meetingService.deleteAgenda.bind(meetingService)
 }

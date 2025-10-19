@@ -14,6 +14,7 @@ import type {
   MeetingStats,
   MeetingTemplate,
   MeetingSettings,
+  MeetingAgenda,
   PaginatedResponse,
   OperationResult,
   FileUploadResponse,
@@ -173,6 +174,55 @@ export class MeetingApiService {
    */
   async deleteMeetingFile(meetingId: string, fileId: string): Promise<OperationResult> {
     return await httpClient.delete<OperationResult>(`${this.basePath}/${meetingId}/files/${fileId}`)
+  }
+
+  // ===== 议题管理相关 =====
+
+  /**
+   * 获取会议议题列表
+   */
+  async getAgendas(meetingId: string): Promise<MeetingAgenda[]> {
+    return await httpClient.get<MeetingAgenda[]>(`${this.basePath}/${meetingId}/agendas`)
+  }
+
+  /**
+   * 获取单个议题详情
+   */
+  async getAgenda(meetingId: string, agendaId: string): Promise<MeetingAgenda> {
+    return await httpClient.get<MeetingAgenda>(`${this.basePath}/${meetingId}/agendas/${agendaId}`)
+  }
+
+  /**
+   * 创建议题
+   */
+  async createAgenda(meetingId: string, agendaData: {
+    title: string
+    description?: string
+    duration?: number
+    presenter?: string
+    order_num: number
+  }): Promise<MeetingAgenda> {
+    return await httpClient.post<MeetingAgenda>(`${this.basePath}/${meetingId}/agendas`, agendaData)
+  }
+
+  /**
+   * 更新议题
+   */
+  async updateAgenda(meetingId: string, agendaId: string, updates: {
+    title?: string
+    description?: string
+    duration?: number
+    presenter?: string
+    order_num?: number
+  }): Promise<MeetingAgenda> {
+    return await httpClient.put<MeetingAgenda>(`${this.basePath}/${meetingId}/agendas/${agendaId}`, updates)
+  }
+
+  /**
+   * 删除议题
+   */
+  async deleteAgenda(meetingId: string, agendaId: string): Promise<OperationResult> {
+    return await httpClient.delete<OperationResult>(`${this.basePath}/${meetingId}/agendas/${agendaId}`)
   }
 
   // ===== 统计和其他功能 =====

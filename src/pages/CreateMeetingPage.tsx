@@ -70,7 +70,7 @@ const CreateMeetingPage: React.FC = () => {
       agendas: [{ 
         id: '1', 
         meetingId: '',
-        title: '', 
+        title: '议题一',  // ✅ 默认标题
         description: '', 
         materials: [], 
         order: 1,
@@ -110,7 +110,7 @@ const CreateMeetingPage: React.FC = () => {
           // 确保 agendas 有完整的字段
           agendas: draftData.agendas?.map((a: any) => ({
             ...a,
-            meetingId: draftMeetingId,
+            meetingId: draftMeeting.id,
             status: a.status || 'pending',
             createdAt: a.createdAt || new Date().toISOString(),
             updatedAt: a.updatedAt || new Date().toISOString()
@@ -118,7 +118,34 @@ const CreateMeetingPage: React.FC = () => {
         }))
         console.log('已恢复草稿数据:', draftMeeting.id)
       } else {
-        console.log('草稿会议创建成功:', draftMeeting.id)
+        // 新创建的草稿，先查询是否已有议题
+        console.log('草稿会议创建成功，查询现有议题:', draftMeeting.id)
+        const existingAgendas = await meetingApi.getAgendas(draftMeeting.id)
+        
+        if (existingAgendas && existingAgendas.length > 0) {
+          // 已有议题，加载它们
+          console.log(`发现 ${existingAgendas.length} 个现有议题`)
+          setFormData(prev => ({
+            ...prev,
+            agendas: existingAgendas.map((a: any) => ({
+              id: a.id,
+              meetingId: draftMeeting.id,
+              title: a.title || '',
+              description: a.description || '',
+              duration: a.duration,
+              presenter: a.presenter,
+              materials: [],
+              order: a.order_num || a.order,
+              status: 'pending',
+              createdAt: a.created_at || a.createdAt || new Date().toISOString(),
+              updatedAt: a.updated_at || a.updatedAt || new Date().toISOString()
+            }))
+          }))
+        } else {
+          // 没有议题，创建默认议题
+          console.log('没有现有议题，创建默认议题')
+          await createDefaultAgenda(draftMeeting.id)
+        }
       }
     } catch (error) {
       console.error('初始化草稿失败:', error)
@@ -129,6 +156,43 @@ const CreateMeetingPage: React.FC = () => {
       })
     } finally {
       setIsInitialized(true)
+    }
+  }
+
+  // 为新创建的草稿会议创建默认议题
+  const createDefaultAgenda = async (meetingId: string) => {
+    try {
+      // 直接调用创建议题接口
+      const agendaData = {
+        title: '议题一',  // ✅ 设置默认标题
+        description: '',
+        duration: 30,     // ✅ 默认30分钟
+        order_num: 1      // 第一个议题
+      }
+      
+      const createdAgenda = await meetingApi.createAgenda(meetingId, agendaData)
+      console.log('默认议题创建成功:', createdAgenda.id)
+      
+      // 更新前端 state 中的议题 ID（后端返回的是下划线字段，需要转换）
+      setFormData(prev => ({
+        ...prev,
+        agendas: [{
+          id: createdAgenda.id,
+          meetingId: meetingId,
+          title: createdAgenda.title || '',
+          description: createdAgenda.description || '',
+          duration: createdAgenda.duration,
+          presenter: createdAgenda.presenter,
+          materials: [],
+          order: (createdAgenda as any).order_num || createdAgenda.order || 1,  // ✅ 兼容下划线和驼峰
+          status: 'pending',
+          createdAt: (createdAgenda as any).created_at || createdAgenda.createdAt || new Date().toISOString(),
+          updatedAt: (createdAgenda as any).updated_at || createdAgenda.updatedAt || new Date().toISOString()
+        }]
+      }))
+    } catch (error) {
+      console.error('创建默认议题失败:', error)
+      // 不阻断流程，用户可以继续编辑
     }
   }
 
@@ -150,38 +214,101 @@ const CreateMeetingPage: React.FC = () => {
   }
 
   // 议题管理
-  const addAgenda = () => {
-    const newAgenda: MeetingAgenda = {
-      id: Date.now().toString(),
-      meetingId: draftMeetingId || '',
-      title: '',
-      description: '',
-      materials: [],
-      order: formData.agendas.length + 1,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+  const addAgenda = async () => {
+    if (!draftMeetingId) {
+      addNotification({
+        type: 'error',
+        title: '添加失败',
+        message: '草稿会议未初始化'
+      })
+      return
     }
-    setFormData(prev => ({
-      ...prev,
-      agendas: [...prev.agendas, newAgenda]
-    }))
+
+    try {
+      // 调用后端接口创建议题
+      const agendaData = {
+        title: `议题${formData.agendas.length + 1}`,  // ✅ 默认标题：议题二、议题三...
+        description: '',
+        duration: 30,     // ✅ 默认30分钟
+        order_num: formData.agendas.length + 1
+      }
+      
+      const createdAgenda = await meetingApi.createAgenda(draftMeetingId, agendaData)
+      
+      // 转换为前端格式并添加到 state（后端返回的是下划线字段）
+      const newAgenda: MeetingAgenda = {
+        id: createdAgenda.id,
+        meetingId: draftMeetingId,
+        title: createdAgenda.title || '',
+        description: createdAgenda.description || '',
+        duration: createdAgenda.duration,
+        presenter: createdAgenda.presenter,
+        materials: [],
+        order: (createdAgenda as any).order_num || createdAgenda.order || formData.agendas.length + 1,  // ✅ 兼容下划线和驼峰
+        status: 'pending',
+        createdAt: (createdAgenda as any).created_at || createdAgenda.createdAt || new Date().toISOString(),
+        updatedAt: (createdAgenda as any).updated_at || createdAgenda.updatedAt || new Date().toISOString()
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        agendas: [...prev.agendas, newAgenda]
+      }))
+      
+      console.log('议题添加成功:', createdAgenda.id)
+    } catch (error) {
+      console.error('添加议题失败:', error)
+      addNotification({
+        type: 'error',
+        title: '添加失败',
+        message: '添加议题失败，请重试'
+      })
+    }
   }
 
-  const removeAgenda = (agendaId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      agendas: prev.agendas.filter(a => a.id !== agendaId)
-    }))
+  const removeAgenda = async (agendaId: string) => {
+    if (!draftMeetingId) return
+
+    try {
+      // 调用后端接口删除议题
+      await meetingApi.deleteAgenda(draftMeetingId, agendaId)
+      
+      // 更新前端 state
+      setFormData(prev => ({
+        ...prev,
+        agendas: prev.agendas.filter(a => a.id !== agendaId)
+      }))
+      
+      console.log('议题删除成功:', agendaId)
+    } catch (error) {
+      console.error('删除议题失败:', error)
+      addNotification({
+        type: 'error',
+        title: '删除失败',
+        message: '删除议题失败，请重试'
+      })
+    }
   }
 
-  const updateAgendaName = (agendaId: string, title: string) => {
+  const updateAgendaName = async (agendaId: string, title: string) => {
+    if (!draftMeetingId) return
+
+    // 先更新前端 state（立即响应）
     setFormData(prev => ({
       ...prev,
       agendas: prev.agendas.map(agenda => 
         agenda.id === agendaId ? { ...agenda, title } : agenda
       )
     }))
+
+    try {
+      // 后台同步到后端
+      await meetingApi.updateAgenda(draftMeetingId, agendaId, { title })
+      console.log('议题名称已更新:', agendaId)
+    } catch (error) {
+      console.error('更新议题名称失败:', error)
+      // 静默失败，不影响用户体验
+    }
   }
 
   // 文件上传处理 - 更新为接收 File[] 而不是 FileList
@@ -405,14 +532,8 @@ const CreateMeetingPage: React.FC = () => {
           .map(p => ({
             userId: p.userId,
             role: p.role as 'participant' | 'observer'
-          })),
-        agendas: formData.agendas.map(a => ({
-          title: a.title,
-          description: a.description,
-          duration: a.duration,
-          presenter: a.presenter,
-          order: a.order
-        }))
+          }))
+        // ✅ 议题通过独立接口管理，不在这里发送
       }
 
       await meetingApi.saveDraftMeeting(draftMeetingId, draftData)
@@ -460,14 +581,8 @@ const CreateMeetingPage: React.FC = () => {
           .map(p => ({
             userId: p.userId,
             role: p.role as 'participant' | 'observer'
-          })),
-        agendas: formData.agendas.map(a => ({
-          title: a.title,
-          description: a.description,
-          duration: a.duration,
-          presenter: a.presenter,
-          order: a.order
-        }))
+          }))
+        // ✅ 议题已通过独立接口创建，不需要在这里发送
       }
 
       const meeting = await meetingApi.submitDraftMeeting(draftMeetingId, meetingRequest)
