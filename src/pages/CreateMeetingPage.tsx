@@ -125,21 +125,73 @@ const CreateMeetingPage: React.FC = () => {
         if (existingAgendas && existingAgendas.length > 0) {
           // 已有议题，加载它们
           console.log(`发现 ${existingAgendas.length} 个现有议题`)
+          
+          // 为每个议题加载文件
+          const agendasWithFiles = await Promise.all(
+            existingAgendas.map(async (a: any) => {
+              try {
+                // 查询该议题的文件
+                const filesResponse = await meetingApi.getMeetingFiles(draftMeeting.id, {
+                  agendaId: a.id,
+                  page: 1,
+                  size: 100  // 一次性加载所有文件
+                })
+                
+                const materials = (filesResponse.items || []).map((file: any) => ({
+                  id: file.id,
+                  meetingId: draftMeeting.id,
+                  agendaId: a.id,
+                  name: file.original_name || file.originalName || file.name,
+                  originalName: file.original_name || file.originalName,
+                  size: file.file_size || file.fileSize || file.size,
+                  type: file.mime_type || file.mimeType || file.type,
+                  url: file.file_path || file.filePath || file.url || '',
+                  securityLevel: formData.securityLevel,
+                  uploadedBy: file.uploaded_by || file.uploadedBy || '',
+                  uploadedByName: '',
+                  downloadCount: 0,
+                  version: 1,
+                  isPublic: false,
+                  createdAt: file.created_at || file.createdAt || new Date().toISOString(),
+                  updatedAt: file.updated_at || file.updatedAt || new Date().toISOString()
+                }))
+                
+                return {
+                  id: a.id,
+                  meetingId: draftMeeting.id,
+                  title: a.title || '',
+                  description: a.description || '',
+                  duration: a.duration,
+                  presenter: a.presenter,
+                  materials: materials,  // ✅ 加载的文件
+                  order: a.order_num || a.order,
+                  status: 'pending',
+                  createdAt: a.created_at || a.createdAt || new Date().toISOString(),
+                  updatedAt: a.updated_at || a.updatedAt || new Date().toISOString()
+                }
+              } catch (error) {
+                console.error(`加载议题 ${a.id} 的文件失败:`, error)
+                // 即使加载文件失败，也返回议题
+                return {
+                  id: a.id,
+                  meetingId: draftMeeting.id,
+                  title: a.title || '',
+                  description: a.description || '',
+                  duration: a.duration,
+                  presenter: a.presenter,
+                  materials: [],
+                  order: a.order_num || a.order,
+                  status: 'pending',
+                  createdAt: a.created_at || a.createdAt || new Date().toISOString(),
+                  updatedAt: a.updated_at || a.updatedAt || new Date().toISOString()
+                }
+              }
+            })
+          )
+          
           setFormData(prev => ({
             ...prev,
-            agendas: existingAgendas.map((a: any) => ({
-              id: a.id,
-              meetingId: draftMeeting.id,
-              title: a.title || '',
-              description: a.description || '',
-              duration: a.duration,
-              presenter: a.presenter,
-              materials: [],
-              order: a.order_num || a.order,
-              status: 'pending',
-              createdAt: a.created_at || a.createdAt || new Date().toISOString(),
-              updatedAt: a.updated_at || a.updatedAt || new Date().toISOString()
-            }))
+            agendas: agendasWithFiles
           }))
         } else {
           // 没有议题，创建默认议题
@@ -347,22 +399,61 @@ const CreateMeetingPage: React.FC = () => {
 
       const newMaterials = await Promise.all(uploadPromises)
       
-      // 更新议题材料
-      setFormData(prev => ({
-        ...prev,
-        agendas: prev.agendas.map(agenda => 
-          agenda.id === agendaId 
-            ? { ...agenda, materials: [...agenda.materials, ...newMaterials] }
-            : agenda
-        )
-      }))
+      // ✅ 检查文件是否已存在于当前议题
+      const currentAgenda = formData.agendas.find(a => a.id === agendaId)
+      const existingMaterialIds = new Set(currentAgenda?.materials.map(m => m.id) || [])
       
-      console.log(`成功上传 ${newMaterials.length} 个文件`)
-      addNotification({
-        type: 'success',
-        title: '上传成功',
-        message: `成功上传 ${newMaterials.length} 个文件`
+      const materialsToAdd: MeetingMaterial[] = []
+      const duplicateMaterials: string[] = []
+      
+      newMaterials.forEach(material => {
+        if (existingMaterialIds.has(material.id)) {
+          // 文件已在当前议题中
+          duplicateMaterials.push(material.name)
+        } else {
+          // 新文件或来自其他议题的文件
+          materialsToAdd.push(material)
+        }
       })
+      
+      // 更新议题材料
+      if (materialsToAdd.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          agendas: prev.agendas.map(agenda => 
+            agenda.id === agendaId 
+              ? { ...agenda, materials: [...agenda.materials, ...materialsToAdd] }
+              : agenda
+          )
+        }))
+      }
+      
+      // 给用户提示
+      if (materialsToAdd.length > 0 && duplicateMaterials.length === 0) {
+        // 全部上传成功
+        console.log(`成功上传 ${materialsToAdd.length} 个文件`)
+        addNotification({
+          type: 'success',
+          title: '上传成功',
+          message: `成功上传 ${materialsToAdd.length} 个文件`
+        })
+      } else if (materialsToAdd.length > 0 && duplicateMaterials.length > 0) {
+        // 部分成功，部分重复
+        console.log(`上传 ${materialsToAdd.length} 个文件，${duplicateMaterials.length} 个文件已存在`)
+        addNotification({
+          type: 'warning',
+          title: '部分文件已存在',
+          message: `成功添加 ${materialsToAdd.length} 个文件，${duplicateMaterials.length} 个文件已在当前议题中`
+        })
+      } else if (duplicateMaterials.length > 0) {
+        // 全部重复
+        console.log(`所有文件都已存在于当前议题`)
+        addNotification({
+          type: 'info',
+          title: '文件已存在',
+          message: `所选文件已在当前议题中，无需重复添加`
+        })
+      }
     } catch (error) {
       console.error('文件上传失败:', error)
       addNotification({

@@ -165,8 +165,18 @@ export class MeetingApiService {
   /**
    * 获取会议文件列表
    */
-  async getMeetingFiles(meetingId: string): Promise<FileUploadResponse[]> {
-    return await httpClient.get<FileUploadResponse[]>(`${this.basePath}/${meetingId}/files`)
+  async getMeetingFiles(
+    meetingId: string,
+    filters?: {
+      agendaId?: string  // ✅ 添加议题ID过滤
+      page?: number
+      size?: number
+    }
+  ): Promise<PaginatedResponse<FileUploadResponse>> {
+    return await httpClient.get<PaginatedResponse<FileUploadResponse>>(
+      `${this.basePath}/${meetingId}/files`,
+      filters
+    )
   }
 
   /**
