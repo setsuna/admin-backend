@@ -34,8 +34,26 @@ export function useMeetingAgenda(meetingId: string | null) {
           })
           
           const agenda = transformAgendaFromApi(a, meetingId)
-          // 直接使用后端返回的文件数据
-          agenda.materials = filesResponse.items || []
+          
+          // ✅ 转换文件数据：后端下划线 → 前端驼峰
+          agenda.materials = (filesResponse.items || []).map((file: any) => ({
+            id: file.id,
+            meetingId: meetingId,
+            agendaId: a.id,
+            name: file.original_name || file.originalName || file.name || '',
+            originalName: file.original_name || file.originalName || file.name || '',
+            size: file.file_size || file.fileSize || file.size || 0,
+            type: file.mime_type || file.mimeType || file.type || '',
+            url: file.file_path || file.filePath || file.url || '',
+            securityLevel: file.security_level || file.securityLevel || null,
+            uploadedBy: file.uploaded_by || file.uploadedBy || '',
+            uploadedByName: file.uploaded_by_name || file.uploadedByName || '',
+            downloadCount: file.download_count || file.downloadCount || 0,
+            version: file.version || 1,
+            isPublic: file.is_public || file.isPublic || false,
+            createdAt: file.created_at || file.createdAt || new Date().toISOString(),
+            updatedAt: file.updated_at || file.updatedAt || new Date().toISOString()
+          }))
           
           return agenda
         } catch (error) {

@@ -74,9 +74,9 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
 
       {/* 文件信息 */}
       <div className="flex items-center gap-2 flex-1 min-w-0">
-        {getFileIcon(material.name)}
-        <span className="text-sm text-gray-900 truncate" title={material.name}>
-          {material.name}
+        {getFileIcon(material.name || material.originalName || 'unknown')}
+        <span className="text-sm text-gray-900 truncate" title={material.name || material.originalName}>
+          {material.name || material.originalName || '未命名文件'}
         </span>
         {/* ✅ 显示密级标签 */}
         {material.securityLevel && (

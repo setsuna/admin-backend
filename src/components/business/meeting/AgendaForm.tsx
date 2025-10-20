@@ -29,6 +29,11 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
   const [editingAgenda, setEditingAgenda] = useState<string | null>(null)
   
   const getFileIcon = (fileName: string) => {
+    // ✅ 防御性编程：检查 fileName 是否存在
+    if (!fileName) {
+      return <File className="h-4 w-4 text-gray-500" />
+    }
+    
     const ext = fileName.split('.').pop()?.toLowerCase()
     switch (ext) {
       case 'pdf':

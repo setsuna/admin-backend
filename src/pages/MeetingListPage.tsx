@@ -106,7 +106,7 @@ const MeetingListPage: React.FC = () => {
   const handleMeetingClick = (meeting: Meeting) => {
     // 导航到会议编辑页面
     console.log('Edit meeting:', meeting.id)
-    // 这里应该导航到编辑页面
+    navigate(`/meetings/edit/${meeting.id}`)
   }
 
   const handleCreateMeeting = () => {

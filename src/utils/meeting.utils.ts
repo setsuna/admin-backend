@@ -50,10 +50,10 @@ export function transformFileFromApi(apiFile: any, meetingId: string, agendaId: 
     id: apiFile.id,
     meetingId: meetingId,
     agendaId: agendaId,
-    name: apiFile.original_name || apiFile.originalName || apiFile.name,
-    originalName: apiFile.original_name || apiFile.originalName || apiFile.name,
-    size: apiFile.file_size || apiFile.fileSize || apiFile.size,
-    type: apiFile.mime_type || apiFile.mimeType || apiFile.type,
+    name: apiFile.original_name || apiFile.originalName || apiFile.name || '未命名文件',  // ✅ 添加默认值
+    originalName: apiFile.original_name || apiFile.originalName || apiFile.name || '未命名文件',  // ✅ 添加默认值
+    size: apiFile.file_size || apiFile.fileSize || apiFile.size || 0,
+    type: apiFile.mime_type || apiFile.mimeType || apiFile.type || 'application/octet-stream',
     url: apiFile.file_path || apiFile.filePath || apiFile.url || '',
     securityLevel: securityLevel,
     uploadedBy: apiFile.uploaded_by || apiFile.uploadedBy || '',
