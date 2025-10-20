@@ -4,15 +4,16 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { DataTable } from '@/components/features/DataTable'
 import { meetingApi } from '@/services/meeting'
-import { envConfig } from '@/config/env.config'
+import { getConfig } from '@/config'
 import { debounce, formatDate } from '@/utils'
 import type { Meeting, MeetingFilters, MeetingStatus, MeetingSecurityLevel, TableColumn } from '@/types'
 
-const statusConfig = {
+const statusConfig: Record<MeetingStatus, { label: string; color: string }> = {
   preparation: { label: '准备', color: 'text-gray-600' },
   distributable: { label: '可下发', color: 'text-blue-600' },
   in_progress: { label: '进行中', color: 'text-green-600' },
-  closed: { label: '关闭', color: 'text-red-600' }
+  closed: { label: '关闭', color: 'text-red-600' },
+  editable: { label: '可编辑', color: 'text-yellow-600' }
 }
 
 const securityLevelConfig = {
@@ -23,7 +24,8 @@ const securityLevelConfig = {
 
 const MyMeetingPage: React.FC = () => {
   // 显示当前使用的API模式
-  console.log('📅 My Meeting: API Mode =', envConfig.ENABLE_MOCK ? 'Mock' : 'Real')
+  const config = getConfig()
+  console.log('📅 My Meeting: API Mode =', config.env.isDevelopment ? 'Development' : 'Production')
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [loading, setLoading] = useState(false)
   const [searchText, setSearchText] = useState('')

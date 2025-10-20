@@ -32,7 +32,7 @@ const UserPage = () => {
   const {
     users,
     departmentOptions,
-    userStats,
+    // userStats, // TODO: 待后端实现
     pagination,
     filters,
     selectedIds,
@@ -49,8 +49,8 @@ const UserPage = () => {
     isDeleting,
     isBatchDeleting,
     resetFilters,
-    refreshData,
-    getPermissionsByRole
+    refreshData
+    // getPermissionsByRole // TODO: 待后端实现
   } = useUser()
   
   // 表单状态

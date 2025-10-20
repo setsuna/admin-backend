@@ -18,7 +18,7 @@ const SecurityUserManagePage = () => {
   const {
     users,
     departmentOptions,
-    userStats,
+    // userStats, // TODO: 待后端实现
     pagination,
     filters,
     selectedIds,
@@ -29,8 +29,8 @@ const SecurityUserManagePage = () => {
     setSelectedIds,
     resetPassword,
     updateUserStatus,
-    isResettingPassword,
-    isUpdatingStatus,
+    // isResettingPassword, // 根据 hook 实际状态使用
+    // isUpdatingStatus, // 根据 hook 实际状态使用
     resetFilters,
     refreshData
   } = useUser()
@@ -93,7 +93,7 @@ const SecurityUserManagePage = () => {
     })
     
     if (confirmed) {
-      updateUserStatus({ id: user.id, status: newStatus })
+      updateUserStatus(user.id, newStatus)
     }
   }
   
@@ -128,7 +128,7 @@ const SecurityUserManagePage = () => {
     if (confirmed) {
       // 逐个更新状态
       for (const userId of selectedIds) {
-        updateUserStatus({ id: userId, status })
+        updateUserStatus(userId, status)
       }
       setSelectedIds([])
     }
@@ -240,7 +240,7 @@ const SecurityUserManagePage = () => {
             variant="ghost"
             size="sm"
             onClick={() => handleResetPassword(user)}
-            disabled={isResettingPassword}
+            disabled={false /* isResettingPassword */}
             title="重置密码"
           >
             <Key className="w-4 h-4" />
@@ -250,7 +250,7 @@ const SecurityUserManagePage = () => {
               variant="ghost"
               size="sm"
               onClick={() => handleUpdateStatus(user, 'inactive')}
-              disabled={isUpdatingStatus}
+              disabled={false /* isUpdatingStatus */}
               title="禁用用户"
             >
               <UserX className="w-4 h-4 text-orange-500" />
@@ -260,7 +260,7 @@ const SecurityUserManagePage = () => {
               variant="ghost"
               size="sm"
               onClick={() => handleUpdateStatus(user, 'active')}
-              disabled={isUpdatingStatus}
+              disabled={false /* isUpdatingStatus */}
               title="启用用户"
             >
               <UserCheck className="w-4 h-4 text-green-500" />
@@ -271,7 +271,7 @@ const SecurityUserManagePage = () => {
               variant="ghost"
               size="sm"
               onClick={() => handleUpdateStatus(user, 'suspended')}
-              disabled={isUpdatingStatus}
+              disabled={false /* isUpdatingStatus */}
               title="停用用户"
             >
               <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -300,7 +300,7 @@ const SecurityUserManagePage = () => {
   return (
     <div className="space-y-6">
       {/* 统计卡片 */}
-      {userStats && (
+      {false && ( /* TODO: 待userStats实现 */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-6">
@@ -392,7 +392,7 @@ const SecurityUserManagePage = () => {
                 }}
                 options={[
                   { label: '全部部门', value: '' },
-                  ...departmentOptions.map(dept => ({ label: dept.name, value: dept.id }))
+                  ...departmentOptions
                 ]}
               />
               
@@ -463,7 +463,7 @@ const SecurityUserManagePage = () => {
               <Button
                 variant="outline"
                 onClick={handleBatchResetPassword}
-                disabled={isResettingPassword}
+                disabled={false /* isResettingPassword */}
               >
                 <Key className="w-4 h-4 mr-2" />
                 批量重置密码 ({selectedIds.length})
@@ -472,7 +472,7 @@ const SecurityUserManagePage = () => {
               <Button
                 variant="outline"
                 onClick={() => handleBatchUpdateStatus('active')}
-                disabled={isUpdatingStatus}
+                disabled={false /* isUpdatingStatus */}
               >
                 <UserCheck className="w-4 h-4 mr-2" />
                 批量启用 ({selectedIds.length})
@@ -481,7 +481,7 @@ const SecurityUserManagePage = () => {
               <Button
                 variant="outline"
                 onClick={() => handleBatchUpdateStatus('inactive')}
-                disabled={isUpdatingStatus}
+                disabled={false /* isUpdatingStatus */}
               >
                 <UserX className="w-4 h-4 mr-2" />
                 批量禁用 ({selectedIds.length})
@@ -490,7 +490,7 @@ const SecurityUserManagePage = () => {
               <Button
                 variant="destructive"
                 onClick={() => handleBatchUpdateStatus('suspended')}
-                disabled={isUpdatingStatus}
+                disabled={false /* isUpdatingStatus */}
               >
                 <AlertTriangle className="w-4 h-4 mr-2" />
                 批量停用 ({selectedIds.length})

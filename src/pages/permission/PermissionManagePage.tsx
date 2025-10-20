@@ -428,7 +428,10 @@ export default function PermissionManagePage() {
           } else {
             createRoleMutation.mutate({
               ...data,
-              status: data.status || 'enabled'
+              status: data.status || 'enabled',
+              type: 'custom',
+              level: 0,
+              isBuiltIn: false
             })
           }
         }}

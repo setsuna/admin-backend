@@ -51,7 +51,7 @@ const MeetingListPage: React.FC = () => {
   const config = getConfig()
   console.log('📊 Meeting List: API Mode =', config.env.isDevelopment ? 'Development' : 'Production')
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user: _user } = useAuth()
   const dialog = useDialog()
   const { showSuccess, showError } = useNotifications()
   const [meetings, setMeetings] = useState<Meeting[]>([])

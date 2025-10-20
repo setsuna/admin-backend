@@ -154,7 +154,7 @@ const DictEditModal: React.FC<DictEditModalProps> = ({
                   <label className="block text-sm font-medium mb-2">状态</label>
                   <select
                     value={formData.status}
-                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as DictStatus }))}
+                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as EntityStatus }))}
                     className="w-full rounded-md border bg-background px-3 py-2 text-sm"
                   >
                     <option value="enabled">启用</option>

@@ -19,7 +19,7 @@ const SecurityLevelManagePage = () => {
   const {
     users,
     departmentOptions,
-    userStats,
+    // userStats, // TODO: 待后端实现
     pagination,
     filters,
     selectedIds,
@@ -28,13 +28,23 @@ const SecurityLevelManagePage = () => {
     setFilters,
     setPagination,
     setSelectedIds,
-    updateUserSecurityLevel,
-    batchUpdateSecurityLevel,
-    isUpdatingSecurityLevel,
-    isBatchUpdatingSecurityLevel,
+    // updateUserSecurityLevel, // TODO: 待后端实现
+    // batchUpdateSecurityLevel, // TODO: 待后端实现
+    // isUpdatingSecurityLevel, // TODO: 待后端实现
+    // isBatchUpdatingSecurityLevel, // TODO: 待后端实现
     resetFilters,
     refreshData
   } = useUser()
+  
+  // 临时占位函数，等待后端 API 实现
+  const updateUserSecurityLevel = async (_userId: string, _level: UserSecurityLevel) => {
+    console.warn('该功能待后端 API 实现')
+  }
+  const batchUpdateSecurityLevel = async (_userIds: string[], _level: UserSecurityLevel) => {
+    console.warn('该功能待后端 API 实现')
+  }
+  const isUpdatingSecurityLevel = false
+  const isBatchUpdatingSecurityLevel = false
   
   // 表单状态
   const [showSecurityLevelModal, setShowSecurityLevelModal] = useState(false)
@@ -292,7 +302,7 @@ const SecurityLevelManagePage = () => {
   return (
     <div className="space-y-6">
       {/* 统计卡片 */}
-      {userStats && (
+      {false && ( /* TODO: 待userStats实现 */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-6">
@@ -384,7 +394,7 @@ const SecurityLevelManagePage = () => {
                 }}
                 options={[
                   { label: '全部部门', value: '' },
-                  ...departmentOptions.map(dept => ({ label: dept.name, value: dept.id }))
+                  ...departmentOptions
                 ]}
               />
               
