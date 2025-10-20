@@ -7,6 +7,7 @@ import { getFormattedExtensions } from '@/utils'
 import { useDialog } from '@/hooks/useModal'
 import { useNotifications } from '@/hooks/useNotifications'
 import { DialogComponents } from '@/components/ui/DialogComponents'
+import { meetingApi } from '@/services/meeting'
 import type { MeetingFormData } from '@/types'
 
 // 导入组件
@@ -23,7 +24,7 @@ const CreateMeetingPage: React.FC = () => {
   const navigate = useNavigate()
   const dialog = useDialog()
   const { confirm } = dialog
-  const { showWarning } = useNotifications()
+  const { showWarning, showSuccess } = useNotifications()
   
   const [showOrgModal, setShowOrgModal] = useState(false)
   
@@ -82,7 +83,7 @@ const CreateMeetingPage: React.FC = () => {
       const result = await initializeDraft()
       if (!result) return
       
-      const { draftData, existingAgendas } = result
+      const { draftData } = result
       
       // 恢复草稿数据
       if (draftData) {
@@ -93,18 +94,34 @@ const CreateMeetingPage: React.FC = () => {
           agendas: prev.agendas
         }))
       }
-      
-      if (existingAgendas.length > 0) {
-        // 有现有议题，加载它们（包含文件）
-        await loadAgendas()
-      } else {
-        // 没有议题，创建默认议题
-        await createDefaultAgenda()
-      }
     }
     
     init()
   }, [])
+  
+  // ✅ 当草稿 ID 初始化后，查询议题
+  useEffect(() => {
+    if (!draftMeetingId || !isInitialized) return
+    
+    const checkAndCreateAgenda = async () => {
+      try {
+        // 查询当前草稿是否已有议题
+        const existingAgendas = await meetingApi.getAgendas(draftMeetingId)
+        
+        if (!existingAgendas || existingAgendas.length === 0) {
+          // 没有议题，创建默认议题
+          await createDefaultAgenda()
+        } else {
+          // 有议题，加载它们
+          await loadAgendas()
+        }
+      } catch (error) {
+        console.error('查询议题失败:', error)
+      }
+    }
+    
+    checkAndCreateAgenda()
+  }, [draftMeetingId, isInitialized])
 
   // 同步 agendas 到 formData
   useEffect(() => {
@@ -153,8 +170,11 @@ const CreateMeetingPage: React.FC = () => {
 
   // 保存草稿
   const handleSaveDraft = async () => {
-    await saveDraft(formData)
-    // API 会返回成功/失败结果
+    const result = await saveDraft(formData)
+    if (result) {
+      showSuccess('保存成功', '草稿已保存')
+    }
+    // 失败时 httpClient 已经自动处理错误并显示通知
   }
 
   // 提交会议

@@ -45,25 +45,29 @@ export function useMeetingDraft() {
 
     setLoading(true)
     
-    const draftData: any = {
-      name: formData.name,
-      description: formData.description,
-      security_level: formData.securityLevel,
-      type: formData.type,
-      start_time: formData.startTime,
-      end_time: formData.endTime,
-      location: formData.location,
-      participants: formData.participants
-        ?.filter(p => p.role !== 'host')
-        .map(p => ({
-          userId: p.userId,
-          role: p.role as 'participant' | 'observer'
-        }))
-    }
+    try {
+      // ✅ 按照 Swagger 接口定义，只发送这些字段
+      const draftData: any = {
+        name: formData.name,
+        description: formData.description,
+        security_level: formData.securityLevel,
+        type: formData.type,
+        start_time: formData.startTime ? `${formData.startTime}:00+08:00` : undefined,  // ✅ 添加秒和时区
+        end_time: formData.endTime ? `${formData.endTime}:00+08:00` : undefined,        // ✅ 添加秒和时区
+        location: formData.location,
+        category: formData.category  // ✅ 添加 category 字段
+        // ❌ 不发送 participants，后端不支持
+      }
 
-    await meetingApi.saveDraftMeeting(draftMeetingId, draftData)
-    setLoading(false)
-    return true
+      await meetingApi.saveDraftMeeting(draftMeetingId, draftData)
+      setLoading(false)
+      return true
+    } catch (error) {
+      console.error('保存草稿失败:', error)
+      setLoading(false)
+      // ✅ 即使失败也返回 false，不阻断用户操作
+      return false
+    }
   }
 
   /**
@@ -79,8 +83,8 @@ export function useMeetingDraft() {
       security_level: formData.securityLevel,
       type: formData.type,
       status: 'preparation',
-      start_time: new Date(formData.startTime).toISOString(),
-      end_time: new Date(formData.endTime).toISOString(),
+      start_time: `${formData.startTime}:00+08:00`,  // ✅ 添加秒和时区
+      end_time: `${formData.endTime}:00+08:00`,      // ✅ 添加秒和时区
       location: formData.location,
       description: formData.description,
       participants: formData.participants
