@@ -32,7 +32,7 @@ export function useMeetingDraft() {
     
     return {
       meetingId: draftMeeting.id,
-      draftData: draftMeeting.data || null,  // 返回草稿数据用于恢复
+      draftData: draftMeeting,  // ✅ 直接使用 draftMeeting，不要访问 .data
       existingAgendas: existingAgendas || []
     }
   }

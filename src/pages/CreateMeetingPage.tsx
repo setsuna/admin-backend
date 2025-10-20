@@ -87,9 +87,22 @@ const CreateMeetingPage: React.FC = () => {
       
       // 恢复草稿数据
       if (draftData) {
+        // ✅ 转换后端字段到前端格式
+        const convertedData: Partial<MeetingFormData> = {
+          name: draftData.name,
+          description: draftData.description || '',
+          securityLevel: draftData.security_level || 'internal',  // 下划线 → 驼峰
+          type: draftData.type || 'standard',
+          category: draftData.category || '部门例会',
+          location: draftData.location || '',
+          // ✅ 时间格式转换："2025-10-20T09:18:00+08:00" → "2025-10-20T09:18"
+          startTime: draftData.start_time ? draftData.start_time.slice(0, 16) : formData.startTime,
+          endTime: draftData.end_time ? draftData.end_time.slice(0, 16) : formData.endTime
+        }
+        
         setFormData(prev => ({
           ...prev,
-          ...draftData,
+          ...convertedData,
           // 保持原有的 agendas，不从 draftData 中恢复
           agendas: prev.agendas
         }))
