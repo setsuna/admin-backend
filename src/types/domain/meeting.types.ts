@@ -393,6 +393,26 @@ export interface MeetingWorkflow extends BaseEntity {
   metadata?: Record<string, any>
 }
 
+// 会议表单数据（用于创建会议页面）
+export interface MeetingFormData {
+  name: string
+  securityLevel: MeetingSecurityLevel
+  category: string
+  startTime: string
+  endTime: string
+  type: MeetingType
+  description: string
+  participants: MeetingParticipant[]
+  agendas: MeetingAgenda[]
+  password: string
+  expiryType: 'none' | 'today' | 'custom'
+  expiryDate: string
+  signInType: 'none' | 'manual' | 'password'
+  location: string
+  organizer: string
+  host: string
+}
+
 // 会议报告
 export interface MeetingReport extends BaseEntity {
   meetingId: string

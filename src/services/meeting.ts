@@ -100,12 +100,12 @@ class MeetingService {
   }
 
   // 文件管理相关
-  async uploadMeetingFile(meetingId: string, file: File, agendaId?: string): Promise<any> {
-    return meetingApiService.uploadMeetingFile(meetingId, file, agendaId)
+  async uploadMeetingFile(meetingId: string, file: File, agendaId?: string, securityLevel?: string): Promise<any> {
+    return meetingApiService.uploadMeetingFile(meetingId, file, agendaId, securityLevel)
   }
 
-  async getMeetingFiles(meetingId: string): Promise<any[]> {
-    return meetingApiService.getMeetingFiles(meetingId)
+  async getMeetingFiles(meetingId: string, filters?: { agendaId?: string; page?: number; size?: number }): Promise<any> {
+    return meetingApiService.getMeetingFiles(meetingId, filters)
   }
 
   async deleteMeetingFile(meetingId: string, fileId: string): Promise<boolean> {
