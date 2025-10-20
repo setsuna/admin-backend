@@ -83,9 +83,9 @@ const DepartmentPageV2 = () => {
       type: 'select' as const,
       options: [
         { label: '无上级部门', value: '' },
-        ...departmentOptions.map(dept => ({
-          label: '  '.repeat(dept.level) + dept.name,
-          value: dept.id
+        ...departmentOptions.map((dept: any) => ({
+          label: dept.label,
+          value: dept.value
         }))
       ]
     },

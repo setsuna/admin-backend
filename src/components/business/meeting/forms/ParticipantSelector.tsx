@@ -35,7 +35,7 @@ const ParticipantSelector: React.FC<ParticipantSelectorProps> = ({
                   key={participant.id}
                   className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
                 >
-                  {participant.name}
+                  {participant.userName || participant.userId}
                   <button
                     onClick={(e) => {
                       e.stopPropagation()

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { X } from 'lucide-react'
-import type { MeetingParticipant, Department, User } from '@/types'
+import type { MeetingParticipant } from '@/types'
 
 /**
  * 组织架构选择器的视图模型 (ViewModel)

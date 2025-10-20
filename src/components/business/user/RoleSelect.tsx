@@ -93,7 +93,7 @@ export function RoleMultiSelect({
       {value.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-2">
           {value.map(selectedValue => {
-            const option = roleOptions.find(opt => opt.value === selectedValue)
+            const option = roleOptions.find((opt: { value: string; label: string }) => opt.value === selectedValue)
             return (
               <span
                 key={selectedValue}
@@ -140,8 +140,8 @@ export function RoleMultiSelect({
           }
         </option>
         {roleOptions
-          .filter(option => !value.includes(option.value))
-          .map(option => (
+          .filter((option: { value: string; label: string }) => !value.includes(option.value))
+          .map((option: { value: string; label: string }) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
@@ -166,7 +166,7 @@ export function RoleDisplay({
 }: RoleDisplayProps) {
   const { roleOptions } = useRoleOptions()
   
-  const role = roleOptions.find(option => option.value === roleCode)
+  const role = roleOptions.find((option: { value: string; label: string }) => option.value === roleCode)
   const displayName = role?.label || roleCode
 
   return (

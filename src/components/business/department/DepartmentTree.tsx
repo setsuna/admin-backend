@@ -3,7 +3,12 @@ import { ChevronRight, ChevronDown, Building2, Users, Edit, Trash2, Plus } from 
 import { Button } from '@/components/ui/Button'
 import { StatusIndicator } from '@/components/ui/StatusIndicator'
 import { Loading } from '@/components/ui/Loading'
-import type { Department, DepartmentTreeNode } from '@/types'
+import type { Department } from '@/types'
+
+interface DepartmentTreeNode extends Department {
+  children?: DepartmentTreeNode[]
+  expanded?: boolean
+}
 
 interface DepartmentTreeProps {
   data: Department[]
@@ -191,7 +196,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
       {/* 子节点 */}
       {hasChildren && isExpanded && (
         <div className="relative">
-          {node.children!.map((child, index) => (
+          {node.children!.map((child: DepartmentTreeNode, index: number) => (
             <TreeNode
               key={child.id}
               node={child}

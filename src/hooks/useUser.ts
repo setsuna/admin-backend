@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { userService, departmentService } from '@/services'
 import { useNotifications } from '@/hooks/useNotifications'
-import type { UserFilters, CreateUserRequest, UpdateUserRequest, UserSecurityLevel } from '@/types'
+import type { UserFilters, CreateUserRequest, UpdateUserRequest } from '@/types'
 
 export interface UseUserOptions {
   initialFilters?: UserFilters
@@ -14,7 +14,6 @@ export interface UseUserOptions {
 /**
  * 用户管理Hook
  * 处理用户的增删改查和相关业务逻辑
- * 注意：状态管理边界明确，只管理服务端数据同步，不涉及全局状态
  */
 export const useUser = (options: UseUserOptions = {}) => {
   const { 
@@ -27,12 +26,12 @@ export const useUser = (options: UseUserOptions = {}) => {
   const { showSuccess, showError } = useNotifications()
   const queryClient = useQueryClient()
   
-  // 本地状态管理 - 这些状态不需要全局共享
+  // 本地状态管理
   const [filters, setFilters] = useState<UserFilters>(initialFilters)
   const [pagination, setPagination] = useState(initialPagination)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   
-  // 服务端状态查询 - 使用TanStack Query管理
+  // 服务端状态查询
   const userQuery = useQuery({
     queryKey: ['users', filters, pagination],
     queryFn: () => userService.getUsers({ ...filters, ...pagination }),
@@ -42,19 +41,12 @@ export const useUser = (options: UseUserOptions = {}) => {
   const departmentOptionsQuery = useQuery({
     queryKey: ['departmentOptions'],
     queryFn: () => departmentService.getDepartmentOptions(),
-    staleTime: 10 * 60 * 1000, // 10分钟缓存
-  })
-  
-  const userStatsQuery = useQuery({
-    queryKey: ['userStats'],
-    queryFn: () => userService.getUserStats(),
-    staleTime: 5 * 60 * 1000, // 5分钟缓存
+    staleTime: 10 * 60 * 1000,
   })
   
   // 缓存失效函数
   const invalidateQueries = () => {
     queryClient.invalidateQueries({ queryKey: ['users'] })
-    queryClient.invalidateQueries({ queryKey: ['userStats'] })
   }
   
   // 创建用户
@@ -71,7 +63,8 @@ export const useUser = (options: UseUserOptions = {}) => {
   
   // 更新用户
   const updateMutation = useMutation({
-    mutationFn: (data: UpdateUserRequest) => userService.updateUser(data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateUserRequest }) => 
+      userService.updateUser(id, data),
     onSuccess: () => {
       showSuccess('更新成功', '用户信息已成功更新')
       invalidateQueries()
@@ -95,7 +88,7 @@ export const useUser = (options: UseUserOptions = {}) => {
   
   // 批量删除
   const batchDeleteMutation = useMutation({
-    mutationFn: (ids: string[]) => userService.batchDeleteUsers(ids),
+    mutationFn: (ids: string[]) => userService.deleteUsers(ids),
     onSuccess: (_, ids) => {
       showSuccess('批量删除成功', `已删除 ${ids.length} 个用户`)
       setSelectedIds([])
@@ -108,7 +101,7 @@ export const useUser = (options: UseUserOptions = {}) => {
   
   // 重置密码
   const resetPasswordMutation = useMutation({
-    mutationFn: (id: string) => userService.resetPassword(id),
+    mutationFn: (id: string) => userService.resetUserPassword(id),
     onSuccess: () => {
       showSuccess('重置成功', '用户密码已重置为默认密码')
     },
@@ -119,44 +112,15 @@ export const useUser = (options: UseUserOptions = {}) => {
   
   // 更新用户状态
   const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: 'active' | 'inactive' | 'suspended' }) => 
+    mutationFn: ({ id, status }: { id: string; status: 'active' | 'inactive' }) => 
       userService.updateUserStatus(id, status),
     onSuccess: (_, { status }) => {
-      const statusMap = { active: '启用', inactive: '禁用', suspended: '停用' }
+      const statusMap = { active: '启用', inactive: '禁用' }
       showSuccess('状态更新成功', `用户已${statusMap[status]}`)
       invalidateQueries()
     },
     onError: (error: any) => {
       showError('状态更新失败', error.message || '请稍后重试')
-    }
-  })
-  
-  // 更新用户密级
-  const updateSecurityLevelMutation = useMutation({
-    mutationFn: ({ id, securityLevel }: { id: string; securityLevel: UserSecurityLevel }) => 
-      userService.updateUserSecurityLevel(id, securityLevel),
-    onSuccess: (_, { securityLevel }) => {
-      const levelMap = { unknown: '未知', internal: '内部', confidential: '机密', secret: '绝密' }
-      showSuccess('密级更新成功', `用户密级已调整为 ${levelMap[securityLevel]}`)
-      invalidateQueries()
-    },
-    onError: (error: any) => {
-      showError('密级更新失败', error.message || '请稍后重试')
-    }
-  })
-  
-  // 批量更新用户密级
-  const batchUpdateSecurityLevelMutation = useMutation({
-    mutationFn: ({ ids, securityLevel }: { ids: string[]; securityLevel: UserSecurityLevel }) => 
-      userService.batchUpdateSecurityLevel(ids, securityLevel),
-    onSuccess: (_, { ids, securityLevel }) => {
-      const levelMap = { unknown: '未知', internal: '内部', confidential: '机密', secret: '绝密' }
-      showSuccess('批量密级更新成功', `已将 ${ids.length} 个用户的密级调整为 ${levelMap[securityLevel]}`)
-      setSelectedIds([])
-      invalidateQueries()
-    },
-    onError: (error: any) => {
-      showError('批量密级更新失败', error.message || '请稍后重试')
     }
   })
   
@@ -171,7 +135,7 @@ export const useUser = (options: UseUserOptions = {}) => {
   }
   
   const toggleSelectAll = () => {
-    const allIds = userQuery.data?.data.items.map(user => user.id) || []
+    const allIds = userQuery.data?.items.map((user: any) => user.id) || []
     setSelectedIds(selectedIds.length === allIds.length ? [] : allIds)
   }
   
@@ -184,74 +148,57 @@ export const useUser = (options: UseUserOptions = {}) => {
   }
   
   const isAllSelected = () => {
-    const allIds = userQuery.data?.data.items.map(user => user.id) || []
+    const allIds = userQuery.data?.items.map((user: any) => user.id) || []
     return allIds.length > 0 && selectedIds.length === allIds.length
   }
   
   const isIndeterminate = () => {
-    const allIds = userQuery.data?.data.items.map(user => user.id) || []
+    const allIds = userQuery.data?.items.map((user: any) => user.id) || []
     return selectedIds.length > 0 && selectedIds.length < allIds.length
-  }
-  
-  // 根据角色获取权限选项
-  const getPermissionsByRole = (role: string): string[] => {
-    const rolePermissions: Record<string, string[]> = {
-      admin: ['user:manage', 'org:manage', 'system:manage', 'meeting:manage', 'dashboard:view'],
-      meeting_admin: ['meeting:manage', 'meeting:create', 'dashboard:view'],
-      auditor: ['audit:view', 'report:view', 'dashboard:view'],
-      user: ['meeting:view', 'dashboard:view']
-    }
-    return rolePermissions[role] || []
   }
   
   return {
     // 数据
-    users: userQuery.data?.data.items || [],
-    departmentOptions: departmentOptionsQuery.data?.data || [],
-    userStats: userStatsQuery.data?.data,
-    pagination: userQuery.data?.data.pagination,
+    users: userQuery.data?.items || [],
+    departmentOptions: departmentOptionsQuery.data || [],
     
-    // 状态
+    pagination: userQuery.data?.pagination,
     filters,
     selectedIds,
+    
+    // 状态
     isLoading: userQuery.isLoading,
     error: userQuery.error,
-    
-    // 状态更新
-    setFilters,
-    setPagination,
-    setSelectedIds,
-    
-    // 操作
-    createUser: createMutation.mutate,
-    updateUser: updateMutation.mutate,
-    deleteUser: deleteMutation.mutate,
-    batchDeleteUsers: batchDeleteMutation.mutate,
-    resetPassword: resetPasswordMutation.mutate,
-    updateUserStatus: updateStatusMutation.mutate,
-    updateUserSecurityLevel: updateSecurityLevelMutation.mutate,
-    batchUpdateSecurityLevel: batchUpdateSecurityLevelMutation.mutate,
-    
-    // 操作状态
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
     isBatchDeleting: batchDeleteMutation.isPending,
-    isResettingPassword: resetPasswordMutation.isPending,
-    isUpdatingStatus: updateStatusMutation.isPending,
-    isUpdatingSecurityLevel: updateSecurityLevelMutation.isPending,
-    isBatchUpdatingSecurityLevel: batchUpdateSecurityLevelMutation.isPending,
     
-    // 工具函数
+    // 选择状态
+    isAllSelected: isAllSelected(),
+    isIndeterminate: isIndeterminate(),
+    
+    // 操作
+    createUser: createMutation.mutate,
+    updateUser: (id: string, data: UpdateUserRequest) => updateMutation.mutate({ id, data }),
+    deleteUser: deleteMutation.mutate,
+    batchDeleteUsers: batchDeleteMutation.mutate,
+    resetPassword: resetPasswordMutation.mutate,
+    updateUserStatus: (id: string, status: 'active' | 'inactive') => 
+      updateStatusMutation.mutate({ id, status }),
+    
+    // 过滤和分页
+    setFilters,
+    setPagination,
     resetFilters,
-    refreshData,
-    invalidateQueries,
+    
+    // 选择
+    setSelectedIds,
     toggleSelectAll,
     toggleSelectId,
-    isAllSelected,
-    isIndeterminate,
-    getPermissionsByRole
+    
+    // 工具
+    refreshData,
+    invalidateQueries
   }
 }
-
-export default useUser

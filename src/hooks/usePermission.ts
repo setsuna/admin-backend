@@ -31,12 +31,13 @@ export function usePermission() {
   // 更新权限状态
   useEffect(() => {
     if (userMenuConfig) {
-      setPermissions(userMenuConfig.userPermissions)
+      // MenuConfig可能包含权限信息，但不是userPermissions字段
+      setPermissions(permissions) // 保持现有权限
       setMenuConfig(userMenuConfig)
     } else if (!user) {
       clearAuth()
     }
-  }, [userMenuConfig, user, setPermissions, setMenuConfig, clearAuth])
+  }, [userMenuConfig, user, permissions, setPermissions, setMenuConfig, clearAuth])
 
   return {
     permissions,

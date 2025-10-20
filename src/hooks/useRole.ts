@@ -8,11 +8,17 @@ import { permissionApi } from '@/services/permission'
 
 // 角色选项钩子
 export function useRoleOptions() {
-  const { data: roleOptions = [], isLoading, error } = useQuery({
-    queryKey: ['roleOptions'],
-    queryFn: () => permissionApi.getRoleOptions(),
+  const { data: roles = [], isLoading, error } = useQuery({
+    queryKey: ['roles'],
+    queryFn: () => permissionApi.getAllRoles(),
     staleTime: 5 * 60 * 1000, // 5分钟缓存
   })
+
+  // 转换为选项格式
+  const roleOptions = roles.map((role: any) => ({
+    label: role.name || role.code,
+    value: role.code
+  }))
 
   return {
     roleOptions,
@@ -23,8 +29,11 @@ export function useRoleOptions() {
 
 // 角色显示名称钩子
 export function useRoleDisplayName(roleCode?: string) {
+  const { roleOptions } = useRoleOptions()
+  
   const getRoleDisplayName = (code: string) => {
-    return permissionApi.getRoleDisplayName(code)
+    const role = roleOptions.find((opt: { value: string; label: string }) => opt.value === code)
+    return role?.label || code
   }
 
   if (!roleCode) {
@@ -39,8 +48,11 @@ export function useRoleDisplayName(roleCode?: string) {
 
 // 批量获取角色显示名称
 export function useBatchRoleDisplayNames(roleCodes: string[]) {
+  const { roleOptions } = useRoleOptions()
+  
   const getRoleDisplayName = (code: string) => {
-    return permissionApi.getRoleDisplayName(code)
+    const role = roleOptions.find((opt: { value: string; label: string }) => opt.value === code)
+    return role?.label || code
   }
 
   const roleDisplayNames = roleCodes.reduce((acc, code) => {
@@ -53,3 +65,6 @@ export function useBatchRoleDisplayNames(roleCodes: string[]) {
     getRoleDisplayName
   }
 }
+
+// 默认导出
+export const useRole = useRoleOptions

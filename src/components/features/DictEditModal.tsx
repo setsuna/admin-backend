@@ -3,7 +3,7 @@ import { X, Plus, Trash2, Save } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import type { DataDict, DictItem, DictStatus, CreateDictRequest } from '@/types'
+import type { DataDict, DictItem, CreateDictRequest, EntityStatus } from '@/types'
 
 interface DictEditModalProps {
   isOpen: boolean
@@ -23,7 +23,7 @@ const DictEditModal: React.FC<DictEditModalProps> = ({
     dictCode: '',
     dictName: '',
     dictType: '',
-    status: 'enabled' as DictStatus,
+    status: 'enabled' as EntityStatus,
     remark: ''
   })
   const [items, setItems] = useState<Omit<DictItem, 'id' | 'createdAt' | 'updatedAt'>[]>([])
@@ -40,6 +40,7 @@ const DictEditModal: React.FC<DictEditModalProps> = ({
       // 安全处理 dict.items，防止 undefined 错误
       const dictItems = dict.items || []
       setItems(dictItems.map(item => ({
+        dictId: dict.id,
         code: item.code,
         name: item.name,
         value: item.value,
@@ -61,6 +62,7 @@ const DictEditModal: React.FC<DictEditModalProps> = ({
 
   const handleAddItem = () => {
     setItems(prev => [...prev, {
+      dictId: dict?.id || '',
       code: '',
       name: '',
       value: '',

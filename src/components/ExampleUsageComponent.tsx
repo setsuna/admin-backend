@@ -7,7 +7,7 @@ import { useAuth, useUI, usePermission, useNotifications } from '@/hooks'
  */
 export const ExampleUsageComponent: React.FC = () => {
   // 1. 使用细粒度的状态选择器，避免不必要的重渲染
-  const { user, setUser } = useAuth() // 只订阅认证相关状态
+  const { user } = useAuth() // 只订阅认证相关状态
   const { theme, setTheme, notifications } = useUI() // 只订阅UI相关状态
   
   // 2. 使用业务逻辑hooks，封装复杂逻辑
@@ -15,7 +15,7 @@ export const ExampleUsageComponent: React.FC = () => {
   const { showSuccess, showError } = useNotifications()
   
   // 3. 组件本地状态，不需要全局管理
-  const [localFormData, setLocalFormData] = React.useState({})
+  const [_localFormData, _setLocalFormData] = React.useState({})
   
   const handleAction = () => {
     if (hasPermission('user:manage')) {

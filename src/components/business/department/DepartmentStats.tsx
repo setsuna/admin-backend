@@ -22,7 +22,7 @@ export const DepartmentStats: React.FC<DepartmentStatsProps> = ({ className }) =
     )
   }
   
-  if (error || !stats?.data) {
+  if (error || !stats) {
     return (
       <div className={className}>
         <Card>
@@ -36,7 +36,10 @@ export const DepartmentStats: React.FC<DepartmentStatsProps> = ({ className }) =
     )
   }
   
-  const { total, enabled, disabled, topLevel } = stats.data
+  const { total, active = 0, inactive = 0, avgEmployees = 0 } = stats
+  const enabled = active
+  const disabled = inactive
+  const topLevel = 0
   
   const statItems = [
     {

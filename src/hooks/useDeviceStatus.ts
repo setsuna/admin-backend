@@ -1,18 +1,17 @@
 import { useEffect } from 'react'
 import { wsService } from '@/services/websocket'
-import { useDeviceStore } from '@/store'
+import { useApp } from '@/store'
 
 // 设备实时状态hook
 export function useDeviceStatus() {
-  const updateDeviceStatus = useDeviceStore(state => state.updateDeviceStatus)
-  const updateDeviceStats = useDeviceStore(state => state.updateDeviceStats)
+  const { updateDeviceStatus, updateDeviceStats } = useApp()
   
   useEffect(() => {
-    const unsubscribeStatus = wsService.on('device_status', (data) => {
+    const unsubscribeStatus = wsService.on('device_status', (data: any) => {
       updateDeviceStatus(data.deviceId, data.status)
     })
     
-    const unsubscribeStats = wsService.on('device_stats', (data) => {
+    const unsubscribeStats = wsService.on('device_stats', (data: any) => {
       updateDeviceStats(data)
     })
     
