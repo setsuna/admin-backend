@@ -93,6 +93,27 @@ export class MeetingApiService {
   }
 
   /**
+   * 打包会议（editable → ready）
+   */
+  async packageMeeting(id: string): Promise<OperationResult> {
+    return await httpClient.post<OperationResult>(`${this.basePath}/${id}/package`)
+  }
+
+  /**
+   * 取消下发（ready → editable）
+   */
+  async cancelReady(id: string): Promise<OperationResult> {
+    return await httpClient.delete<OperationResult>(`${this.basePath}/${id}/package`)
+  }
+
+  /**
+   * 关闭会议（任意状态 → closed）
+   */
+  async closeMeeting(id: string): Promise<OperationResult> {
+    return await httpClient.patch<OperationResult>(`${this.basePath}/${id}/status`, { status: 'closed' })
+  }
+
+  /**
    * 删除会议（仅关闭状态可删除）
    */
   async deleteMeeting(id: string): Promise<OperationResult> {

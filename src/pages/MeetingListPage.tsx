@@ -5,8 +5,13 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { DataTable } from '@/components/features/DataTable'
 import { meetingApi } from '@/services/meeting'
+import { meetingApiService } from '@/services/api/meeting.api'
 import { getConfig } from '@/config'
 import { debounce, formatDate } from '@/utils'
+import { useAuth } from '@/store'
+import { useDialog } from '@/hooks/useModal'
+import { useNotifications } from '@/hooks/useNotifications'
+import { DialogComponents } from '@/components/ui/DialogComponents'
 import type { Meeting, MeetingFilters, MeetingStatus, MeetingSecurityLevel, MeetingType, TableColumn } from '@/types'
 
 // 新的状态配置
@@ -46,6 +51,9 @@ const MeetingListPage: React.FC = () => {
   const config = getConfig()
   console.log('📊 Meeting List: API Mode =', config.env.isDevelopment ? 'Development' : 'Production')
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const dialog = useDialog()
+  const { showSuccess, showError } = useNotifications()
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [loading, setLoading] = useState(false)
   const [searchText, setSearchText] = useState('')
@@ -128,18 +136,98 @@ const MeetingListPage: React.FC = () => {
   }
 
   const handleDeleteMeeting = async (id: string) => {
-    if (window.confirm('确定要删除这个会议吗？')) {
-      try {
-        const success = await meetingApi.deleteMeeting(id)
-        if (success) {
-          loadMeetings() // 重新加载列表
-        } else {
-          alert('删除失败，只有关闭状态的会议才能删除')
-        }
-      } catch (error) {
-        console.error('Delete meeting failed:', error)
-        alert('删除失败')
-      }
+    const confirmed = await dialog.confirm({
+      title: '删除会议',
+      message: '确定要删除这个会议吗？此操作不可恢复。',
+      type: 'danger',
+      confirmText: '删除',
+      cancelText: '取消'
+    })
+    
+    if (!confirmed) return
+    
+    try {
+      const result = await meetingApiService.deleteMeeting(id)
+      showSuccess('删除成功', result.message)
+      loadMeetings()
+    } catch (error: any) {
+      showError('删除失败', error.message)
+    }
+  }
+
+  // 打包会议 (editable → ready)
+  const handlePackageMeeting = async (id: string) => {
+    const confirmed = await dialog.confirm({
+      title: '打包会议',
+      message: '确定要打包这个会议吗？',
+      content: '打包后会议将进入就绪状态，无法编辑。',
+      type: 'warning',
+      confirmText: '确定打包',
+      cancelText: '取消'
+    })
+    
+    if (!confirmed) return
+    
+    try {
+      setLoading(true)
+      const result = await meetingApiService.packageMeeting(id)
+      showSuccess('打包成功', result.message)
+      loadMeetings()
+    } catch (error: any) {
+      showError('打包失败', error.message)
+      loadMeetings() // 刷新列表，后端会把状态改回 editable
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 取消下发 (ready → editable)
+  const handleCancelReady = async (id: string) => {
+    const confirmed = await dialog.confirm({
+      title: '取消下发',
+      message: '确定要取消下发吗？',
+      content: '这将删除已打包的文件，会议恢复为可编辑状态。',
+      type: 'warning',
+      confirmText: '确定取消',
+      cancelText: '保持就绪'
+    })
+    
+    if (!confirmed) return
+    
+    try {
+      setLoading(true)
+      const result = await meetingApiService.cancelReady(id)
+      showSuccess('取消成功', result.message)
+      loadMeetings()
+    } catch (error: any) {
+      showError('取消失败', error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 关闭会议 (任意状态 → closed)
+  const handleCloseMeeting = async (id: string) => {
+    const confirmed = await dialog.confirm({
+      title: '关闭会议',
+      message: '确定要关闭这个会议吗？',
+      content: '关闭后将无法恢复，且只有关闭状态的会议才能被删除。',
+      type: 'warning',
+      confirmText: '确定关闭',
+      cancelText: '取消'
+    })
+    
+    if (!confirmed) return
+    
+    try {
+      setLoading(true)
+      const result = await meetingApiService.closeMeeting(id)
+      showSuccess('关闭成功', result.message)
+      loadMeetings()
+    } catch (error: any) {
+      showError('关闭失败', error.message)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -227,29 +315,78 @@ const MeetingListPage: React.FC = () => {
     {
       key: 'actions',
       title: '操作',
-      width: 120,
+      width: 200,
       align: 'center',
-      render: (_, record: Meeting) => (
-        <div className="flex items-center justify-center gap-1">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => handleMeetingClick(record)}
-          >
-            编辑
-          </Button>
-          {record.status === 'closed' && (
+      render: (_, record: Meeting) => {
+        const mappedStatus = mapLegacyStatus(record.status)
+        
+        return (
+          <div className="flex items-center justify-center gap-1">
+            {/* 编辑/查看按钮 */}
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={() => handleDeleteMeeting(record.id)}
-              className="text-red-600 hover:text-red-700"
+              onClick={() => handleMeetingClick(record)}
             >
-              删除
+              {mappedStatus === 'ready' || mappedStatus === 'closed' ? '查看' : '编辑'}
             </Button>
-          )}
-        </div>
-      ),
+            
+            {/* 状态切换按钮 */}
+            {mappedStatus === 'editable' && (
+              <>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => handlePackageMeeting(record.id)}
+                  className="text-blue-600 hover:text-blue-700"
+                >
+                  打包
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => handleCloseMeeting(record.id)}
+                  className="text-orange-600 hover:text-orange-700"
+                >
+                  关闭
+                </Button>
+              </>
+            )}
+            
+            {mappedStatus === 'ready' && (
+              <>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => handleCancelReady(record.id)}
+                  className="text-yellow-600 hover:text-yellow-700"
+                >
+                  取消下发
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => handleCloseMeeting(record.id)}
+                  className="text-orange-600 hover:text-orange-700"
+                >
+                  关闭
+                </Button>
+              </>
+            )}
+            
+            {mappedStatus === 'closed' && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => handleDeleteMeeting(record.id)}
+                className="text-red-600 hover:text-red-700"
+              >
+                删除
+              </Button>
+            )}
+          </div>
+        )
+      },
     },
   ]
 
@@ -330,6 +467,9 @@ const MeetingListPage: React.FC = () => {
           compact={true}
         />
       </div>
+      
+      {/* 对话框组件 */}
+      <DialogComponents dialog={dialog} />
     </div>
   )
 }
