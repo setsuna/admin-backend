@@ -148,12 +148,16 @@ export class MeetingApiService {
   async uploadMeetingFile(
     meetingId: string, 
     file: File, 
-    agendaId?: string
+    agendaId?: string,
+    securityLevel?: string  // ✅ 添加密级参数
   ): Promise<FileUploadResponse> {
     const formData = new FormData()
     formData.append('file', file)
     if (agendaId) {
-      formData.append('agenda_id', agendaId)  // ✅ 改为下划线
+      formData.append('agenda_id', agendaId)  // ✅ 下划线
+    }
+    if (securityLevel) {
+      formData.append('security_level', securityLevel)  // ✅ 添加密级
     }
 
     return await httpClient.upload<FileUploadResponse>(

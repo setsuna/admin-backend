@@ -28,11 +28,24 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
   isDragging,
   dragOverIndex
 }) => {
-  const securityLevelOptions = [
-    { value: 'internal', label: '内部' },
-    { value: 'confidential', label: '秘密' },
-    { value: 'secret', label: '机密' }
-  ]
+  // ✅ 密级配置：颜色圆点 + 标签
+  const securityLevelConfig = {
+    internal: { 
+      color: 'bg-green-500 hover:bg-green-600',  // 🟢 绿色 = 内部
+      label: '[内部]',
+      textColor: 'text-green-600'
+    },
+    secret: { 
+      color: 'bg-yellow-500 hover:bg-yellow-600',  // 🟡 黄色 = 秘密
+      label: '[秘密]',
+      textColor: 'text-yellow-600'
+    },
+    confidential: { 
+      color: 'bg-red-500 hover:bg-red-600',  // 🔴 红色 = 机密
+      label: '[机密]',
+      textColor: 'text-red-600'
+    }
+  }
 
   const isCurrentDragging = isDragging
   const isDropTarget = dragOverIndex === index
@@ -65,20 +78,33 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
         <span className="text-sm text-gray-900 truncate" title={material.name}>
           {material.name}
         </span>
+        {/* ✅ 显示密级标签 */}
+        {material.securityLevel && (
+          <span className={`text-xs font-medium ${securityLevelConfig[material.securityLevel].textColor}`}>
+            {securityLevelConfig[material.securityLevel].label}
+          </span>
+        )}
       </div>
 
-      {/* 安全级别选择 */}
-      <select
-        value={material.securityLevel}
-        onChange={(e) => onUpdateSecurity(material.id, e.target.value as MeetingSecurityLevel)}
-        className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-      >
-        {securityLevelOptions.map(option => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      {/* ✅ 密级选择：3个颜色圆点（绿黄红顺序） */}
+      <div className="flex items-center gap-1.5">
+        {['internal', 'secret', 'confidential'].map((level) => {
+          const config = securityLevelConfig[level as keyof typeof securityLevelConfig]
+          const isSelected = material.securityLevel === level
+          return (
+            <button
+              key={level}
+              onClick={() => onUpdateSecurity(material.id, level as MeetingSecurityLevel)}
+              className={`w-3 h-3 rounded-full transition-all ${
+                isSelected 
+                  ? `${config.color} ring-2 ring-offset-1 ring-gray-400` 
+                  : `${config.color} opacity-40 hover:opacity-70`
+              }`}
+              title={config.label}
+            />
+          )
+        })}
+      </div>
 
       {/* 删除按钮 */}
       <Button

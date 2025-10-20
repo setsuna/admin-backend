@@ -363,35 +363,50 @@ const CreateMeetingPage: React.FC = () => {
     }
   }
 
-  // 文件上传处理 - 更新为接收 File[] 而不是 FileList
+  // 文件上传处理 - 支持密级选择
   const handleFileUpload = async (agendaId: string, files: File[]) => {
     if (!files || files.length === 0 || !draftMeetingId) return
 
     try {
-      const uploadPromises = files.map(async (file) => {
-        console.log(`上传文件: ${file.name} 到会议: ${draftMeetingId}`)
+      // 为每个文件智能识别密级或让用户选择
+      const filesWithSecurityLevel = files.map(file => {
+        // 智能识别文件名中的密级
+        const detectedLevel = detectSecurityLevelFromFilename(file.name)
+        return {
+          file,
+          securityLevel: detectedLevel  // 如果识别到就自动设置，否则为 null
+        }
+      })
+
+      const uploadPromises = filesWithSecurityLevel.map(async ({ file, securityLevel }) => {
+        console.log(`上传文件: ${file.name} 到会议: ${draftMeetingId}, 密级: ${securityLevel || '未设置'}`)
         
-        // 使用真实的 API 上传文件
-        const uploadedFile = await meetingApi.uploadMeetingFile(draftMeetingId, file, agendaId)
+        // 使用真实的 API 上传文件（包含密级）
+        const uploadedFile = await meetingApi.uploadMeetingFile(
+          draftMeetingId, 
+          file, 
+          agendaId,
+          securityLevel  // ✅ 传递密级
+        )
         
         // 转换为 MeetingMaterial 格式
         const material: MeetingMaterial = {
           id: uploadedFile.id,
           meetingId: draftMeetingId,
           agendaId,
-          name: (uploadedFile as any).original_name || file.name,  // ✅ 使用下划线字段
+          name: (uploadedFile as any).original_name || file.name,
           originalName: (uploadedFile as any).original_name || file.name,
-          size: (uploadedFile as any).file_size || file.size,  // ✅ 使用下划线字段
-          type: (uploadedFile as any).mime_type || file.type,  // ✅ 使用下划线字段
+          size: (uploadedFile as any).file_size || file.size,
+          type: (uploadedFile as any).mime_type || file.type,
           url: uploadedFile.url || '',
-          securityLevel: formData.securityLevel,
-          uploadedBy: (uploadedFile as any).uploaded_by || '',  // ✅ 使用下划线字段
+          securityLevel: securityLevel || null,  // ✅ 使用选择的密级或识别的密级
+          uploadedBy: (uploadedFile as any).uploaded_by || '',
           uploadedByName: '',
           downloadCount: 0,
           version: 1,
           isPublic: false,
-          createdAt: (uploadedFile as any).created_at || new Date().toISOString(),  // ✅ 使用下划线字段
-          updatedAt: (uploadedFile as any).updated_at || new Date().toISOString()   // ✅ 使用下划线字段
+          createdAt: (uploadedFile as any).created_at || new Date().toISOString(),
+          updatedAt: (uploadedFile as any).updated_at || new Date().toISOString()
         }
         
         return material
@@ -462,6 +477,25 @@ const CreateMeetingPage: React.FC = () => {
         message: '文件上传失败，请重试'
       })
     }
+  }
+
+  // 智能识别文件名中的密级
+  const detectSecurityLevelFromFilename = (filename: string): MeetingSecurityLevel | null => {
+    const lowerFilename = filename.toLowerCase()
+    
+    // 检查文件名中是否包含密级关键词
+    if (lowerFilename.includes('秘密') || lowerFilename.includes('secret')) {
+      return 'secret'
+    }
+    if (lowerFilename.includes('机密') || lowerFilename.includes('confidential')) {
+      return 'confidential'
+    }
+    if (lowerFilename.includes('内部') || lowerFilename.includes('internal')) {
+      return 'internal'
+    }
+    
+    // 没有识别到密级关键词
+    return null
   }
 
   const removeMaterial = async (agendaId: string, materialId: string) => {
