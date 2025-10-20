@@ -12,6 +12,7 @@ import type {
   EntityStatus,
   ActiveStatus
 } from '../common'
+import type { MeetingStatus } from '../domain'
 
 // 通用查询参数
 export interface QueryParams extends PaginationParams, SortParams, BaseFilters {}
@@ -133,7 +134,7 @@ export interface PermissionFilters extends BaseFilters {
 
 // 会议相关请求
 export type MeetingType = 'standard' | 'tablet'
-export type MeetingStatus = 'preparation' | 'distributable' | 'in_progress' | 'closed'
+// MeetingStatus 从 domain/meeting.types.ts 导入
 
 export interface CreateMeetingRequest {
   name: string

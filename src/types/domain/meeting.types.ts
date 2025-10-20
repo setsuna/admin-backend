@@ -14,7 +14,10 @@ import type {
 export type MeetingType = 'standard' | 'tablet'
 
 // 会议状态枚举
-export type MeetingStatus = 'preparation' | 'distributable' | 'in_progress' | 'closed'
+export type MeetingStatus = 'editable' | 'ready' | 'closed'
+
+// 旧状态类型（用于兼容性映射）
+export type LegacyMeetingStatus = 'preparation' | 'distributable' | 'in_progress' | 'closed'
 
 // 参与者角色枚举
 export type ParticipantRole = 'host' | 'participant' | 'observer'

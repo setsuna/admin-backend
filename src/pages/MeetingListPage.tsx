@@ -9,11 +9,25 @@ import { getConfig } from '@/config'
 import { debounce, formatDate } from '@/utils'
 import type { Meeting, MeetingFilters, MeetingStatus, MeetingSecurityLevel, MeetingType, TableColumn } from '@/types'
 
+// 新的状态配置
 const statusConfig = {
-  preparation: { label: '准备', color: 'text-gray-600' },
-  distributable: { label: '可下发', color: 'text-blue-600' },
-  in_progress: { label: '进行中', color: 'text-green-600' },
+  editable: { label: '可编辑', color: 'text-blue-600' },
+  ready: { label: '就绪', color: 'text-green-600' },
   closed: { label: '关闭', color: 'text-red-600' }
+}
+
+// 旧状态到新状态的映射（用于兼容后端可能返回的旧状态）
+const mapLegacyStatus = (status: string): MeetingStatus => {
+  const statusMap: Record<string, MeetingStatus> = {
+    'preparation': 'editable',
+    'distributable': 'ready',
+    'in_progress': 'editable',
+    'closed': 'closed',
+    // 新状态直接返回
+    'editable': 'editable',
+    'ready': 'ready'
+  }
+  return statusMap[status] || 'editable'
 }
 
 const securityLevelConfig = {
@@ -158,7 +172,9 @@ const MeetingListPage: React.FC = () => {
   }
 
   const renderStatus = (status: MeetingStatus) => {
-    const config = statusConfig[status]
+    // 映射旧状态到新状态
+    const mappedStatus = mapLegacyStatus(status)
+    const config = statusConfig[mappedStatus]
     return (
       <span className={`font-medium ${config.color}`}>
         {config.label}
@@ -283,8 +299,8 @@ const MeetingListPage: React.FC = () => {
               className="rounded-md border bg-background px-3 py-2 text-sm"
             >
               <option value="">状态</option>
-              <option value="preparation">准备</option>
-              <option value="distributable">可下发</option>
+              <option value="editable">可编辑</option>
+              <option value="ready">就绪</option>
               <option value="closed">关闭</option>
             </select>
           </div>
