@@ -21,7 +21,7 @@ export function usePermission() {
   } = useAuth()
 
   // 获取用户菜单配置
-  const { data: userMenuConfig, isLoading } = useQuery({
+  const { data: userMenuConfig, isLoading, isSuccess } = useQuery({
     queryKey: ['userMenuConfig', user?.id],
     queryFn: () => user ? permissionApi.getUserMenuConfig(user) : Promise.resolve(null),
     enabled: !!user,
@@ -30,14 +30,16 @@ export function usePermission() {
 
   // 更新权限状态
   useEffect(() => {
-    if (userMenuConfig) {
-      // MenuConfig可能包含权限信息，但不是userPermissions字段
-      setPermissions(permissions) // 保持现有权限
+    if (userMenuConfig && isSuccess) {
+      // 🔧 修复：从 userMenuConfig 中提取 userPermissions 字段
+      const userPerms = userMenuConfig.userPermissions || []
+      setPermissions(userPerms)
       setMenuConfig(userMenuConfig)
     } else if (!user) {
       clearAuth()
     }
-  }, [userMenuConfig, user, permissions, setPermissions, setMenuConfig, clearAuth])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userMenuConfig, user, isSuccess])
 
   return {
     permissions,

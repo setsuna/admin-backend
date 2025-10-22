@@ -391,18 +391,21 @@ export interface MenuItem extends BaseEntity {
 
 // 菜单配置
 export interface MenuConfig extends BaseEntity {
-  name: string
-  type: 'admin' | 'user' | 'mobile'
+  name?: string
+  type?: 'admin' | 'user' | 'mobile'
   menus: MenuItem[]
-  defaultExpanded: string[]
-  theme: 'light' | 'dark'
-  mode: 'horizontal' | 'vertical' | 'inline'
-  collapsed: boolean
-  width: number
-  version: number
-  isActive: boolean
+  defaultExpanded?: string[]
+  theme?: 'light' | 'dark'
+  mode?: 'horizontal' | 'vertical' | 'inline'
+  collapsed?: boolean
+  width?: number
+  version?: number
+  isActive?: boolean
   roles?: string[]
   environments?: string[]
+  // 🆕 用户权限字段（来自 /menus/user-config API）
+  userId?: string
+  userPermissions?: string[]
 }
 
 // 系统日志
