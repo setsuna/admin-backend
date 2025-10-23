@@ -5,6 +5,21 @@
 import type { MeetingFormData } from '@/types'
 
 /**
+ * 格式化日期为本地时间字符串（YYYY-MM-DDTHH:mm）
+ * @param date - Date对象
+ * @returns 格式化后的本地时间字符串
+ */
+function formatLocalDateTime(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+/**
  * 计算默认会议时间
  * 规则：取当日整半小时，结束时间比开始时间晚30分钟
  */
@@ -31,8 +46,8 @@ export function getDefaultMeetingTimes() {
   const endTime = new Date(startTime.getTime() + 30 * 60 * 1000)
   
   return {
-    startTime: startTime.toISOString().slice(0, 16),
-    endTime: endTime.toISOString().slice(0, 16)
+    startTime: formatLocalDateTime(startTime),
+    endTime: formatLocalDateTime(endTime)
   }
 }
 
