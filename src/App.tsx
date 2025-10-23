@@ -1,5 +1,6 @@
 import { RouterProvider } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useEffect } from 'react'
 import { router } from './router'
 import { PerformanceMonitor, DevPerformanceTools } from './components/PerformanceMonitor'
@@ -12,21 +13,9 @@ import { checkAndShowExpirationWarning } from '@/utils/errorHandler'
 import { showAlert } from '@/components/ui/DialogProvider'
 // 🔧 修复：导入全局错误处理Hook
 import { useErrorHandler } from '@/hooks/useErrorHandler'
+// 🔧 使用新的 query config
+import { queryClient } from '@/config/query.config'
 import './styles/globals.css'
-
-// 创建QueryClient实例
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5分钟
-    },
-    mutations: {
-      retry: 1,
-    },
-  },
-})
 
 function App() {
   const isDevelopment = import.meta.env.DEV
@@ -86,6 +75,7 @@ function App() {
       <DialogProvider>
         <PerformanceMonitor />
         {isDevelopment && <DevPerformanceTools />}
+        {isDevelopment && <ReactQueryDevtools initialIsOpen={false} />}
         <RouterProvider router={router} />
         <AuthErrorModal />
         {/* 🔧 修复：添加通知组件 */}
