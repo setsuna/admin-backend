@@ -147,6 +147,97 @@ export function convertDraftDataToFormData(draftData: any): Partial<MeetingFormD
 }
 
 /**
+ * 生成议题标题
+ * @param currentCount - 当前议题数量
+ * @returns 议题标题，如 "议题一"、"议题二" 等
+ */
+export function generateAgendaTitle(currentCount: number): string {
+  const numbers = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十']
+  
+  // 如果超过10个，使用数字
+  if (currentCount >= 10) {
+    return `议题${currentCount + 1}`
+  }
+  
+  return `议题${numbers[currentCount]}`
+}
+
+/**
+ * 转换后端议题数据为前端格式
+ * @param apiAgenda - 后端返回的议题数据
+ * @param meetingId - 会议ID
+ * @returns 前端格式的议题数据
+ */
+export function transformAgendaFromApi(apiAgenda: any, meetingId: string): any {
+  return {
+    id: apiAgenda.id,
+    meetingId: meetingId,
+    title: apiAgenda.title || '',
+    description: apiAgenda.description || '',
+    duration: apiAgenda.duration || 30,
+    orderNum: apiAgenda.order_num || apiAgenda.orderNum || 0,
+    materials: [] // 材料需要单独加载
+  }
+}
+
+/**
+ * 从文件名检测密级
+ * @param filename - 文件名
+ * @returns 检测到的密级，如果未检测到则返回 null
+ */
+export function detectSecurityLevelFromFilename(filename: string): 'internal' | 'confidential' | 'secret' | null {
+  const lowerName = filename.toLowerCase()
+  
+  if (lowerName.includes('机密') || lowerName.includes('secret')) {
+    return 'secret'
+  }
+  
+  if (lowerName.includes('秘密') || lowerName.includes('confidential')) {
+    return 'confidential'
+  }
+  
+  if (lowerName.includes('内部') || lowerName.includes('internal')) {
+    return 'internal'
+  }
+  
+  return null
+}
+
+/**
+ * 转换后端文件数据为前端格式
+ * @param apiFile - 后端返回的文件数据
+ * @param meetingId - 会议ID
+ * @param agendaId - 议题ID
+ * @param securityLevel - 密级
+ * @returns 前端格式的文件数据
+ */
+export function transformFileFromApi(
+  apiFile: any, 
+  meetingId: string, 
+  agendaId: string, 
+  securityLevel: 'internal' | 'confidential' | 'secret' | null
+): any {
+  return {
+    id: apiFile.id,
+    meetingId: meetingId,
+    agendaId: agendaId,
+    name: apiFile.original_name || apiFile.originalName || apiFile.name || '',
+    originalName: apiFile.original_name || apiFile.originalName || apiFile.name || '',
+    size: apiFile.file_size || apiFile.fileSize || apiFile.size || 0,
+    type: apiFile.mime_type || apiFile.mimeType || apiFile.type || '',
+    url: apiFile.file_path || apiFile.filePath || apiFile.url || '',
+    securityLevel: securityLevel,
+    uploadedBy: apiFile.uploaded_by || apiFile.uploadedBy || '',
+    uploadedByName: apiFile.uploaded_by_name || apiFile.uploadedByName || '',
+    downloadCount: apiFile.download_count || apiFile.downloadCount || 0,
+    version: apiFile.version || 1,
+    isPublic: apiFile.is_public || apiFile.isPublic || false,
+    createdAt: apiFile.created_at || apiFile.createdAt || new Date().toISOString(),
+    updatedAt: apiFile.updated_at || apiFile.updatedAt || new Date().toISOString()
+  }
+}
+
+/**
  * 验证会议表单数据
  */
 export function validateMeetingForm(formData: MeetingFormData): { valid: boolean; message?: string; title?: string } {

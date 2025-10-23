@@ -14,6 +14,7 @@ import {
   convertDraftDataToFormData, 
   validateMeetingForm 
 } from '@/utils/meeting.utils'
+import { autoAdjustMeetingTimes } from '@/utils/time.utils'
 import type { MeetingFormData } from '@/types'
 
 export function useCreateMeetingForm() {
@@ -110,6 +111,18 @@ export function useCreateMeetingForm() {
 
   // 表单数据更新
   const handleFormDataChange = (field: string, value: any) => {
+    // 🕐 特殊处理：开始时间变化时自动调整时间
+    if (field === 'startTime' && value) {
+      const { startTime, endTime } = autoAdjustMeetingTimes(value)
+      setFormData(prev => ({ 
+        ...prev, 
+        startTime, 
+        endTime 
+      }))
+      return
+    }
+    
+    // 其他字段正常更新
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 

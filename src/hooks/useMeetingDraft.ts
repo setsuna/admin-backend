@@ -5,6 +5,7 @@
 
 import { useState } from 'react'
 import { meetingApi } from '@/services/meeting'
+import { formatToBackendDateTime } from '@/utils/time.utils'
 import type { MeetingFormData } from '@/types/domain/meeting.types'
 import type { MeetingAgenda } from '@/types'
 
@@ -82,13 +83,13 @@ export function useMeetingDraft() {
         draftData.host = formData.host
       }
       
-      // 时间字段：添加秒和时区
+      // 🕐 时间字段：转换为后端需要的 ISO 8601 格式
       if (formData.startTime) {
-        draftData.start_time = `${formData.startTime}:00+08:00`
+        draftData.start_time = formatToBackendDateTime(formData.startTime)
       }
       
       if (formData.endTime) {
-        draftData.end_time = `${formData.endTime}:00+08:00`
+        draftData.end_time = formatToBackendDateTime(formData.endTime)
       }
       
       // 高级设置字段（可选）
@@ -133,8 +134,8 @@ export function useMeetingDraft() {
       security_level: formData.securityLevel,
       type: formData.type,
       status: 'preparation',
-      start_time: `${formData.startTime}:00+08:00`,
-      end_time: `${formData.endTime}:00+08:00`,
+      start_time: formatToBackendDateTime(formData.startTime),  // 🕐 使用格式化函数
+      end_time: formatToBackendDateTime(formData.endTime),      // 🕐 使用格式化函数
       location: formData.location,
       description: formData.description,
       category: formData.category,           // ✅ 添加：会议类别
