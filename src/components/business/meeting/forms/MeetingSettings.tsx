@@ -68,13 +68,19 @@ const MeetingSettings: React.FC<MeetingSettingsProps> = ({
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2">会议密码</label>
               <Input
-                type="password"
+                type="text"
                 value={password}
-                onChange={(e) => onPasswordChange(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value
+                  // 🔧 修复：只允许输入6位数字
+                  if (/^\d{0,6}$/.test(value)) {
+                    onPasswordChange(value)
+                  }
+                }}
                 placeholder="请输入6位数字密码"
                 maxLength={6}
               />
-              <p className="text-xs text-gray-500 mt-1">设置后需要密码才能进入会议</p>
+              <p className="text-xs text-gray-500 mt-1">只能输入6位数字，设置后需要密码才能进入会议</p>
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowPasswordModal(false)}>

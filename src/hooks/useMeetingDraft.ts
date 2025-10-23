@@ -78,15 +78,23 @@ export function useMeetingDraft() {
 
     setLoading(true)
     
+    // 🔧 修复：添加缺失的字段
     const meetingRequest: any = {
       name: formData.name,
       security_level: formData.securityLevel,
       type: formData.type,
       status: 'preparation',
-      start_time: `${formData.startTime}:00+08:00`,  // ✅ 添加秒和时区
-      end_time: `${formData.endTime}:00+08:00`,      // ✅ 添加秒和时区
+      start_time: `${formData.startTime}:00+08:00`,
+      end_time: `${formData.endTime}:00+08:00`,
       location: formData.location,
       description: formData.description,
+      category: formData.category,           // ✅ 添加：会议类别
+      password: formData.password,           // ✅ 添加：会议密码
+      expiry_type: formData.expiryType,      // ✅ 添加：过期类型
+      expiry_date: formData.expiryDate,      // ✅ 添加：过期日期
+      sign_in_type: formData.signInType,     // ✅ 添加：签到方式
+      organizer: formData.organizer,         // ✅ 添加：组织单位
+      host: formData.host,                   // ✅ 添加：会议主持
       participants: formData.participants
         .filter(p => p.role !== 'host')
         .map(p => ({

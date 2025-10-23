@@ -51,18 +51,44 @@ const CreateMeetingPage: React.FC = () => {
     reorderMaterials 
   } = useMeetingMaterial(draftMeetingId, agendas, setAgendas)
   
+  // 🔧 修复：计算默认时间 - 取当日整半小时，结束时间比开始时间晚30分钟
+  const getDefaultTimes = () => {
+    const now = new Date()
+    
+    // 向上取整到最近的半小时
+    const minutes = now.getMinutes()
+    const roundedMinutes = minutes <= 30 ? 30 : 60
+    
+    const startTime = new Date(now)
+    startTime.setMinutes(roundedMinutes)
+    startTime.setSeconds(0)
+    startTime.setMilliseconds(0)
+    
+    // 如果是60分钟，则进位到下一个小时的0分
+    if (roundedMinutes === 60) {
+      startTime.setHours(startTime.getHours() + 1)
+      startTime.setMinutes(0)
+    }
+    
+    // 结束时间 = 开始时间 + 30分钟
+    const endTime = new Date(startTime.getTime() + 30 * 60 * 1000)
+    
+    return {
+      startTime: startTime.toISOString().slice(0, 16),
+      endTime: endTime.toISOString().slice(0, 16)
+    }
+  }
+
   // 表单数据状态
   const [formData, setFormData] = useState<MeetingFormData>(() => {
-    const now = new Date()
-    const startTime = new Date(now.getTime() + 60 * 60 * 1000)
-    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000)
+    const { startTime, endTime } = getDefaultTimes()
     
     return {
       name: '',
       securityLevel: 'internal',
       category: '部门例会',
-      startTime: startTime.toISOString().slice(0, 16),
-      endTime: endTime.toISOString().slice(0, 16),
+      startTime,
+      endTime,
       type: 'standard',
       description: '',
       participants: [],

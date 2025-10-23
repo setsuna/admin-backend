@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import type { MeetingSecurityLevel, MeetingType, MeetingParticipant } from '@/types'
@@ -10,6 +10,51 @@ type SecurityLevel = { value: string; label: string; color: string }
 import MeetingTypeSelect from './forms/MeetingTypeSelect'
 import MeetingSettings from './forms/MeetingSettings'
 import ParticipantSelector from './forms/ParticipantSelector'
+
+// 🔧 修复：支持中文输入法的 Input 组件
+interface ChineseInputProps {
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  maxLength?: number
+}
+
+const ChineseInput: React.FC<ChineseInputProps> = ({ value, onChange, placeholder, maxLength }) => {
+  const isComposing = useRef(false)
+
+  const handleCompositionStart = () => {
+    isComposing.current = true
+  }
+
+  const handleCompositionEnd = (e: React.CompositionEvent<HTMLInputElement>) => {
+    isComposing.current = false
+    const newValue = (e.target as HTMLInputElement).value
+    if (!maxLength || newValue.length <= maxLength) {
+      onChange(newValue)
+    }
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // 只在非组合状态下才更新
+    if (!isComposing.current) {
+      const newValue = e.target.value
+      if (!maxLength || newValue.length <= maxLength) {
+        onChange(newValue)
+      }
+    }
+  }
+
+  return (
+    <Input
+      value={value}
+      onChange={handleChange}
+      onCompositionStart={handleCompositionStart}
+      onCompositionEnd={handleCompositionEnd}
+      placeholder={placeholder}
+      maxLength={maxLength}
+    />
+  )
+}
 
 interface BasicInfoFormProps {
   formData: {
@@ -194,22 +239,17 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-sm font-medium mb-1">会议地点</label>
-          <Input
+          <ChineseInput
             value={formData.location || ''}
-            onChange={(e) => onFormDataChange('location', e.target.value)}
+            onChange={(value) => onFormDataChange('location', value)}
             placeholder="请输入会议地点"
           />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">组织单位</label>
-          <Input
+          <ChineseInput
             value={formData.organizer || ''}
-            onChange={(e) => {
-              const value = e.target.value
-              if (value.length <= 15) {
-                onFormDataChange('organizer', value)
-              }
-            }}
+            onChange={(value) => onFormDataChange('organizer', value)}
             placeholder="请输入组织单位"
             maxLength={15}
           />
@@ -243,14 +283,9 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">会议主持</label>
-          <Input
+          <ChineseInput
             value={formData.host || ''}
-            onChange={(e) => {
-              const value = e.target.value
-              if (value.length <= 10) {
-                onFormDataChange('host', value)
-              }
-            }}
+            onChange={(value) => onFormDataChange('host', value)}
             placeholder="请输入主持人"
             maxLength={10}
           />
