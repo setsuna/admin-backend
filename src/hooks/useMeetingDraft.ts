@@ -1,11 +1,10 @@
 /**
  * 会议草稿管理 Hook
  * 负责草稿的初始化、保存、提交
- * 重构：使用 TanStack Query 的 useMutation
+ * ✅ 重构：使用 TanStack Query - 初始化用 useQuery，修改操作用 useMutation
  */
 
-import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { meetingApi } from '@/services/meeting'
 import { formatToBackendDateTime } from '@/utils/time.utils'
 import { useNotifications } from './useNotifications'
@@ -14,15 +13,19 @@ import type { MeetingFormData, MeetingAgenda, MeetingParticipant } from '@/types
 export function useMeetingDraft() {
   const queryClient = useQueryClient()
   const { showSuccess, showError } = useNotifications()
-  const [draftMeetingId, setDraftMeetingId] = useState<string | null>(null)
-  const [isInitialized, setIsInitialized] = useState(false)
 
   /**
    * 初始化草稿会议
-   * 重构：使用 useMutation 处理创建操作
+   * ✅ 重构：使用 useQuery，完全禁用缓存，每次都请求最新数据
    */
-  const initializeDraftMutation = useMutation({
-    mutationFn: async () => {
+  const {
+    data: draftData,
+    isLoading: isInitializing,
+    isError,
+    error
+  } = useQuery({
+    queryKey: ['meeting-draft', 'initialize'],
+    queryFn: async () => {
       // 后端幂等接口：有草稿返回现有，无则创建新的
       const draftMeeting = await meetingApi.createDraftMeeting()
       
@@ -35,23 +38,21 @@ export function useMeetingDraft() {
         existingAgendas: existingAgendas || []
       }
     },
-    onSuccess: (data) => {
-      setDraftMeetingId(data.meetingId)
-      setIsInitialized(true)
-    },
-    onError: (error: any) => {
-      showError('初始化失败', error.message)
-    }
+    staleTime: 0,                // 数据立即过期，不使用缓存
+    gcTime: 0,                   // 不保留缓存
+    refetchOnMount: 'always',    // 每次组件挂载都重新请求
+    refetchOnWindowFocus: false, // 窗口聚焦不自动刷新（避免过于频繁）
+    retry: 1,                    // 失败重试 1 次
   })
 
-  const initializeDraft = async (): Promise<{ 
-    meetingId: string
-    draftData: any
-    existingAgendas: MeetingAgenda[] 
-  } | null> => {
-    const result = await initializeDraftMutation.mutateAsync()
-    return result
+  // 显示错误
+  if (isError && error) {
+    showError('初始化失败', (error as Error).message)
   }
+
+  // 提供向后兼容的接口
+  const draftMeetingId = draftData?.meetingId || null
+  const isInitialized = !!draftData
 
   /**
    * 保存草稿
@@ -196,10 +197,16 @@ export function useMeetingDraft() {
   }
 
   return {
+    // 状态
     draftMeetingId,
     isInitialized,
-    loading: initializeDraftMutation.isPending || saveDraftMutation.isPending || submitDraftMutation.isPending,
-    initializeDraft,
+    loading: isInitializing || saveDraftMutation.isPending || submitDraftMutation.isPending,
+    
+    // 草稿数据（包含议题）
+    draftData,
+    existingAgendas: draftData?.existingAgendas || [],
+    
+    // 操作方法
     saveDraft,
     submitDraft
   }

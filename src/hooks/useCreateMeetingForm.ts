@@ -20,12 +20,13 @@ import type { MeetingFormData } from '@/types'
 export function useCreateMeetingForm() {
   const { showWarning, showSuccess } = useNotifications()
   
-  // 草稿管理
+  // ✅ 草稿管理（使用 TanStack Query）
   const { 
     draftMeetingId, 
     isInitialized, 
-    loading, 
-    initializeDraft, 
+    loading,
+    draftData,
+    existingAgendas,
     saveDraft, 
     submitDraft 
   } = useMeetingDraft()
@@ -53,56 +54,41 @@ export function useCreateMeetingForm() {
   // 表单数据状态
   const [formData, setFormData] = useState<MeetingFormData>(getInitialFormData)
 
-  // 初始化草稿会议
+  // ✅ 初始化成功后，恢复草稿数据
   useEffect(() => {
-    const init = async () => {
-      const result = await initializeDraft()
-      if (!result) return
-      
-      const { draftData } = result
-      
-      // 只恢复有效的草稿数据，忽略后端零值
-      if (draftData) {
-        const convertedData = convertDraftDataToFormData(draftData)
-        
-        // 只有当有有效字段时才更新
-        if (Object.keys(convertedData).length > 0) {
-          setFormData(prev => ({
-            ...prev,
-            ...convertedData,
-            // 保持原有的 agendas，不从 draftData 中恢复
-            agendas: prev.agendas
-          }))
-        }
-      }
-    }
+    if (!draftData) return
     
-    init()
-  }, [])
+    // 只恢复有效的草稿数据，忽略后端零值
+    const convertedData = convertDraftDataToFormData(draftData.draftData)
+    
+    // 只有当有有效字段时才更新
+    if (Object.keys(convertedData).length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        ...convertedData,
+        // 保持原有的 agendas，不从 draftData 中恢复
+        agendas: prev.agendas
+      }))
+    }
+  }, [draftData])
   
-  // 当草稿 ID 初始化后，查询议题
+  // ✅ 初始化后处理议题：如果有已存在的议题则加载，否则创建默认议题
   useEffect(() => {
     if (!draftMeetingId || !isInitialized) return
+    if (!draftData) return
     
-    const checkAndCreateAgenda = async () => {
-      try {
-        // 查询当前草稿是否已有议题
-        const existingAgendas = await meetingApi.getAgendas(draftMeetingId)
-        
-        if (!existingAgendas || existingAgendas.length === 0) {
-          // 没有议题，创建默认议题
-          await createDefaultAgenda()
-        } else {
-          // 有议题，加载它们
-          await loadAgendas()
-        }
-      } catch (error) {
-        console.error('查询议题失败:', error)
+    const initAgendas = async () => {
+      if (existingAgendas.length === 0) {
+        // 没有议题，创建默认议题
+        await createDefaultAgenda()
+      } else {
+        // 有议题，加载它们
+        await loadAgendas()
       }
     }
     
-    checkAndCreateAgenda()
-  }, [draftMeetingId, isInitialized])
+    initAgendas()
+  }, [draftMeetingId, isInitialized, draftData])
 
   // 同步 agendas 到 formData
   useEffect(() => {
