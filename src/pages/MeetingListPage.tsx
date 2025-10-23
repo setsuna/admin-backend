@@ -15,36 +15,38 @@ import { DialogComponents } from '@/components/ui/DialogComponents'
 import { useMeetings } from '@/hooks/useMeetings'
 import type { Meeting, MeetingFilters, MeetingStatus, MeetingSecurityLevel, MeetingType, TableColumn } from '@/types'
 
-// 新的状态配置
-const statusConfig = {
+// 会议状态配置（使用后端实际返回的值）
+const statusConfig: Record<string, { label: string; color: string }> = {
+  preparation: { label: '准备中', color: 'text-blue-600' },  // 后端实际返回的值
+  distributable: { label: '可下发', color: 'text-green-600' },
+  closed: { label: '已关闭', color: 'text-red-600' },
+  // 兼容其他可能的状态
   editable: { label: '可编辑', color: 'text-blue-600' },
+  draft: { label: '草稿', color: 'text-gray-600' },
   ready: { label: '就绪', color: 'text-green-600' },
-  closed: { label: '关闭', color: 'text-red-600' }
+  in_progress: { label: '进行中', color: 'text-blue-600' },
+  completed: { label: '已完成', color: 'text-purple-600' },
+  // 兜底
+  unknown: { label: '未知', color: 'text-gray-400' }
 }
 
-// 旧状态到新状态的映射（用于兼容后端可能返回的旧状态）
-const mapLegacyStatus = (status: string): MeetingStatus => {
-  const statusMap: Record<string, MeetingStatus> = {
-    'preparation': 'editable',
-    'distributable': 'ready',
-    'in_progress': 'editable',
-    'closed': 'closed',
-    // 新状态直接返回
-    'editable': 'editable',
-    'ready': 'ready'
-  }
-  return statusMap[status] || 'editable'
-}
-
-const securityLevelConfig = {
+const securityLevelConfig: Record<string, { label: string; color: string }> = {
+  public: { label: '公开', color: 'bg-blue-100 text-blue-800' },
   internal: { label: '内部', color: 'bg-green-100 text-green-800' },
-  confidential: { label: '秘密', color: 'bg-yellow-100 text-yellow-800' },
-  secret: { label: '机密', color: 'bg-red-100 text-red-800' }
+  confidential: { label: '机密', color: 'bg-yellow-100 text-yellow-800' },
+  secret: { label: '秘密', color: 'bg-red-100 text-red-800' },
+  // 兜底
+  unknown: { label: '未知', color: 'bg-gray-100 text-gray-800' }
 }
 
-const typeConfig = {
+const typeConfig: Record<string, { label: string }> = {
+  regular: { label: '常规会议' },
+  emergency: { label: '紧急会议' },
+  review: { label: '评审会议' },
   standard: { label: '标准' },
-  tablet: { label: '平板' }
+  tablet: { label: '平板' },
+  // 兜底
+  unknown: { label: '未知' }
 }
 
 const MeetingListPage: React.FC = () => {
@@ -83,16 +85,11 @@ const MeetingListPage: React.FC = () => {
     type: typeFilter || undefined
   }
   
-  const { meetings, total, isLoading: loading } = useMeetings(
+  const { meetings, total, isLoading: loading, isError, error } = useMeetings(
     filters,
     pagination.page,
     pagination.pageSize
   )
-  
-  // ✅ 同步 total 到 pagination（用于分页显示）
-  React.useEffect(() => {
-    setPagination(prev => ({ ...prev, total }))
-  }, [total])
 
   const handleSearch = (value: string) => {
     debouncedSearch(value)
@@ -233,7 +230,7 @@ const MeetingListPage: React.FC = () => {
   }
 
   const renderSecurityLevel = (level: MeetingSecurityLevel) => {
-    const config = securityLevelConfig[level]
+    const config = securityLevelConfig[level] || securityLevelConfig.unknown
     return (
       <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${config.color}`}>
         <Shield className="w-3 h-3 mr-1" />
@@ -243,9 +240,7 @@ const MeetingListPage: React.FC = () => {
   }
 
   const renderStatus = (status: MeetingStatus) => {
-    // 映射旧状态到新状态
-    const mappedStatus = mapLegacyStatus(status)
-    const config = statusConfig[mappedStatus]
+    const config = statusConfig[status] || statusConfig.unknown
     return (
       <span className={`font-medium ${config.color}`}>
         {config.label}
@@ -277,11 +272,14 @@ const MeetingListPage: React.FC = () => {
       key: 'type',
       title: '类型',
       width: 100,
-      render: (type: MeetingType) => (
-        <span className="text-sm text-muted-foreground">
-          {typeConfig[type].label}
-        </span>
-      ),
+      render: (type: MeetingType) => {
+        const config = typeConfig[type] || typeConfig.unknown
+        return (
+          <span className="text-sm text-muted-foreground">
+            {config.label}
+          </span>
+        )
+      },
     },
     {
       key: 'status',
@@ -301,8 +299,6 @@ const MeetingListPage: React.FC = () => {
       width: 200,
       align: 'center',
       render: (_, record: Meeting) => {
-        const mappedStatus = mapLegacyStatus(record.status)
-        
         return (
           <div className="flex items-center justify-center gap-1">
             {/* 编辑/查看按钮 */}
@@ -311,11 +307,11 @@ const MeetingListPage: React.FC = () => {
               size="sm"
               onClick={() => handleMeetingClick(record)}
             >
-              {mappedStatus === 'ready' || mappedStatus === 'closed' ? '查看' : '编辑'}
+              {(record.status as string) === 'preparation' || record.status === 'draft' ? '编辑' : '查看'}
             </Button>
             
             {/* 状态切换按钮 */}
-            {mappedStatus === 'editable' && (
+            {((record.status as string) === 'preparation' || record.status === 'draft') && (
               <>
                 <Button 
                   variant="ghost" 
@@ -336,7 +332,7 @@ const MeetingListPage: React.FC = () => {
               </>
             )}
             
-            {mappedStatus === 'ready' && (
+            {(record.status === 'ready' || (record.status as string) === 'distributable') && (
               <>
                 <Button 
                   variant="ghost" 
@@ -357,7 +353,7 @@ const MeetingListPage: React.FC = () => {
               </>
             )}
             
-            {mappedStatus === 'closed' && (
+            {record.status === 'closed' && (
               <Button 
                 variant="ghost" 
                 size="sm"
@@ -419,8 +415,8 @@ const MeetingListPage: React.FC = () => {
               className="rounded-md border bg-background px-3 py-2 text-sm"
             >
               <option value="">状态</option>
-              <option value="editable">可编辑</option>
-              <option value="ready">就绪</option>
+              <option value="preparation">准备中</option>
+              <option value="distributable">可下发</option>
               <option value="closed">关闭</option>
             </select>
           </div>
@@ -432,13 +428,25 @@ const MeetingListPage: React.FC = () => {
         </Button>
       </div>
 
+      {/* 错误提示 */}
+      {isError && (
+        <div className="mx-4 p-4 bg-red-50 border border-red-200 text-red-600 rounded-md">
+          <p className="font-medium">加载失败</p>
+          <p className="text-sm mt-1">{error?.message || '未知错误'}</p>
+        </div>
+      )}
+
       {/* 会议列表 */}
       <div className="px-4">
         <DataTable
           data={meetings}
           columns={columns}
           loading={loading}
-          pagination={pagination}
+          pagination={{
+            page: pagination.page,
+            pageSize: pagination.pageSize,
+            total: total
+          }}
           onPaginationChange={(paginationParams) => {
             setPagination(prev => ({
               ...prev,
