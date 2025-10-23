@@ -3,7 +3,7 @@
  * 整合表单状态、草稿初始化、表单验证等逻辑
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useMeetingDraft } from './useMeetingDraft'
 import { useMeetingAgenda } from './useMeetingAgenda'
 import { useMeetingMaterial } from './useMeetingMaterial'
@@ -25,7 +25,6 @@ export function useCreateMeetingForm() {
     isInitialized, 
     loading,
     draftData,
-    existingAgendas,
     saveDraft, 
     submitDraft 
   } = useMeetingDraft()
@@ -33,6 +32,7 @@ export function useCreateMeetingForm() {
   // 议题管理
   const { 
     agendas, 
+    isLoading: agendasLoading,
     loadAgendas,
     createDefaultAgenda,
     addAgenda, 
@@ -51,6 +51,11 @@ export function useCreateMeetingForm() {
   
   // 表单数据状态
   const [formData, setFormData] = useState<MeetingFormData>(getInitialFormData)
+  
+  // 标记议题是否已初始化（避免无限循环）
+  const agendasInitializedRef = useRef(false)
+  // 记录上一次的 agendas 长度，避免无限更新
+  const prevAgendasLengthRef = useRef(0)
 
   // ✅ 初始化成功后，恢复草稿数据
   useEffect(() => {
@@ -74,24 +79,33 @@ export function useCreateMeetingForm() {
   useEffect(() => {
     if (!draftMeetingId || !isInitialized) return
     if (!draftData) return
+    // 等待 agendas 加载完成
+    if (agendasLoading) return
+    // 已经初始化过，不再重复
+    if (agendasInitializedRef.current) return
     
     const initAgendas = async () => {
-      if (existingAgendas.length === 0) {
+      if (!agendas || agendas.length === 0) {
         // 没有议题，创建默认议题
         await createDefaultAgenda()
+        agendasInitializedRef.current = true
       } else {
-        // 有议题，加载它们
-        await loadAgendas()
+        // 已有议题，标记为已初始化
+        agendasInitializedRef.current = true
       }
     }
     
     initAgendas()
-  }, [draftMeetingId, isInitialized, draftData])
+  }, [draftMeetingId, isInitialized, draftData, agendasLoading])
 
-  // 同步 agendas 到 formData
+  // 同步 agendas 到 formData（只在真正变化时）
   useEffect(() => {
-    setFormData(prev => ({ ...prev, agendas }))
-  }, [agendas])
+    // 只在议题数量变化或内容变化时才更新
+    if (agendas.length !== prevAgendasLengthRef.current) {
+      setFormData(prev => ({ ...prev, agendas }))
+      prevAgendasLengthRef.current = agendas.length
+    }
+  }, [agendas.length])
 
   // 表单数据更新
   const handleFormDataChange = (field: string, value: any) => {

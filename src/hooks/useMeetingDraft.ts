@@ -17,6 +17,7 @@ export function useMeetingDraft() {
   /**
    * 初始化草稿会议
    * ✅ 重构：使用 useQuery，完全禁用缓存，每次都请求最新数据
+   * ✅ 修复：移除议题查询，避免与 useMeetingAgenda 重复请求
    */
   const {
     data: draftData,
@@ -29,13 +30,9 @@ export function useMeetingDraft() {
       // 后端幂等接口：有草稿返回现有，无则创建新的
       const draftMeeting = await meetingApi.createDraftMeeting()
       
-      // 查询是否已有议题
-      const existingAgendas = await meetingApi.getAgendas(draftMeeting.id)
-      
       return {
         meetingId: draftMeeting.id,
-        draftData: draftMeeting,
-        existingAgendas: existingAgendas || []
+        draftData: draftMeeting
       }
     },
     staleTime: 0,                // 数据立即过期，不使用缓存
@@ -202,9 +199,8 @@ export function useMeetingDraft() {
     isInitialized,
     loading: isInitializing || saveDraftMutation.isPending || submitDraftMutation.isPending,
     
-    // 草稿数据（包含议题）
+    // 草稿数据
     draftData,
-    existingAgendas: draftData?.existingAgendas || [],
     
     // 操作方法
     saveDraft,
