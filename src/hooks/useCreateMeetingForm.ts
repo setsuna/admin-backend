@@ -4,7 +4,6 @@
  */
 
 import { useState, useEffect } from 'react'
-import { meetingApi } from '@/services/meeting'
 import { useMeetingDraft } from './useMeetingDraft'
 import { useMeetingAgenda } from './useMeetingAgenda'
 import { useMeetingMaterial } from './useMeetingMaterial'
@@ -34,7 +33,6 @@ export function useCreateMeetingForm() {
   // 议题管理
   const { 
     agendas, 
-    setAgendas,
     loadAgendas,
     createDefaultAgenda,
     addAgenda, 
@@ -49,7 +47,7 @@ export function useCreateMeetingForm() {
     removeMaterial, 
     updateMaterialSecurity, 
     reorderMaterials 
-  } = useMeetingMaterial(draftMeetingId, agendas, setAgendas)
+  } = useMeetingMaterial(draftMeetingId, agendas)
   
   // 表单数据状态
   const [formData, setFormData] = useState<MeetingFormData>(getInitialFormData)

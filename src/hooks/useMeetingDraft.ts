@@ -8,7 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { meetingApi } from '@/services/meeting'
 import { formatToBackendDateTime } from '@/utils/time.utils'
 import { useNotifications } from './useNotifications'
-import type { MeetingFormData, MeetingAgenda, MeetingParticipant } from '@/types'
+import type { MeetingFormData, MeetingParticipant } from '@/types'
 
 export function useMeetingDraft() {
   const queryClient = useQueryClient()

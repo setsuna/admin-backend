@@ -1,119 +1,159 @@
 /**
  * 会议材料管理 Hook
  * 负责文件的上传、删除、排序和密级管理
+ * ✅ 重构：使用 TanStack Query
  */
 
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { meetingApi } from '@/services/meeting'
 import { detectSecurityLevelFromFilename, transformFileFromApi } from '@/utils/meeting.utils'
+import { useNotifications } from './useNotifications'
 import type { MeetingMaterial, MeetingSecurityLevel, MeetingAgenda } from '@/types'
 
 export function useMeetingMaterial(
   meetingId: string | null,
-  agendas: MeetingAgenda[],
-  setAgendas: React.Dispatch<React.SetStateAction<MeetingAgenda[]>>
+  agendas: MeetingAgenda[]
 ) {
+  const queryClient = useQueryClient()
+  const { showError } = useNotifications()
+
   /**
    * 上传文件到指定议题
+   * ✅ 重构：使用 useMutation
    */
-  const uploadFiles = async (agendaId: string, files: File[], defaultSecurityLevel: MeetingSecurityLevel) => {
-    if (!files || files.length === 0 || !meetingId) return
-
-    // 为每个文件智能识别密级
-    const filesWithSecurityLevel = files.map(file => ({
-      file,
-      securityLevel: detectSecurityLevelFromFilename(file.name) || defaultSecurityLevel
-    }))
-
-    const uploadPromises = filesWithSecurityLevel.map(async ({ file, securityLevel }) => {
-      const uploadedFile = await meetingApi.uploadMeetingFile(
-        meetingId, 
-        file, 
-        agendaId,
-        securityLevel ?? undefined
-      )
-      
-      return transformFileFromApi(uploadedFile, meetingId, agendaId, securityLevel)
-    })
-
-    const newMaterials = await Promise.all(uploadPromises)
-    
-    // 检查文件是否已存在
-    const currentAgenda = agendas.find(a => a.id === agendaId)
-    const existingMaterialIds = new Set(currentAgenda?.materials.map(m => m.id) || [])
-    
-    const materialsToAdd: MeetingMaterial[] = []
-    
-    newMaterials.forEach(material => {
-      if (!existingMaterialIds.has(material.id)) {
-        materialsToAdd.push(material)
+  const uploadFilesMutation = useMutation({
+    mutationFn: async ({ 
+      agendaId, 
+      files, 
+      defaultSecurityLevel 
+    }: { 
+      agendaId: string
+      files: File[]
+      defaultSecurityLevel: MeetingSecurityLevel 
+    }) => {
+      if (!files || files.length === 0 || !meetingId) {
+        throw new Error('参数不完整')
       }
-    })
-    
-    // 更新议题材料
-    if (materialsToAdd.length > 0) {
-      setAgendas(prev =>
-        prev.map(agenda => 
-          agenda.id === agendaId 
-            ? { ...agenda, materials: [...agenda.materials, ...materialsToAdd] }
-            : agenda
+
+      // 为每个文件智能识别密级
+      const filesWithSecurityLevel = files.map(file => ({
+        file,
+        securityLevel: detectSecurityLevelFromFilename(file.name) || defaultSecurityLevel
+      }))
+
+      const uploadPromises = filesWithSecurityLevel.map(async ({ file, securityLevel }) => {
+        const uploadedFile = await meetingApi.uploadMeetingFile(
+          meetingId, 
+          file, 
+          agendaId,
+          securityLevel ?? undefined
         )
-      )
+        
+        return transformFileFromApi(uploadedFile, meetingId, agendaId, securityLevel)
+      })
+
+      return await Promise.all(uploadPromises)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['meeting-agendas', meetingId] })
+    },
+    onError: (error: any) => {
+      showError('上传失败', error.message)
     }
+  })
+
+  const uploadFiles = async (
+    agendaId: string, 
+    files: File[], 
+    defaultSecurityLevel: MeetingSecurityLevel
+  ) => {
+    await uploadFilesMutation.mutateAsync({ agendaId, files, defaultSecurityLevel })
   }
 
   /**
    * 删除文件
+   * ✅ 重构：使用 useMutation
    */
-  const removeMaterial = async (agendaId: string, materialId: string) => {
-    if (!meetingId) return
+  const removeMaterialMutation = useMutation({
+    mutationFn: async ({ materialId }: { agendaId: string; materialId: string }) => {
+      if (!meetingId) throw new Error('会议ID不存在')
+      await meetingApi.deleteMeetingFile(meetingId, materialId)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['meeting-agendas', meetingId] })
+    },
+    onError: (error: any) => {
+      showError('删除失败', error.message)
+    }
+  })
 
-    await meetingApi.deleteMeetingFile(meetingId, materialId)
-    
-    setAgendas(prev =>
-      prev.map(agenda => 
-        agenda.id === agendaId 
-          ? { ...agenda, materials: agenda.materials.filter(m => m.id !== materialId) }
-          : agenda
-      )
-    )
+  const removeMaterial = async (agendaId: string, materialId: string) => {
+    await removeMaterialMutation.mutateAsync({ agendaId, materialId })
   }
 
   /**
    * 更新文件密级
+   * ✅ 重构：使用 queryClient.setQueryData 进行乐观更新
    */
-  const updateMaterialSecurity = (agendaId: string, materialId: string, securityLevel: MeetingSecurityLevel) => {
-    setAgendas(prev =>
-      prev.map(agenda => 
-        agenda.id === agendaId 
-          ? {
-              ...agenda,
-              materials: agenda.materials.map(material =>
-                material.id === materialId ? { ...material, securityLevel } : material
-              )
-            }
-          : agenda
-      )
+  const updateMaterialSecurity = (
+    agendaId: string, 
+    materialId: string, 
+    securityLevel: MeetingSecurityLevel
+  ) => {
+    queryClient.setQueryData<MeetingAgenda[]>(
+      ['meeting-agendas', meetingId],
+      (oldData) => {
+        if (!oldData) return oldData
+        return oldData.map(agenda => 
+          agenda.id === agendaId 
+            ? {
+                ...agenda,
+                materials: agenda.materials.map(material =>
+                  material.id === materialId ? { ...material, securityLevel } : material
+                )
+              }
+            : agenda
+        )
+      }
     )
   }
 
   /**
    * 重新排序文件
+   * ✅ 重构：使用 useMutation
    */
-  const reorderMaterials = async (agendaId: string, newMaterials: MeetingMaterial[]) => {
-    if (!meetingId) return
-
-    // 先更新本地状态
-    setAgendas(prev =>
-      prev.map(agenda => 
-        agenda.id === agendaId 
-          ? { ...agenda, materials: newMaterials }
-          : agenda
+  const reorderMaterialsMutation = useMutation({
+    mutationFn: async ({ agendaId, newMaterials }: { 
+      agendaId: string
+      newMaterials: MeetingMaterial[] 
+    }) => {
+      if (!meetingId) throw new Error('会议ID不存在')
+      
+      // TODO: 调用后端 API 更新排序
+      // const materialIds = newMaterials.map(m => m.id)
+      // await meetingApi.updateMaterialOrder(meetingId, agendaId, materialIds)
+      
+      // 乐观更新
+      queryClient.setQueryData<MeetingAgenda[]>(
+        ['meeting-agendas', meetingId],
+        (oldData) => {
+          if (!oldData) return oldData
+          return oldData.map(agenda => 
+            agenda.id === agendaId 
+              ? { ...agenda, materials: newMaterials }
+              : agenda
+          )
+        }
       )
-    )
-    
-    // TODO: 调用后端 API 更新排序
-    // const materialIds = newMaterials.map(m => m.id)
-    // await meetingApi.updateMaterialOrder(meetingId, agendaId, materialIds)
+    },
+    onError: (error: any) => {
+      showError('排序失败', error.message)
+      queryClient.invalidateQueries({ queryKey: ['meeting-agendas', meetingId] })
+    }
+  })
+
+  const reorderMaterials = async (agendaId: string, newMaterials: MeetingMaterial[]) => {
+    await reorderMaterialsMutation.mutateAsync({ agendaId, newMaterials })
   }
 
   return {
