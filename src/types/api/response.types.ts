@@ -5,6 +5,15 @@
 // ========== 通用响应 ==========
 
 /**
+ * 验证错误项
+ */
+export interface ValidationError {
+  field: string
+  message: string
+  code?: string
+}
+
+/**
  * 分页信息
  */
 export interface PaginationInfo {
