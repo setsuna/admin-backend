@@ -8,11 +8,15 @@
  * 会议状态
  */
 export type MeetingStatus = 
-  | 'draft'           // 草稿
+  | 'editable'        // 可编辑
   | 'ready'           // 就绪
+  | 'closed'          // 已关闭
+  // 兼容旧状态
+  | 'draft'           // 草稿
+  | 'preparation'     // 准备中
+  | 'distributable'   // 可下发
   | 'in_progress'     // 进行中
   | 'completed'       // 已完成
-  | 'closed'          // 已关闭
 
 /**
  * 会议密级
@@ -27,6 +31,9 @@ export type MeetingSecurityLevel =
  * 会议类型
  */
 export type MeetingType = 
+  | 'standard'        // 标准
+  | 'tablet'          // 平板
+  // 兼容旧类型
   | 'regular'         // 常规会议
   | 'emergency'       // 紧急会议
   | 'review'          // 评审会议
