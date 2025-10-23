@@ -48,8 +48,6 @@ const typeConfig = {
 
 const MeetingListPage: React.FC = () => {
   // 显示当前使用的API模式
-  const config = getConfig()
-  console.log('📊 Meeting List: API Mode =', config.env.isDevelopment ? 'Development' : 'Production')
   const navigate = useNavigate()
   const { user: _user } = useAuth()
   const dialog = useDialog()
@@ -83,11 +81,9 @@ const MeetingListPage: React.FC = () => {
         type: typeFilter || undefined
       }
       const response = await meetingApi.getMeetings(filters, pagination.page, pagination.pageSize)
-      console.log('API Response:', response) // 调试日志
       setMeetings(response.items || [])
       setPagination(prev => ({ ...prev, total: response.pagination?.total || 0 }))
     } catch (error) {
-      console.error('Failed to load meetings:', error)
       setMeetings([])
       setPagination(prev => ({ ...prev, total: 0 }))
     } finally {
@@ -127,7 +123,6 @@ const MeetingListPage: React.FC = () => {
 
   const handleMeetingClick = (meeting: Meeting) => {
     // 导航到会议编辑页面
-    console.log('Edit meeting:', meeting.id)
     navigate(`/meetings/edit/${meeting.id}`)
   }
 

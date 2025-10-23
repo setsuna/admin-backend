@@ -34,12 +34,6 @@ export const requestInterceptor = async (config: InternalAxiosRequestConfig): Pr
   if (token) {
     config.headers = config.headers || {}
     config.headers.Authorization = `${JWT_CONFIG.HEADER_PREFIX} ${token}`
-    // 调试日志
-    console.log('[请求拦截器] Token found:', {
-      tokenExists: !!token,
-      tokenPrefix: token?.substring(0, 20) + '...',
-      authHeader: `${JWT_CONFIG.HEADER_PREFIX} ${token?.substring(0, 20)}...`
-    })
   } else {
     console.log('[请求拦截器] No token found')
   }
@@ -48,18 +42,6 @@ export const requestInterceptor = async (config: InternalAxiosRequestConfig): Pr
   if (config.headers) {
     config.headers.set('X-Request-ID', reqId)
     config.headers.set('X-Timestamp', Date.now().toString())
-  }
-
-  // 开发环境请求日志
-  const appConfig = getConfig()
-  if (appConfig.api.enableRequestLog) {
-    console.group(`🚀 API Request [${reqId}]`)
-    console.log('URL:', `${config.baseURL}${config.url}`)
-    console.log('Method:', config.method?.toUpperCase())
-    console.log('Headers:', config.headers)
-    if (config.params) console.log('Params:', config.params)
-    if (config.data) console.log('Data:', config.data)
-    console.groupEnd()
   }
 
   return config
@@ -72,8 +54,6 @@ export const responseInterceptor = (response: AxiosResponse<ApiResponse>): Axios
   const { config, data } = response
   const extendedConfig = config as ExtendedAxiosRequestConfig
   const requestId = extendedConfig.metadata?.requestId
-  const startTime = extendedConfig.metadata?.startTime
-  const duration = startTime ? Date.now() - startTime : 0
 
   // 添加响应元数据
   if (data && typeof data === 'object') {
@@ -81,18 +61,9 @@ export const responseInterceptor = (response: AxiosResponse<ApiResponse>): Axios
     ;(data as any).timestamp = Date.now()
   }
 
-  // 开发环境响应日志
-  const appConfig = getConfig()
-  if (appConfig.api.enableRequestLog) {
-    console.group(`✅ API Response [${requestId}] - ${duration}ms`)
-    console.log('Status:', response.status)
-    console.log('Data:', data)
-    console.groupEnd()
-  }
 
   // 🔧 修复：正确处理业务错误码 - 使用新错误码常量
   if (data?.code && data.code !== ERROR_CODES.SUCCESS) {
-    console.log(`[响应拦截器] 业务错误 - 码: ${data.code}, 消息: ${data.message}`)
     
     // 创建错误对象，带有完整的后端信息
     const businessError = new Error(data.message || '业务错误')
@@ -114,30 +85,11 @@ export const responseInterceptor = (response: AxiosResponse<ApiResponse>): Axios
 export const errorInterceptor = async (error: AxiosError<ApiResponse>): Promise<never> => {
   const { config, response, request } = error
   const requestId = (config as ExtendedAxiosRequestConfig)?.metadata?.requestId
-  const startTime = (config as ExtendedAxiosRequestConfig)?.metadata?.startTime
-  const duration = startTime ? Date.now() - startTime : 0
 
-  // 开发环境错误日志
-  const appConfig = getConfig()
-  if (appConfig.api.enableRequestLog) {
-    console.group(`❌ API Error [${requestId}] - ${duration}ms`)
-    console.error('Error Message:', error.message)
-    console.error('Response Status:', response?.status)
-    console.error('Response Data:', response?.data)
-    console.error('Full Error:', error)
-    console.groupEnd()
-  }
-
-  // 🔧 修复：优先处理HTTP响应中的业务错误
   if (response && response.data) {
     const { status, data } = response
     
-    console.log(`[错误拦截器] HTTP ${status} 错误，检查业务数据:`, data)
-    
-    // 🆕 关键修复：优先检查是否有业务错误码和信息
     if (data && typeof data === 'object' && data.code && data.message) {
-      console.log(`[错误拦截器] 找到业务错误信息 - 码: ${data.code}, 消息: ${data.message}`)
-      
       // 使用后端返回的具体错误信息和错误码
       await handleApiError(data.code, data.message, data.errors, requestId)
       
@@ -151,9 +103,6 @@ export const errorInterceptor = async (error: AxiosError<ApiResponse>): Promise<
       
       return Promise.reject(businessError)
     }
-    
-    // 🔄 如果没有业务错误信息，按HTTP状态码处理
-    console.log(`[错误拦截器] 未找到业务错误信息，按HTTP状态码处理: ${status}`)
     
     switch (status) {
       case HTTP_STATUS.UNAUTHORIZED:
@@ -185,10 +134,8 @@ export const errorInterceptor = async (error: AxiosError<ApiResponse>): Promise<
   
   // 处理网络错误和请求配置错误
   else if (request) {
-    console.log('[错误拦截器] 网络错误')
     errorHandler.handleError(new Error('网络连接失败，请检查网络设置'), 'NETWORK_ERROR')
   } else {
-    console.log('[错误拦截器] 请求配置错误')
     errorHandler.handleError(new Error('请求配置错误'), 'CONFIG_ERROR')
   }
 
@@ -206,8 +153,6 @@ async function handleApiError(
 ) {
   const category = getErrorCategory(code)
   const userMessage = getErrorMessage(code, message)
-  
-  console.log(`[错误分类处理器] 处理 - 码: ${code}, 分类: ${category}, 后端消息: "${message}", 用户消息: "${userMessage}"`)
   
   switch (category) {
     case 'auth':
@@ -239,14 +184,12 @@ async function handleApiError(
 async function handleAuthError(code: number, backendMessage: string, userMessage: string, requestId?: string) {
   // 需要自动跳转登录的错误码
   if (needsAutoLogin(code)) {
-    console.log(`[认证错误] 自动登出并跳转登录: ${code}, 消息: ${backendMessage}`)
     await auth.logout()
     window.location.href = '/login'
     return
   }
   
   // 其他认证错误显示后端原始提示
-  console.log(`[认证错误] 显示错误: ${code}, 消息: ${backendMessage}`)
   errorHandler.handleError(new Error(backendMessage), 'PERMISSION_DENIED')
 }
 
@@ -271,7 +214,6 @@ function handleFileError(code: number, backendMessage: string, userMessage: stri
     }
   }
   
-  console.log(`[文件错误] 显示错误: ${code}, 最终消息: ${finalMessage}`)
   errorHandler.handleError(new Error(finalMessage), 'BUSINESS_ERROR')
 }
 
@@ -287,7 +229,6 @@ function handleGeneralError(code: number, backendMessage: string, userMessage: s
     return
   }
   
-  console.log(`[通用错误] 显示错误: ${code}, 后端消息: ${backendMessage}`)
   errorHandler.handleError(new Error(backendMessage), 'VALIDATION_ERROR')
 }
 
@@ -296,7 +237,6 @@ function handleGeneralError(code: number, backendMessage: string, userMessage: s
  */
 function handleAuthorizationError(code: number, backendMessage: string, userMessage: string) {
   // 直接使用后端返回的错误信息
-  console.log(`[授权错误] 显示错误: ${code}, 后端消息: ${backendMessage}`)
   errorHandler.handleError(new Error(backendMessage + '，请联系系统管理员'), 'PERMISSION_DENIED')
 }
 
@@ -305,7 +245,6 @@ function handleAuthorizationError(code: number, backendMessage: string, userMess
  */
 function handleSystemError(code: number, backendMessage: string, userMessage: string) {
   // 系统错误可能需要重试，使用后端原始消息
-  console.log(`[系统错误] 显示错误: ${code}, 后端消息: ${backendMessage}`)
   const error = new Error(backendMessage)
   ;(error as any).retryable = true
   errorHandler.handleError(error, 'SERVER_ERROR')

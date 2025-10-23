@@ -3,81 +3,85 @@
  */
 
 /**
- * 将时间向后取整到最近的30分钟
+ * 将时间向后取整到最近的30分钟（不跨天）
  * @param dateTimeStr - 格式：YYYY-MM-DDTHH:mm
  * @returns 取整后的时间字符串，格式：YYYY-MM-DDTHH:mm
  * 
  * @example
- * roundUpToNext30Minutes('2025-10-23T14:23') // '2025-10-23T14:30'
- * roundUpToNext30Minutes('2025-10-23T14:45') // '2025-10-23T15:00'
- * roundUpToNext30Minutes('2025-10-23T14:00') // '2025-10-23T14:00' (已经对齐，不变)
- * roundUpToNext30Minutes('2025-10-23T14:30') // '2025-10-23T14:30' (已经对齐，不变)
+ * roundUpToNext30Minutes('2025-10-23T23:45') // '2025-10-23T23:45' (不跨天，保持原值)
  */
 export function roundUpToNext30Minutes(dateTimeStr: string): string {
   if (!dateTimeStr) return dateTimeStr
   
-  const date = new Date(dateTimeStr)
+  const [datePart, timePart] = dateTimeStr.split('T')
+  if (!datePart || !timePart) return dateTimeStr
   
-  // 如果日期无效，返回原值
-  if (isNaN(date.getTime())) return dateTimeStr
-  
-  const minutes = date.getMinutes()
+  const [hours, minutes] = timePart.split(':').map(Number)
+  if (isNaN(hours) || isNaN(minutes)) return dateTimeStr
   
   // 如果已经是 0 或 30 分钟，不需要调整
   if (minutes === 0 || minutes === 30) {
-    return formatToDateTimeLocal(date)
+    return dateTimeStr
   }
   
-  // 计算需要添加的分钟数
-  let minutesToAdd = 0
+  // 计算调整后的分钟数
+  let newMinutes = 0
+  let newHours = hours + 8
+  console.log("11111"+newHours)
   if (minutes < 30) {
-    minutesToAdd = 30 - minutes
+    newMinutes = 30
   } else {
-    minutesToAdd = 60 - minutes
+    // minutes > 30，需要进位到下一小时
+    newHours = hours + 1
+    newMinutes = 0
   }
   
-  // 添加分钟
-  date.setMinutes(minutes + minutesToAdd)
+  // 检查是否会跨天
+  if (newHours >= 24) {
+    // 不跨天，返回原值
+    return dateTimeStr
+  }
   
-  return formatToDateTimeLocal(date)
+  const hoursStr = String(newHours).padStart(2, '0')
+  const minutesStr = String(newMinutes).padStart(2, '0')
+  
+  return `${datePart}T${hoursStr}:${minutesStr}`
 }
 
 /**
- * 添加指定分钟数到时间
+ * 添加指定分钟数到时间（不跨天）
  * @param dateTimeStr - 格式：YYYY-MM-DDTHH:mm
  * @param minutesToAdd - 要添加的分钟数
- * @returns 新的时间字符串，格式：YYYY-MM-DDTHH:mm
+ * @returns 新的时间字符串，格式：YYYY-MM-DDTHH:mm；如果会跨天则返回原值
  * 
  * @example
  * addMinutes('2025-10-23T14:30', 30) // '2025-10-23T15:00'
- * addMinutes('2025-10-23T23:45', 30) // '2025-10-24T00:15'
+ * addMinutes('2025-10-23T23:45', 30) // '2025-10-23T23:45' (不跨天，返回原值)
  */
 export function addMinutes(dateTimeStr: string, minutesToAdd: number): string {
   if (!dateTimeStr) return dateTimeStr
   
-  const date = new Date(dateTimeStr)
+  const [datePart, timePart] = dateTimeStr.split('T')
+  if (!datePart || !timePart) return dateTimeStr
   
-  // 如果日期无效，返回原值
-  if (isNaN(date.getTime())) return dateTimeStr
+  const [hours, minutes] = timePart.split(':').map(Number)
+  if (isNaN(hours) || isNaN(minutes)) return dateTimeStr
   
-  date.setMinutes(date.getMinutes() + minutesToAdd)
+  // 计算新的小时和分钟
+  const totalMinutes = hours * 60 + minutes + minutesToAdd
+  const newHours = Math.floor(totalMinutes / 60)
+  const newMinutes = totalMinutes % 60
   
-  return formatToDateTimeLocal(date)
-}
-
-/**
- * 格式化 Date 对象为 YYYY-MM-DDTHH:mm 格式
- * @param date - Date 对象
- * @returns 格式化后的字符串
- */
-function formatToDateTimeLocal(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
+  // 检查是否会跨天
+  if (newHours >= 24) {
+    // 不跨天，返回原值
+    return dateTimeStr
+  }
   
-  return `${year}-${month}-${day}T${hours}:${minutes}`
+  const hoursStr = String(newHours).padStart(2, '0')
+  const minutesStr = String(newMinutes).padStart(2, '0')
+  
+  return `${datePart}T${hoursStr}:${minutesStr}`
 }
 
 /**
@@ -117,14 +121,21 @@ export function formatFromBackendDateTime(isoDateTimeStr: string): string {
 }
 
 /**
- * 自动处理会议时间：开始时间取整，结束时间自动设置
+ * 自动处理会议时间：开始时间取整，结束时间自动设置（不跨天）
  * @param startTime - 开始时间，格式：YYYY-MM-DDTHH:mm
  * @returns { startTime, endTime } 处理后的开始和结束时间
+ * 
+ * 规则：
+ * 1. 开始时间向后取整到30分钟（不跨天）
+ * 2. 结束时间 = 开始时间 + 30分钟（不跨天）
+ * 3. 如果任何操作会导致跨天，则保持原值不变
  */
 export function autoAdjustMeetingTimes(startTime: string): {
   startTime: string
   endTime: string
 } {
+
+  console.log("autoAdjustMeetingTimes"+startTime)
   // 1. 开始时间向后取整到30分钟
   const roundedStartTime = roundUpToNext30Minutes(startTime)
   
