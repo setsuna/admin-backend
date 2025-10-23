@@ -26,7 +26,7 @@ export function roundUpToNext30Minutes(dateTimeStr: string): string {
   
   // 计算调整后的分钟数
   let newMinutes = 0
-  let newHours = hours + 8
+  let newHours = hours
   console.log("11111"+newHours)
   if (minutes < 30) {
     newMinutes = 30
@@ -71,13 +71,7 @@ export function addMinutes(dateTimeStr: string, minutesToAdd: number): string {
   const totalMinutes = hours * 60 + minutes + minutesToAdd
   const newHours = Math.floor(totalMinutes / 60)
   const newMinutes = totalMinutes % 60
-  
-  // 检查是否会跨天
-  if (newHours >= 24) {
-    // 不跨天，返回原值
-    return dateTimeStr
-  }
-  
+
   const hoursStr = String(newHours).padStart(2, '0')
   const minutesStr = String(newMinutes).padStart(2, '0')
   
@@ -134,8 +128,6 @@ export function autoAdjustMeetingTimes(startTime: string): {
   startTime: string
   endTime: string
 } {
-
-  console.log("autoAdjustMeetingTimes"+startTime)
   // 1. 开始时间向后取整到30分钟
   const roundedStartTime = roundUpToNext30Minutes(startTime)
   
