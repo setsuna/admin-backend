@@ -299,3 +299,6 @@ export class MeetingApiService {
 }
 
 export const meetingApiService = new MeetingApiService()
+
+// 别名导出，方便使用
+export const meetingApi = meetingApiService

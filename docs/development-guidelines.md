@@ -189,35 +189,7 @@ export class XxxApiService {
 export const xxxApi = new XxxApiService()
 ```
 
-### 2. 页面组件中使用 API
-
-```typescript
-// ✅ 完整的错误处理和防御性编程
-const [data, setData] = useState<Item[]>([])
-const [loading, setLoading] = useState(false)
-
-const loadData = async () => {
-  try {
-    setLoading(true)
-    const response = await xxxApi.getList(filters, page, pageSize)
-    
-    // 直接使用 response，它已经是 { items: [...], pagination: {...} }
-    setData(response.items || [])  // 防御性：确保不是 undefined
-    setPagination(prev => ({ 
-      ...prev, 
-      total: response.pagination?.total || 0 
-    }))
-  } catch (error) {
-    console.error('Failed to load data:', error)
-    setData([])  // 错误时设置为空数组
-    setPagination(prev => ({ ...prev, total: 0 }))
-  } finally {
-    setLoading(false)
-  }
-}
-```
-
-### 3. 类型定义使用
+### 2. 类型定义使用
 
 ```typescript
 // ✅ 从统一入口导入
@@ -238,7 +210,7 @@ const response = await userApi.getUsers(filters, page, pageSize)
 // response 的类型会自动推导为 PaginatedResponse<User>
 ```
 
-### 4. 状态管理最佳实践
+### 3. 状态管理最佳实践
 
 ```typescript
 // ✅ 使用选择器 hooks
@@ -251,7 +223,225 @@ const { theme, notifications } = useUI()
 import { usePermission } from '@/hooks/usePermission'
 
 const { hasPermission, hasAnyPermission } = usePermission()
+
+// ✅ 使用 TanStack Query 管理服务器状态（推荐）
+import { useMeetings } from '@/hooks/useMeetings'
+
+const { meetings, total, isLoading } = useMeetings(filters, page, pageSize)
 ```
+
+### 4. 使用 TanStack Query 管理服务器状态 ⭐⭐⭐
+
+**为什么使用 TanStack Query？**
+
+传统的 `useEffect` + `useState` 方式存在以下问题：
+- React StrictMode 导致双重请求（每次加载请求2-4次）
+- requestId 不一致，后端无法识别重复请求
+- 代码冗余，每个列表页都要写大量状态管理代码
+- 无缓存机制，切换筛选条件重复请求
+
+TanStack Query 的优势：
+- ✅ **自动去重**：相同查询只会发起一次请求
+- ✅ **智能缓存**：5秒内数据保持新鲜，不重复请求
+- ✅ **代码减少**：状态管理代码减少 60%+
+- ✅ **性能提升**：减少 50%+ 不必要的请求
+- ✅ **开发体验**：统一模式，loading/error/retry 自动处理
+
+#### 4.1 列表页使用 useQuery
+
+**推荐方式：使用自定义 Hook**
+
+```typescript
+// ✅ 推荐：使用封装好的自定义 Hook
+import { useMeetings } from '@/hooks/useMeetings'
+
+const MeetingListPage: React.FC = () => {
+  // 筛选器状态
+  const [searchText, setSearchText] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  
+  // 分页状态
+  const [pagination, setPagination] = useState({ page: 1, pageSize: 10 })
+  
+  // 构建筛选条件
+  const filters: MeetingFilters = {
+    keyword: searchText || undefined,
+    status: statusFilter || undefined,
+  }
+  
+  // ✅ 使用 TanStack Query（自动处理 loading/error/data）
+  const { meetings, total, isLoading, isError, error } = useMeetings(
+    filters,
+    pagination.page,
+    pagination.pageSize
+  )
+  
+  // 直接使用数据
+  return (
+    <div>
+      {isLoading && <div>加载中...</div>}
+      {isError && <div>加载失败: {error?.message}</div>}
+      {meetings.map(meeting => (
+        <div key={meeting.id}>{meeting.title}</div>
+      ))}
+    </div>
+  )
+}
+```
+
+**直接使用 useQuery**
+
+```typescript
+// ✅ 也可以直接使用 useQuery
+import { useQuery } from '@tanstack/react-query'
+import { meetingApi } from '@/services/api/meeting.api'
+
+const { data, isLoading, isError, error } = useQuery({
+  // queryKey 必须包含所有影响数据的参数
+  queryKey: ['meetings', { searchText, statusFilter, page, pageSize }],
+  
+  // 查询函数
+  queryFn: () => meetingApi.getMeetings(filters, page, pageSize),
+  
+  // 配置选项
+  staleTime: 5000,  // 5秒内数据保持新鲜
+})
+
+// 提取数据
+const meetings = data?.items || []
+const total = data?.pagination?.total || 0
+```
+
+**关键点：**
+- `queryKey` 必须包含所有依赖参数（筛选条件、分页参数）
+- 任何参数变化都会自动触发重新请求
+- 不需要手动管理 loading/error 状态
+- 不需要手动调用 API（删除所有 useEffect）
+
+#### 4.2 操作完成后刷新列表
+
+```typescript
+import { useQueryClient } from '@tanstack/react-query'
+
+const queryClient = useQueryClient()
+
+const handleDeleteMeeting = async (id: string) => {
+  // 确认对话框...
+  
+  try {
+    await meetingApi.deleteMeeting(id)
+    showSuccess('删除成功')
+    
+    // ✅ 刷新所有相关的查询
+    queryClient.invalidateQueries({ queryKey: ['meetings'] })
+  } catch (error: any) {
+    showError('删除失败', error.message)
+  }
+}
+```
+
+**需要刷新的操作：**
+- 创建、更新、删除
+- 状态变更（启用/禁用、打包/取消等）
+- 批量操作
+
+#### 4.3 创建、更新操作使用 useMutation
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+
+const queryClient = useQueryClient()
+
+// ✅ 使用 useMutation 处理变更操作
+const createMutation = useMutation({
+  mutationFn: (data: CreateMeetingRequest) => meetingApi.createMeeting(data),
+  onSuccess: () => {
+    showSuccess('创建成功')
+    // 自动刷新列表
+    queryClient.invalidateQueries({ queryKey: ['meetings'] })
+    // 跳转到列表页
+    navigate('/meetings')
+  },
+  onError: (error: any) => {
+    showError('创建失败', error.message)
+  },
+})
+
+// 使用
+const handleSubmit = (data: CreateMeetingRequest) => {
+  createMutation.mutate(data)
+}
+```
+
+**useMutation 优势：**
+- 自动管理 loading 状态（`isPending`）
+- 统一的错误处理（`onError`）
+- 成功后自动执行操作（`onSuccess`）
+- 支持乐观更新
+
+#### 4.4 详情页使用 useQuery
+
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { useParams } from 'react-router-dom'
+
+const MeetingDetailPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>()
+  
+  const { data: meeting, isLoading } = useQuery({
+    queryKey: ['meeting', id],
+    queryFn: () => meetingApi.getMeeting(id!),
+    enabled: !!id,  // 只有 id 存在时才查询
+  })
+  
+  if (isLoading) return <div>加载中...</div>
+  if (!meeting) return <div>会议不存在</div>
+  
+  return <div>{meeting.title}</div>
+}
+```
+
+#### 4.5 查询配置说明
+
+```typescript
+useQuery({
+  queryKey: ['meetings', filters],  // 必需：查询键（包含所有依赖）
+  queryFn: () => api.getData(),     // 必需：查询函数
+  
+  // 可选配置（全局已配置，可以覆盖）
+  staleTime: 5000,                  // 数据新鲜时间（5秒）
+  gcTime: 10 * 60 * 1000,          // 缓存时间（10分钟）
+  retry: 1,                         // 重试次数
+  enabled: true,                    // 是否启用查询
+  refetchOnWindowFocus: false,      // 窗口聚焦时不刷新
+})
+```
+
+**配置说明：**
+- `staleTime`: 数据在此时间内视为新鲜，不会重新请求
+- `gcTime`: 数据在缓存中保留的时间（v5 改名为 gcTime）
+- `retry`: 请求失败后的重试次数
+- `enabled`: 控制是否执行查询（可用于条件查询）
+- `refetchOnWindowFocus`: 窗口聚焦时是否自动刷新
+
+#### 4.6 迁移检查清单
+
+从传统方式迁移到 TanStack Query：
+
+- [ ] 删除 `useState` 的 data 状态
+- [ ] 删除 `useState` 的 loading 状态
+- [ ] 删除 `loadData` 函数
+- [ ] 删除所有 `useEffect`
+- [ ] 使用 `useQuery` 或自定义 Hook
+- [ ] `queryKey` 包含所有依赖参数
+- [ ] 操作成功后调用 `invalidateQueries`
+- [ ] 使用 `useMutation` 处理变更操作
+
+#### 4.7 详细指南
+
+更多详细的使用方法和最佳实践，请参考：
+- 📖 [TanStack Query 迁移指南](./tanstack-query-guide.md)
+- 📖 [TanStack Query 官方文档](https://tanstack.com/query/latest)
 
 ### 5. 用户交互组件使用规范 ⭐
 
@@ -367,12 +557,13 @@ const YourComponent: React.FC = () => {
 ```typescript
 import { useDialog } from '@/hooks/useModal'
 import { useNotifications } from '@/hooks/useNotifications'
+import { useQueryClient } from '@tanstack/react-query'
 import { DialogComponents } from '@/components/ui/DialogComponents'
 
 const MeetingListPage: React.FC = () => {
   const dialog = useDialog()
   const { showSuccess, showError } = useNotifications()
-  const [loading, setLoading] = useState(false)
+  const queryClient = useQueryClient()
   
   // 打包会议
   const handlePackageMeeting = async (id: string) => {
@@ -388,14 +579,11 @@ const MeetingListPage: React.FC = () => {
     if (!confirmed) return
     
     try {
-      setLoading(true)
       const result = await meetingApi.packageMeeting(id)
       showSuccess('打包成功', result.message)
-      loadMeetings()
+      queryClient.invalidateQueries({ queryKey: ['meetings'] })
     } catch (error: any) {
       showError('打包失败', error.message)
-    } finally {
-      setLoading(false)
     }
   }
   
@@ -414,7 +602,7 @@ const MeetingListPage: React.FC = () => {
     try {
       const result = await meetingApi.deleteMeeting(id)
       showSuccess('删除成功', result.message)
-      loadMeetings()
+      queryClient.invalidateQueries({ queryKey: ['meetings'] })
     } catch (error: any) {
       showError('删除失败', error.message)
     }
@@ -451,10 +639,17 @@ const MeetingListPage: React.FC = () => {
 - [ ] 错误处理适当（通常让上层处理）
 
 ### 页面/组件
+- [ ] 使用 TanStack Query 管理服务器状态（列表页、详情页）
 - [ ] 状态初始值不为 `undefined`（数组用 `[]`，对象用 `{}`）
-- [ ] API 调用有完整的 try-catch-finally
 - [ ] 列表渲染前检查数组存在性
 - [ ] 使用正确的状态值（与后端一致）
+- [ ] 操作成功后调用 `invalidateQueries` 刷新数据
+
+### TanStack Query 使用
+- [ ] `queryKey` 包含所有依赖参数
+- [ ] 使用 `useQuery` 替代 `useEffect` + `useState`
+- [ ] 变更操作使用 `useMutation`
+- [ ] 删除了不必要的 loading/error 状态管理
 
 ### 类型使用
 - [ ] 从 `@/types` 统一导入
@@ -465,6 +660,7 @@ const MeetingListPage: React.FC = () => {
 - [ ] 避免不必要的重新渲染
 - [ ] 大列表使用虚拟滚动
 - [ ] 防抖/节流适当使用
+- [ ] TanStack Query 自动去重和缓存
 
 ---
 
@@ -473,6 +669,7 @@ const MeetingListPage: React.FC = () => {
 - [架构设计文档](./architecture.md) - 完整的架构说明
 - [README](../README.md) - 项目概述和快速开始
 - [类型定义](../src/types/index.ts) - 所有可用类型
+- [TanStack Query 迁移指南](./tanstack-query-guide.md) - Query 使用详细指南
 
 ---
 
@@ -492,6 +689,12 @@ const MeetingListPage: React.FC = () => {
 
 ### "如何实现确认对话框和通知？"
 → [用户交互组件使用规范](#5-用户交互组件使用规范-)
+
+### "React StrictMode 导致双重请求"
+→ [使用 TanStack Query 管理服务器状态](#4-使用-tanstack-query-管理服务器状态-)
+
+### "如何避免重复请求？"
+→ [使用 TanStack Query 管理服务器状态](#4-使用-tanstack-query-管理服务器状态-)
 
 ---
 
