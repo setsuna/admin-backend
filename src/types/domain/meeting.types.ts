@@ -45,14 +45,22 @@ export type MeetingType =
  */
 export interface Meeting {
   id: string
+  name: string
   title: string
   description?: string
   status: MeetingStatus
   type: MeetingType
   securityLevel: MeetingSecurityLevel
+  category?: string
   startTime: string
   endTime: string
   location?: string
+  organizer?: string
+  host?: string
+  password?: string
+  expiryType?: 'none' | 'today' | 'custom'
+  expiryDate?: string
+  signInType?: 'none' | 'manual' | 'password'
   hostId: string
   hostName?: string
   createdAt: string
@@ -114,6 +122,29 @@ export interface MeetingAgenda {
   duration?: number
   presenter?: string
   orderNum: number
+  materials: MeetingMaterial[]
+  createdAt: string
+  updatedAt: string
+}
+
+/**
+ * 会议材料/文件
+ */
+export interface MeetingMaterial {
+  id: string
+  meetingId: string
+  agendaId: string
+  name: string
+  originalName: string
+  size: number
+  type: string
+  url: string
+  securityLevel: MeetingSecurityLevel | null
+  uploadedBy: string
+  uploadedByName: string
+  downloadCount: number
+  version: number
+  isPublic: boolean
   createdAt: string
   updatedAt: string
 }
@@ -138,7 +169,7 @@ export interface MeetingFormData {
   category: string
   startTime: string
   endTime: string
-  type: string
+  type: MeetingType
   description: string
   participants: MeetingParticipant[]
   agendas: any[]

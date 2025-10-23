@@ -33,7 +33,6 @@ const EditMeetingPage: React.FC = () => {
   // 🎯 使用议题管理 Hook
   const { 
     agendas, 
-    setAgendas,
     loadAgendas,
     addAgenda, 
     removeAgenda, 
@@ -47,7 +46,7 @@ const EditMeetingPage: React.FC = () => {
     removeMaterial, 
     updateMaterialSecurity, 
     reorderMaterials 
-  } = useMeetingMaterial(id || null, agendas, setAgendas)
+  } = useMeetingMaterial(id || null, agendas)
   
   // 表单数据状态
   const [formData, setFormData] = useState<MeetingFormData>(() => {
@@ -90,12 +89,18 @@ const EditMeetingPage: React.FC = () => {
         
         // ✅ 转换后端字段到前端格式
         const convertedData: Partial<MeetingFormData> = {
-          name: meeting.name,
+          name: meeting.name || meeting.title || '',
           description: meeting.description || '',
-          securityLevel: meeting.securityLevel || 'internal',  // ✅ 驼峰式
+          securityLevel: meeting.securityLevel || 'internal',
           type: meeting.type || 'standard',
           category: meeting.category || '部门例会',
           location: meeting.location || '',
+          organizer: meeting.organizer || '',
+          host: meeting.host || '',
+          password: meeting.password || '',
+          expiryType: meeting.expiryType || 'none',
+          expiryDate: meeting.expiryDate || '',
+          signInType: meeting.signInType || 'none',
           // ✅ 时间格式转换
           startTime: meeting.startTime ? meeting.startTime.slice(0, 16) : formData.startTime,
           endTime: meeting.endTime ? meeting.endTime.slice(0, 16) : formData.endTime,
@@ -121,11 +126,6 @@ const EditMeetingPage: React.FC = () => {
     
     loadMeeting()
   }, [id])
-
-  // 同步 agendas 到 formData
-  useEffect(() => {
-    setFormData(prev => ({ ...prev, agendas }))
-  }, [agendas])
 
   // 表单数据更新
   const handleFormDataChange = (field: string, value: any) => {
@@ -180,7 +180,13 @@ const EditMeetingPage: React.FC = () => {
         start_time: `${formData.startTime}:00+08:00`,
         end_time: `${formData.endTime}:00+08:00`,
         location: formData.location,
-        category: formData.category
+        category: formData.category,
+        organizer: formData.organizer,
+        host: formData.host,
+        password: formData.password,
+        expiry_type: formData.expiryType,
+        expiry_date: formData.expiryDate,
+        sign_in_type: formData.signInType
       }
 
       await meetingApi.updateMeeting(id, updateData)

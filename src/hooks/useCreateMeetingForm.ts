@@ -33,7 +33,6 @@ export function useCreateMeetingForm() {
   const { 
     agendas, 
     isLoading: agendasLoading,
-    loadAgendas,
     createDefaultAgenda,
     addAgenda, 
     removeAgenda, 
