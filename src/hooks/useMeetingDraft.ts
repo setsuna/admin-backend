@@ -46,17 +46,66 @@ export function useMeetingDraft() {
     setLoading(true)
     
     try {
-      // ✅ 按照 Swagger 接口定义，只发送这些字段
-      const draftData: any = {
-        name: formData.name,
-        description: formData.description,
-        security_level: formData.securityLevel,
-        type: formData.type,
-        start_time: formData.startTime ? `${formData.startTime}:00+08:00` : undefined,  // ✅ 添加秒和时区
-        end_time: formData.endTime ? `${formData.endTime}:00+08:00` : undefined,        // ✅ 添加秒和时区
-        location: formData.location,
-        category: formData.category  // ✅ 添加 category 字段
-        // ❌ 不发送 participants，后端不支持
+      //只发送有值的字段，避免用空值覆盖后端数据
+      const draftData: any = {}
+      
+      // 基本信息字段
+      if (formData.name?.trim()) {
+        draftData.name = formData.name
+      }
+      
+      if (formData.description?.trim()) {
+        draftData.description = formData.description
+      }
+      
+      if (formData.securityLevel) {
+        draftData.security_level = formData.securityLevel
+      }
+      
+      if (formData.type) {
+        draftData.type = formData.type
+      }
+      
+      if (formData.category?.trim()) {
+        draftData.category = formData.category
+      }
+      
+      if (formData.location?.trim()) {
+        draftData.location = formData.location
+      }
+      
+      if (formData.organizer?.trim()) {
+        draftData.organizer = formData.organizer
+      }
+      
+      if (formData.host?.trim()) {
+        draftData.host = formData.host
+      }
+      
+      // 时间字段：添加秒和时区
+      if (formData.startTime) {
+        draftData.start_time = `${formData.startTime}:00+08:00`
+      }
+      
+      if (formData.endTime) {
+        draftData.end_time = `${formData.endTime}:00+08:00`
+      }
+      
+      // 高级设置字段（可选）
+      if (formData.password?.trim()) {
+        draftData.password = formData.password
+      }
+      
+      if (formData.expiryType && formData.expiryType !== 'none') {
+        draftData.expiry_type = formData.expiryType
+      }
+      
+      if (formData.expiryDate?.trim()) {
+        draftData.expiry_date = formData.expiryDate
+      }
+      
+      if (formData.signInType && formData.signInType !== 'none') {
+        draftData.sign_in_type = formData.signInType
       }
 
       await meetingApi.saveDraftMeeting(draftMeetingId, draftData)

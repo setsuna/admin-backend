@@ -1,236 +1,76 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Allotment } from "allotment"
 import { Plus } from 'lucide-react'
 import { getFormattedExtensions } from '@/utils'
 import { useDialog } from '@/hooks/useModal'
-import { useNotifications } from '@/hooks/useNotifications'
 import { DialogComponents } from '@/components/ui/DialogComponents'
-import { meetingApi } from '@/services/meeting'
-import type { MeetingFormData } from '@/types'
 
 // 导入组件
 import BasicInfoForm from '@/components/business/meeting/BasicInfoForm'
 import AgendaForm from '@/components/business/meeting/AgendaForm'
 import OrganizationSelector from '@/components/business/meeting/OrganizationSelector'
 
-// 导入业务 Hooks
-import { useMeetingDraft } from '@/hooks/useMeetingDraft'
-import { useMeetingAgenda } from '@/hooks/useMeetingAgenda'
-import { useMeetingMaterial } from '@/hooks/useMeetingMaterial'
+// 导入业务 Hook
+import { useCreateMeetingForm } from '@/hooks/useCreateMeetingForm'
 
+/**
+ * 创建会议页面
+ * 重构后：页面组件只负责渲染和组合，业务逻辑全部由 Hook 管理
+ */
 const CreateMeetingPage: React.FC = () => {
   const navigate = useNavigate()
   const dialog = useDialog()
   const { confirm } = dialog
-  const { showWarning, showSuccess } = useNotifications()
   
   const [showOrgModal, setShowOrgModal] = useState(false)
   
-  // 🎯 使用草稿管理 Hook
-  const { draftMeetingId, isInitialized, loading, initializeDraft, saveDraft, submitDraft } = useMeetingDraft()
-  
-  // 🎯 使用议题管理 Hook
-  const { 
-    agendas, 
-    setAgendas,
-    loadAgendas,
-    createDefaultAgenda,
-    addAgenda, 
-    removeAgenda, 
-    updateAgendaName, 
-    reorderAgendas 
-  } = useMeetingAgenda(draftMeetingId)
-  
-  // 🎯 使用文件管理 Hook
-  const { 
-    uploadFiles, 
-    removeMaterial, 
-    updateMaterialSecurity, 
-    reorderMaterials 
-  } = useMeetingMaterial(draftMeetingId, agendas, setAgendas)
-  
-  // 🔧 修复：计算默认时间 - 取当日整半小时，结束时间比开始时间晚30分钟
-  const getDefaultTimes = () => {
-    const now = new Date()
+  // 🎯 使用整合的表单管理 Hook
+  const {
+    // 状态
+    formData,
+    isInitialized,
+    loading,
     
-    // 向上取整到最近的半小时
-    const minutes = now.getMinutes()
-    const roundedMinutes = minutes <= 30 ? 30 : 60
+    // 议题相关
+    agendas,
+    addAgenda,
+    removeAgenda,
+    updateAgendaName,
+    reorderAgendas,
     
-    const startTime = new Date(now)
-    startTime.setMinutes(roundedMinutes)
-    startTime.setSeconds(0)
-    startTime.setMilliseconds(0)
+    // 表单操作
+    handleFormDataChange,
+    handleParticipantsChange,
+    removeParticipant,
     
-    // 如果是60分钟，则进位到下一个小时的0分
-    if (roundedMinutes === 60) {
-      startTime.setHours(startTime.getHours() + 1)
-      startTime.setMinutes(0)
-    }
+    // 文件操作
+    handleFileUpload,
+    removeMaterial,
+    updateMaterialSecurity,
+    reorderMaterials,
     
-    // 结束时间 = 开始时间 + 30分钟
-    const endTime = new Date(startTime.getTime() + 30 * 60 * 1000)
-    
-    return {
-      startTime: startTime.toISOString().slice(0, 16),
-      endTime: endTime.toISOString().slice(0, 16)
-    }
-  }
+    // 提交操作
+    handleSaveDraft,
+    handleSubmit
+  } = useCreateMeetingForm()
 
-  // 表单数据状态
-  const [formData, setFormData] = useState<MeetingFormData>(() => {
-    const { startTime, endTime } = getDefaultTimes()
-    
-    return {
-      name: '',
-      securityLevel: 'internal',
-      category: '部门例会',
-      startTime,
-      endTime,
-      type: 'standard',
-      description: '',
-      participants: [],
-      agendas: [],
-      password: '',
-      expiryType: 'none',
-      expiryDate: '',
-      signInType: 'none',
-      location: '',
-      organizer: '',
-      host: ''
-    }
-  })
-
-  // 初始化草稿会议
-  useEffect(() => {
-    const init = async () => {
-      const result = await initializeDraft()
-      if (!result) return
-      
-      const { draftData } = result
-      
-      // 恢复草稿数据
-      if (draftData) {
-        // ✅ 转换后端字段到前端格式
-        const convertedData: Partial<MeetingFormData> = {
-          name: draftData.name,
-          description: draftData.description || '',
-          securityLevel: draftData.security_level || 'internal',  // 下划线 → 驼峰
-          type: draftData.type || 'standard',
-          category: draftData.category || '部门例会',
-          location: draftData.location || '',
-          // ✅ 时间格式转换："2025-10-20T09:18:00+08:00" → "2025-10-20T09:18"
-          startTime: draftData.start_time ? draftData.start_time.slice(0, 16) : formData.startTime,
-          endTime: draftData.end_time ? draftData.end_time.slice(0, 16) : formData.endTime
-        }
-        
-        setFormData(prev => ({
-          ...prev,
-          ...convertedData,
-          // 保持原有的 agendas，不从 draftData 中恢复
-          agendas: prev.agendas
-        }))
-      }
-    }
-    
-    init()
-  }, [])
-  
-  // ✅ 当草稿 ID 初始化后，查询议题
-  useEffect(() => {
-    if (!draftMeetingId || !isInitialized) return
-    
-    const checkAndCreateAgenda = async () => {
-      try {
-        // 查询当前草稿是否已有议题
-        const existingAgendas = await meetingApi.getAgendas(draftMeetingId)
-        
-        if (!existingAgendas || existingAgendas.length === 0) {
-          // 没有议题，创建默认议题
-          await createDefaultAgenda()
-        } else {
-          // 有议题，加载它们
-          await loadAgendas()
-        }
-      } catch (error) {
-        console.error('查询议题失败:', error)
-      }
-    }
-    
-    checkAndCreateAgenda()
-  }, [draftMeetingId, isInitialized])
-
-  // 同步 agendas 到 formData
-  useEffect(() => {
-    setFormData(prev => ({ ...prev, agendas }))
-  }, [agendas])
-
-  // 表单数据更新
-  const handleFormDataChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
-
-  // 参会人员管理
-  const handleParticipantsChange = (participants: any[]) => {
-    setFormData(prev => ({ ...prev, participants }))
-  }
-
-  const removeParticipant = (id: string) => {
-    setFormData(prev => ({
-      ...prev,
-      participants: prev.participants.filter(p => p.id !== id)
-    }))
-  }
-
-  // 文件上传处理
-  const handleFileUpload = async (agendaId: string, files: File[]) => {
-    // 直接上传，错误由 httpClient 自动处理
-    await uploadFiles(agendaId, files, formData.securityLevel)
-  }
-
-  // 表单验证
-  const validateForm = (): boolean => {
-    if (!formData.name.trim()) {
-      showWarning('请填写会议名称', '会议名称不能为空')
-      return false
-    }
-    if (formData.type === 'standard' && formData.participants.length === 0) {
-      showWarning('请添加参会人员', '标准会议需要添加参会人员')
-      return false
-    }
-    if (new Date(formData.startTime) >= new Date(formData.endTime)) {
-      showWarning('时间设置有误', '结束时间必须晚于开始时间')
-      return false
-    }
-    return true
-  }
-
-  // 保存草稿
-  const handleSaveDraft = async () => {
-    const result = await saveDraft(formData)
-    if (result) {
-      showSuccess('保存成功', '草稿已保存')
-    }
-    // 失败时 httpClient 已经自动处理错误并显示通知
-  }
-
-  // 提交会议
-  const handleSubmit = async (isDraft: boolean = false) => {
+  // 提交处理（保存草稿或创建会议）
+  const onSubmit = async (isDraft: boolean = false) => {
     if (isDraft) {
       await handleSaveDraft()
       return
     }
 
-    if (!validateForm()) return
-
-    await submitDraft(formData)
-    // API 会返回成功/失败结果，成功后跳转
-    navigate('/meetings')
+    const success = await handleSubmit()
+    if (success) {
+      navigate('/meetings')
+    }
   }
 
-  const handleCancel = async () => {
+  // 取消处理
+  const onCancel = async () => {
     const confirmed = await confirm({
       title: '确定要取消吗？',
       message: '当前的编辑内容将保存为草稿。',
@@ -258,81 +98,81 @@ const CreateMeetingPage: React.FC = () => {
 
   return (
     <div className="p-2">
-        <Allotment 
-          defaultSizes={[45, 55]} 
-          className="h-[calc(100vh-200px)]"
-          separator={true}
-        >
-          {/* 左侧：基本信息 */}
-          <Allotment.Pane minSize={350} maxSize={600} className="bg-white rounded-lg border flex flex-col">
-            <div className="p-4 border-b bg-gray-50 flex-shrink-0 h-[72px]">
-              <div className="flex items-center justify-between h-full">
-                <h2 className="text-lg font-semibold text-gray-900">基本信息</h2>
-              </div>
+      <Allotment 
+        defaultSizes={[45, 55]} 
+        className="h-[calc(100vh-200px)]"
+        separator={true}
+      >
+        {/* 左侧：基本信息 */}
+        <Allotment.Pane minSize={350} maxSize={600} className="bg-white rounded-lg border flex flex-col">
+          <div className="p-4 border-b bg-gray-50 flex-shrink-0 h-[72px]">
+            <div className="flex items-center justify-between h-full">
+              <h2 className="text-lg font-semibold text-gray-900">基本信息</h2>
             </div>
-            <div className="flex-1 p-4 overflow-y-auto">
-              <BasicInfoForm
-                formData={formData}
-                onFormDataChange={handleFormDataChange}
-                onOpenOrgSelector={() => setShowOrgModal(true)}
-                onRemoveParticipant={removeParticipant}
-              />
-            </div>
-          </Allotment.Pane>
-
-          {/* 右侧：会议议题 */}
-          <Allotment.Pane minSize={400} className="bg-white rounded-lg border flex flex-col">
-            <div className="p-4 border-b bg-gray-50 flex-shrink-0 h-[72px]">
-              <div className="flex items-center justify-between h-full">
-                <h2 className="text-lg font-semibold text-gray-900">会议议题</h2>
-                <Button variant="outline" size="sm" onClick={addAgenda}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  添加议题
-                </Button>
-              </div>
-            </div>
-            <div className="flex-1 p-4 overflow-y-auto">
-              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                <p className="text-sm text-yellow-800">
-                  议题材料支持格式：{getFormattedExtensions()}
-                </p>
-              </div>
-              
-              <AgendaForm
-                agendas={agendas}
-                onRemoveAgenda={removeAgenda}
-                onUpdateAgendaName={updateAgendaName}
-                onFileUpload={handleFileUpload}
-                onRemoveMaterial={removeMaterial}
-                onUpdateMaterialSecurity={updateMaterialSecurity}
-                onReorderMaterials={reorderMaterials}
-                onReorderAgendas={reorderAgendas}
-              />
-            </div>
-          </Allotment.Pane>
-        </Allotment>
-
-        {/* 操作按钮 */}
-        <div className="mt-4 p-4 bg-white rounded-lg border">
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={handleCancel}>
-              取消
-            </Button>
-            <Button 
-              variant="secondary" 
-              onClick={() => handleSubmit(true)}
-              loading={loading}
-            >
-              保存草稿
-            </Button>
-            <Button 
-              onClick={() => handleSubmit(false)}
-              loading={loading}
-            >
-              创建会议
-            </Button>
           </div>
+          <div className="flex-1 p-4 overflow-y-auto">
+            <BasicInfoForm
+              formData={formData}
+              onFormDataChange={handleFormDataChange}
+              onOpenOrgSelector={() => setShowOrgModal(true)}
+              onRemoveParticipant={removeParticipant}
+            />
+          </div>
+        </Allotment.Pane>
+
+        {/* 右侧：会议议题 */}
+        <Allotment.Pane minSize={400} className="bg-white rounded-lg border flex flex-col">
+          <div className="p-4 border-b bg-gray-50 flex-shrink-0 h-[72px]">
+            <div className="flex items-center justify-between h-full">
+              <h2 className="text-lg font-semibold text-gray-900">会议议题</h2>
+              <Button variant="outline" size="sm" onClick={addAgenda}>
+                <Plus className="h-4 w-4 mr-2" />
+                添加议题
+              </Button>
+            </div>
+          </div>
+          <div className="flex-1 p-4 overflow-y-auto">
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-sm text-yellow-800">
+                议题材料支持格式：{getFormattedExtensions()}
+              </p>
+            </div>
+            
+            <AgendaForm
+              agendas={agendas}
+              onRemoveAgenda={removeAgenda}
+              onUpdateAgendaName={updateAgendaName}
+              onFileUpload={handleFileUpload}
+              onRemoveMaterial={removeMaterial}
+              onUpdateMaterialSecurity={updateMaterialSecurity}
+              onReorderMaterials={reorderMaterials}
+              onReorderAgendas={reorderAgendas}
+            />
+          </div>
+        </Allotment.Pane>
+      </Allotment>
+
+      {/* 操作按钮 */}
+      <div className="mt-4 p-4 bg-white rounded-lg border">
+        <div className="flex justify-end gap-3">
+          <Button variant="outline" onClick={onCancel}>
+            取消
+          </Button>
+          <Button 
+            variant="secondary" 
+            onClick={() => onSubmit(true)}
+            loading={loading}
+          >
+            保存草稿
+          </Button>
+          <Button 
+            onClick={() => onSubmit(false)}
+            loading={loading}
+          >
+            创建会议
+          </Button>
         </div>
+      </div>
 
       {/* 组织架构选择弹窗 */}
       <OrganizationSelector
