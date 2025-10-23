@@ -10,19 +10,20 @@ import type { MeetingFormData } from '@/types'
  */
 export function getDefaultMeetingTimes() {
   const now = new Date()
-  
-  // 向上取整到最近的半小时
   const minutes = now.getMinutes()
-  const roundedMinutes = minutes <= 30 ? 30 : 60
+  const hours = now.getHours()
   
   const startTime = new Date(now)
-  startTime.setMinutes(roundedMinutes)
   startTime.setSeconds(0)
   startTime.setMilliseconds(0)
   
-  // 如果是60分钟，则进位到下一个小时的0分
-  if (roundedMinutes === 60) {
-    startTime.setHours(startTime.getHours() + 1)
+  // 向上取整到最近的半小时
+  if (minutes <= 30) {
+    // 0-30分钟 → 30分钟
+    startTime.setMinutes(30)
+  } else {
+    // 31-59分钟 → 下一个小时的0分钟
+    startTime.setHours(hours + 1)
     startTime.setMinutes(0)
   }
   

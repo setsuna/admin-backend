@@ -27,7 +27,6 @@ export function roundUpToNext30Minutes(dateTimeStr: string): string {
   // 计算调整后的分钟数
   let newMinutes = 0
   let newHours = hours
-  console.log("11111"+newHours)
   if (minutes < 30) {
     newMinutes = 30
   } else {
