@@ -110,3 +110,36 @@ export interface MeetingAgenda {
   createdAt: string
   updatedAt: string
 }
+
+/**
+ * 参会人员信息
+ */
+export interface MeetingParticipant {
+  id: string
+  userId: string
+  name: string
+  department?: string
+  role: 'host' | 'participant' | 'observer'
+}
+
+/**
+ * 会议表单数据（用于创建/编辑）
+ */
+export interface MeetingFormData {
+  name: string
+  securityLevel: MeetingSecurityLevel
+  category: string
+  startTime: string
+  endTime: string
+  type: string
+  description: string
+  participants: MeetingParticipant[]
+  agendas: any[]
+  password: string
+  expiryType: 'none' | 'today' | 'custom'
+  expiryDate: string
+  signInType: 'none' | 'manual' | 'password'
+  location: string
+  organizer: string
+  host: string
+}
