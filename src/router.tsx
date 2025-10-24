@@ -10,8 +10,7 @@ const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const LoginPage = lazy(() => import('@/pages/LoginPage'))
 const MeetingListPage = lazy(() => import('@/pages/MeetingListPage'))
 const MyMeetingPage = lazy(() => import('@/pages/MyMeetingPage'))
-const CreateMeetingPage = lazy(() => import('@/pages/CreateMeetingPage'))
-const EditMeetingPage = lazy(() => import('@/pages/EditMeetingPage'))
+const MeetingFormPage = lazy(() => import('@/pages/MeetingFormPage'))
 const DataDictionaryPage = lazy(() => import('@/pages/DataDictionaryPage'))
 
 const UserPage = lazy(() => import('@/pages/UserPage'))
@@ -179,7 +178,7 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permissions={['meeting:manage']}>
             <LazyWrapper>
-              <CreateMeetingPage />
+              <MeetingFormPage mode="create" />
             </LazyWrapper>
           </PermissionGuard>
         ),
@@ -189,7 +188,17 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permissions={['meeting:manage']}>
             <LazyWrapper>
-              <EditMeetingPage />
+              <MeetingFormPage mode="edit" />
+            </LazyWrapper>
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: 'meetings/view/:id',
+        element: (
+          <PermissionGuard permissions={['meeting:read']}>
+            <LazyWrapper>
+              <MeetingFormPage mode="view" />
             </LazyWrapper>
           </PermissionGuard>
         ),

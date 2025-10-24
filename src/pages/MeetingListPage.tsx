@@ -109,8 +109,13 @@ const MeetingListPage: React.FC = () => {
   }
 
   const handleMeetingClick = (meeting: Meeting) => {
-    // 导航到会议编辑页面
-    navigate(`/meetings/edit/${meeting.id}`)
+    const mappedStatus = mapLegacyStatus(meeting.status)
+    // 根据状态决定是编辑还是查看
+    if (mappedStatus === 'editable') {
+      navigate(`/meetings/edit/${meeting.id}`)
+    } else {
+      navigate(`/meetings/view/${meeting.id}`)
+    }
   }
 
   const handleCreateMeeting = () => {

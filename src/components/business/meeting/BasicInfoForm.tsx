@@ -27,19 +27,21 @@ interface BasicInfoFormProps {
     expiryDate: string
     signInType: 'none' | 'manual' | 'password'
     location: string
-    organizer: string  // 新增
-    host: string       // 新增
+    organizer: string
+    host: string
   }
   onFormDataChange: (field: string, value: any) => void
   onOpenOrgSelector: () => void
   onRemoveParticipant: (id: string) => void
+  readOnly?: boolean
 }
 
 const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   formData,
   onFormDataChange,
   onOpenOrgSelector,
-  onRemoveParticipant
+  onRemoveParticipant,
+  readOnly = false
 }) => {
   const [categories, setCategories] = useState<MeetingCategory[]>([])
   const [securityLevels, setSecurityLevels] = useState<SecurityLevel[]>([])
@@ -95,6 +97,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           value={formData.name}
           onChange={(e) => onFormDataChange('name', e.target.value)}
           placeholder="请输入会议名称"
+          disabled={readOnly}
         />
       </div>
 
@@ -105,10 +108,11 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           {securityLevels.map((level) => (
             <button
               key={level.value}
-              onClick={() => handleSecurityLevelChange(level.value as MeetingSecurityLevel)}
+              onClick={() => !readOnly && handleSecurityLevelChange(level.value as MeetingSecurityLevel)}
+              disabled={readOnly}
               className={`px-2 py-1 text-xs rounded-md text-white transition-colors ${level.color} ${
                 formData.securityLevel === level.value ? 'ring-2 ring-offset-2 ring-gray-400' : ''
-              }`}
+              } ${readOnly ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               {level.label}
             </button>
@@ -132,6 +136,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                   onFormDataChange('startTime', `${date}T${time}`)
                 }}
                 className="flex-1 text-xs"
+                disabled={readOnly}
               />
               <Input
                 type="time"
@@ -142,6 +147,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                   onFormDataChange('startTime', `${date}T${time}`)
                 }}
                 className="w-20 text-xs"
+                disabled={readOnly}
               />
             </div>
           </div>
@@ -159,6 +165,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                   onFormDataChange('endTime', `${date}T${time}`)
                 }}
                 className="flex-1 text-xs"
+                disabled={readOnly}
               />
               <Input
                 type="time"
@@ -169,6 +176,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                   onFormDataChange('endTime', `${date}T${time}`)
                 }}
                 className="w-20 text-xs"
+                disabled={readOnly}
               />
             </div>
           </div>
@@ -181,6 +189,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         onChange={(type) => onFormDataChange('type', type)}
         signInType={formData.signInType}
         onSignInTypeChange={(signInType) => onFormDataChange('signInType', signInType)}
+        readOnly={readOnly}
       />
 
       {/* 参会人员 - 仅标准会议显示 */}
@@ -189,6 +198,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         onOpenSelector={onOpenOrgSelector}
         onRemoveParticipant={onRemoveParticipant}
         isVisible={formData.type === 'standard'}
+        readOnly={readOnly}
       />
 
       {/* 会议地点和组织单位 */}
@@ -199,6 +209,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
             value={formData.location || ''}
             onChange={(e) => onFormDataChange('location', e.target.value)}
             placeholder="请输入会议地点"
+            disabled={readOnly}
           />
         </div>
         <div>
@@ -213,6 +224,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
             }}
             placeholder="请输入组织单位"
             maxLength={15}
+            disabled={readOnly}
           />
         </div>
       </div>
@@ -226,6 +238,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         onPasswordChange={(password) => onFormDataChange('password', password)}
         onExpiryTypeChange={(expiryType) => onFormDataChange('expiryType', expiryType)}
         onExpiryDateChange={(expiryDate) => onFormDataChange('expiryDate', expiryDate)}
+        readOnly={readOnly}
       />
 
       {/* 会议类别和会议主持 */}
@@ -240,6 +253,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
               label: category.name
             }))}
             className="w-full"
+            disabled={readOnly}
           />
         </div>
         <div>
@@ -254,6 +268,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
             }}
             placeholder="请输入主持人"
             maxLength={15}
+            disabled={readOnly}
           />
         </div>
       </div>
@@ -267,6 +282,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           placeholder="请输入会议介绍..."
           rows={3}
           className="w-full px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          disabled={readOnly}
         />
       </div>
     </div>
