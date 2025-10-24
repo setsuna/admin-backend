@@ -10,7 +10,7 @@ import { formatToBackendDateTime } from '@/utils/time.utils'
 import { useNotifications } from './useNotifications'
 import type { MeetingFormData, MeetingParticipant } from '@/types'
 
-export function useMeetingDraft() {
+export function useMeetingDraft(enabled: boolean = true) {
   const queryClient = useQueryClient()
   const { showSuccess, showError } = useNotifications()
 
@@ -26,6 +26,7 @@ export function useMeetingDraft() {
     error
   } = useQuery({
     queryKey: ['meeting-draft', 'initialize'],
+    enabled,
     queryFn: async () => {
       // 后端幂等接口：有草稿返回现有，无则创建新的
       const draftMeeting = await meetingApi.createDraftMeeting()

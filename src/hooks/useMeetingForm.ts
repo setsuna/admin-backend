@@ -27,6 +27,7 @@ export function useMeetingForm(
   const { showWarning, showSuccess } = useNotifications()
   
   // ===== 创建模式：草稿管理 =====
+  const shouldUseDraft = mode === 'create'
   const { 
     draftMeetingId, 
     isInitialized: draftInitialized, 
@@ -34,7 +35,7 @@ export function useMeetingForm(
     draftData,
     saveDraft, 
     submitDraft 
-  } = useMeetingDraft()
+  } = useMeetingDraft(shouldUseDraft)
   
   // ===== 编辑/查看模式：加载会议数据 =====
   const { data: meeting, isLoading: meetingLoading, isError } = useQuery({
