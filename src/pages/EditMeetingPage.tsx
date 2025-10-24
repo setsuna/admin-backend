@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { Allotment } from "allotment"
 import { Plus } from 'lucide-react'
@@ -23,13 +24,12 @@ import { useMeetingMaterial } from '@/hooks/useMeetingMaterial'
 const EditMeetingPage: React.FC = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
+  const queryClient = useQueryClient()
   const dialog = useDialog()
   const { confirm } = dialog
   const { showWarning, showSuccess, showError } = useNotifications()
   
   const [showOrgModal, setShowOrgModal] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [isInitialized, setIsInitialized] = useState(false)
   
   // 🎯 使用议题管理 Hook
   const { 
@@ -76,59 +76,57 @@ const EditMeetingPage: React.FC = () => {
     }
   })
 
-  // 加载会议数据
+  // ✅ 使用 TanStack Query 加载会议详情
+  const { data: meeting, isLoading, isError } = useQuery({
+    queryKey: ['meeting', id],
+    queryFn: () => meetingApi.getMeetingById(id!),
+    enabled: !!id,
+    retry: 1,
+  })
+
+  // ✅ 当会议数据加载完成后，更新表单数据
   useEffect(() => {
-    const loadMeeting = async () => {
-      if (!id) {
-        showError('错误', '缺少会议ID')
-        navigate('/meetings')
-        return
+    if (meeting) {
+      const convertedData: Partial<MeetingFormData> = {
+        name: meeting.name || meeting.title || '',
+        description: meeting.description || '',
+        securityLevel: meeting.securityLevel || 'internal',
+        type: meeting.type || 'standard',
+        category: meeting.category || '部门例会',
+        location: meeting.location || '',
+        organizer: meeting.organizer || '',
+        host: meeting.host || '',
+        password: meeting.password || '',
+        expiryType: (meeting.expiryType || 'none') as 'none' | 'today' | 'custom',
+        expiryDate: meeting.expiryDate || '',
+        signInType: (meeting.signInType || 'none') as 'none' | 'manual' | 'password',
+        startTime: meeting.startTime ? meeting.startTime.slice(0, 16) : formData.startTime,
+        endTime: meeting.endTime ? meeting.endTime.slice(0, 16) : formData.endTime,
+        participants: []
       }
+      
+      setFormData(prev => ({
+        ...prev,
+        ...convertedData
+      }))
 
-      try {
-        // 加载会议基本信息
-        const meeting = await meetingApi.getMeetingById(id)
-        
-        // ✅ 转换后端字段到前端格式
-        const convertedData: Partial<MeetingFormData> = {
-          name: meeting.name || meeting.title || '',
-          description: meeting.description || '',
-          securityLevel: meeting.securityLevel || 'internal',
-          type: meeting.type || 'standard',
-          category: meeting.category || '部门例会',
-          location: meeting.location || '',
-          organizer: meeting.organizer || '',
-          host: meeting.host || '',
-          // ✅ 修复：正确还原密码、有效期、签到方式（只使用驼峰命名）
-          password: meeting.password || '',
-          expiryType: (meeting.expiryType || 'none') as 'none' | 'today' | 'custom',
-          expiryDate: meeting.expiryDate || '',
-          signInType: (meeting.signInType || 'none') as 'none' | 'manual' | 'password',
-          // ✅ 时间格式转换
-          startTime: meeting.startTime ? meeting.startTime.slice(0, 16) : formData.startTime,
-          endTime: meeting.endTime ? meeting.endTime.slice(0, 16) : formData.endTime,
-          // TODO: 加载参会人员
-          participants: []
-        }
-        
-        setFormData(prev => ({
-          ...prev,
-          ...convertedData
-        }))
-
-        // 加载议题
-        await loadAgendas()
-        
-        setIsInitialized(true)
-      } catch (error) {
-        console.error('加载会议失败:', error)
-        showError('加载失败', '无法加载会议信息')
-        navigate('/meetings')
-      }
+      // 加载议题
+      loadAgendas()
     }
-    
-    loadMeeting()
-  }, [id])
+  }, [meeting])
+
+  // ✅ 处理错误情况
+  useEffect(() => {
+    if (!id) {
+      showError('错误', '缺少会议ID')
+      navigate('/meetings')
+      return
+    }
+    if (isError) {
+      showError('加载失败', '无法加载会议信息')
+      navigate('/meetings')
+    }
+  }, [id, isError])
 
   // 表单数据更新
   const handleFormDataChange = (field: string, value: any) => {
@@ -169,8 +167,24 @@ const EditMeetingPage: React.FC = () => {
     return true
   }
 
+  // ✅ 使用 useMutation 处理保存操作
+  const updateMutation = useMutation({
+    mutationFn: (updateData: any) => meetingApi.updateMeeting(id!, updateData),
+    onSuccess: () => {
+      showSuccess('保存成功', '会议信息已更新')
+      // ✅ 刷新会议列表和详情
+      queryClient.invalidateQueries({ queryKey: ['meetings'] })
+      queryClient.invalidateQueries({ queryKey: ['meeting', id] })
+      navigate('/meetings')
+    },
+    onError: (error: any) => {
+      console.error('保存失败:', error)
+      // httpClient 会自动显示错误通知
+    },
+  })
+
   // 保存更新
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!validateForm() || !id) return
 
     // 🎯 问题4修复：验证材料密级
@@ -180,34 +194,24 @@ const EditMeetingPage: React.FC = () => {
       return
     }
 
-    setLoading(true)
-    try {
-      const updateData: any = {
-        name: formData.name,
-        description: formData.description,
-        security_level: formData.securityLevel,
-        type: formData.type,
-        start_time: `${formData.startTime}:00+08:00`,
-        end_time: `${formData.endTime}:00+08:00`,
-        location: formData.location,
-        category: formData.category,
-        organizer: formData.organizer,
-        host: formData.host,
-        password: formData.password,
-        expiry_type: formData.expiryType,
-        expiry_date: formData.expiryDate,
-        sign_in_type: formData.signInType
-      }
-
-      await meetingApi.updateMeeting(id, updateData)
-      showSuccess('保存成功', '会议信息已更新')
-      navigate('/meetings')
-    } catch (error) {
-      console.error('保存失败:', error)
-      // httpClient 会自动显示错误通知
-    } finally {
-      setLoading(false)
+    const updateData: any = {
+      name: formData.name,
+      description: formData.description,
+      security_level: formData.securityLevel,
+      type: formData.type,
+      start_time: `${formData.startTime}:00+08:00`,
+      end_time: `${formData.endTime}:00+08:00`,
+      location: formData.location,
+      category: formData.category,
+      organizer: formData.organizer,
+      host: formData.host,
+      password: formData.password,
+      expiry_type: formData.expiryType,
+      expiry_date: formData.expiryDate,
+      sign_in_type: formData.signInType
     }
+
+    updateMutation.mutate(updateData)
   }
 
   const handleCancel = async () => {
@@ -224,13 +228,25 @@ const EditMeetingPage: React.FC = () => {
     }
   }
 
-  // 显示加载状态
-  if (!isInitialized) {
+  // ✅ 显示加载状态
+  if (isLoading) {
     return (
       <div className="p-2 flex items-center justify-center h-[calc(100vh-120px)]">
         <div className="text-center">
           <div className="text-lg text-gray-500 mb-2">正在加载...</div>
           <div className="text-sm text-gray-400">加载会议信息中，请稍候</div>
+        </div>
+      </div>
+    )
+  }
+
+  // ✅ 显示错误状态（虽然 useEffect 会处理跳转，但保留以防万一）
+  if (isError || !meeting) {
+    return (
+      <div className="p-2 flex items-center justify-center h-[calc(100vh-120px)]">
+        <div className="text-center">
+          <div className="text-lg text-red-500 mb-2">加载失败</div>
+          <div className="text-sm text-gray-400">无法加载会议信息</div>
         </div>
       </div>
     )
@@ -301,9 +317,10 @@ const EditMeetingPage: React.FC = () => {
             </Button>
             <Button 
               onClick={handleSave}
-              loading={loading}
+              loading={updateMutation.isPending}
+              disabled={updateMutation.isPending}
             >
-              保存修改
+              {updateMutation.isPending ? '保存中...' : '保存修改'}
             </Button>
           </div>
         </div>
