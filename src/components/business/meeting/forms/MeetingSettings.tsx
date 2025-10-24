@@ -24,6 +24,17 @@ const MeetingSettings: React.FC<MeetingSettingsProps> = ({
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [showExpiryModal, setShowExpiryModal] = useState(false)
 
+  // 🎯 问题1修复：格式化过期日期，只显示年月日
+  const formatExpiryDate = (date: string): string => {
+    if (!date) return ''
+    // 如果是完整的ISO格式（2025-10-25T23:59:59+08:00），只取日期部分
+    if (date.includes('T')) {
+      return date.split('T')[0]
+    }
+    // 如果已经是日期格式（2025-10-25），直接返回
+    return date
+  }
+
   return (
     <div>
       <label className="block text-sm font-medium mb-2">会议设置</label>
@@ -50,7 +61,7 @@ const MeetingSettings: React.FC<MeetingSettingsProps> = ({
             }`}
           >
             ⏰ {expiryType === 'none' ? '有效期' : 
-                 expiryType === 'today' ? '当天过期' : expiryDate}
+                 expiryType === 'today' ? '当天过期' : `过期时间 ${formatExpiryDate(expiryDate)}`}
           </button>
         </div>
         {signInType === 'password' && !password && (
@@ -140,7 +151,7 @@ const MeetingSettings: React.FC<MeetingSettingsProps> = ({
                 <div className="mt-3">
                   <Input
                     type="date"
-                    value={expiryDate}
+                    value={formatExpiryDate(expiryDate)}
                     onChange={(e) => onExpiryDateChange(e.target.value)}
                   />
                 </div>

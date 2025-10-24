@@ -38,6 +38,7 @@ const CreateMeetingPage: React.FC = () => {
     addAgenda,
     removeAgenda,
     updateAgendaName,
+    updateAgendaPresenter,
     reorderAgendas,
     
     // 表单操作
@@ -142,6 +143,7 @@ const CreateMeetingPage: React.FC = () => {
               agendas={agendas}
               onRemoveAgenda={removeAgenda}
               onUpdateAgendaName={updateAgendaName}
+              onUpdateAgendaPresenter={updateAgendaPresenter}
               onFileUpload={handleFileUpload}
               onRemoveMaterial={removeMaterial}
               onUpdateMaterialSecurity={updateMaterialSecurity}

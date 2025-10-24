@@ -191,6 +191,7 @@ export function transformAgendaFromApi(apiAgenda: any, meetingId: string): any {
     title: apiAgenda.title || '',
     description: apiAgenda.description || '',
     duration: apiAgenda.duration || 30,
+    presenter: apiAgenda.presenter || '', // 🎯 问题2修复：确保主讲人字段被还原
     orderNum: apiAgenda.order_num || apiAgenda.orderNum || 0,
     materials: [] // 材料需要单独加载
   }
@@ -278,6 +279,42 @@ export function validateMeetingForm(formData: MeetingFormData): { valid: boolean
       valid: false,
       title: '时间设置有误',
       message: '结束时间必须晚于开始时间'
+    }
+  }
+  
+  return { valid: true }
+}
+
+/**
+ * 检查所有议题的所有材料是否都选择了密级
+ */
+export function validateMeetingMaterialsSecurity(agendas: any[]): { 
+  valid: boolean; 
+  message?: string; 
+  title?: string;
+  missingMaterials?: string[];
+} {
+  const missingMaterials: string[] = []
+  
+  agendas.forEach((agenda, index) => {
+    if (!agenda.materials || agenda.materials.length === 0) {
+      return
+    }
+    
+    agenda.materials.forEach((material: any) => {
+      if (!material.securityLevel || material.securityLevel === null) {
+        const agendaName = agenda.title || `议题${index + 1}`
+        missingMaterials.push(`${agendaName} - ${material.name}`)
+      }
+    })
+  })
+  
+  if (missingMaterials.length > 0) {
+    return {
+      valid: false,
+      title: '请设置材料密级',
+      message: `以下材料未设置密级，请在材料列表中选择密级：\n${missingMaterials.slice(0, 5).join('\n')}${missingMaterials.length > 5 ? `\n...等${missingMaterials.length}个文件` : ''}`,
+      missingMaterials
     }
   }
   

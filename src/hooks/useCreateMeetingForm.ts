@@ -11,7 +11,8 @@ import { useNotifications } from './useNotifications'
 import { 
   getInitialFormData, 
   convertDraftDataToFormData, 
-  validateMeetingForm 
+  validateMeetingForm,
+  validateMeetingMaterialsSecurity
 } from '@/utils/meeting.utils'
 import { autoAdjustMeetingTimes } from '@/utils/time.utils'
 import type { MeetingFormData } from '@/types'
@@ -36,7 +37,8 @@ export function useCreateMeetingForm() {
     createDefaultAgenda,
     addAgenda, 
     removeAgenda, 
-    updateAgendaName, 
+    updateAgendaName,
+    updateAgendaPresenter,
     reorderAgendas 
   } = useMeetingAgenda(draftMeetingId)
   
@@ -157,6 +159,13 @@ export function useCreateMeetingForm() {
       return false
     }
 
+    // 🎯 问题4修复：验证材料密级
+    const materialsValidation = validateMeetingMaterialsSecurity(agendas)
+    if (!materialsValidation.valid) {
+      showWarning(materialsValidation.title!, materialsValidation.message!)
+      return false
+    }
+
     // 提交
     await submitDraft(formData)
     return true
@@ -174,6 +183,7 @@ export function useCreateMeetingForm() {
     addAgenda,
     removeAgenda,
     updateAgendaName,
+    updateAgendaPresenter,
     reorderAgendas,
     
     // 表单操作

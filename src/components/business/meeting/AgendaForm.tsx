@@ -9,6 +9,7 @@ interface AgendaFormProps {
   agendas: MeetingAgenda[]
   onRemoveAgenda: (agendaId: string) => void
   onUpdateAgendaName: (agendaId: string, name: string) => void
+  onUpdateAgendaPresenter?: (agendaId: string, presenter: string) => void
   onFileUpload: (agendaId: string, files: File[]) => void
   onRemoveMaterial: (agendaId: string, materialId: string) => void
   onUpdateMaterialSecurity: (agendaId: string, materialId: string, securityLevel: MeetingSecurityLevel) => void
@@ -20,6 +21,7 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
   agendas,
   onRemoveAgenda,
   onUpdateAgendaName,
+  onUpdateAgendaPresenter,
   onFileUpload,
   onRemoveMaterial,
   onUpdateMaterialSecurity,
@@ -135,6 +137,7 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
       onReorderAgendas={onReorderAgendas || (() => {})}
       onRemoveAgenda={onRemoveAgenda}
       onUpdateAgendaName={onUpdateAgendaName}
+      onUpdateAgendaPresenter={onUpdateAgendaPresenter}
       onStartEditAgenda={setEditingAgenda}
       onStopEditAgenda={() => setEditingAgenda(null)}
       onRemoveMaterial={onRemoveMaterial}

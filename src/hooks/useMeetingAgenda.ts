@@ -189,6 +189,27 @@ export function useMeetingAgenda(meetingId: string | null) {
   }
 
   /**
+   * 更新议题主讲人
+   * 🎯 问题3修复：添加主讲人更新功能
+   */
+  const updateAgendaPresenterMutation = useMutation({
+    mutationFn: async ({ agendaId, presenter }: { agendaId: string; presenter: string }) => {
+      if (!meetingId) throw new Error('会议ID不存在')
+      await meetingApi.updateAgenda(meetingId, agendaId, { presenter })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['meeting-agendas', meetingId] })
+    },
+    onError: (error: any) => {
+      console.error('更新主讲人失败:', error)
+    }
+  })
+
+  const updateAgendaPresenter = async (agendaId: string, presenter: string) => {
+    await updateAgendaPresenterMutation.mutateAsync({ agendaId, presenter })
+  }
+
+  /**
    * 重新排序议题
    * ✅ 重构：使用 useMutation
    */
@@ -222,6 +243,7 @@ export function useMeetingAgenda(meetingId: string | null) {
     addAgenda,
     removeAgenda,
     updateAgendaName,
+    updateAgendaPresenter,
     reorderAgendas
   }
 }

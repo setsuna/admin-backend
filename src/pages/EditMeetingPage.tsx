@@ -8,6 +8,7 @@ import { useDialog } from '@/hooks/useModal'
 import { useNotifications } from '@/hooks/useNotifications'
 import { DialogComponents } from '@/components/ui/DialogComponents'
 import { meetingApi } from '@/services/meeting'
+import { validateMeetingMaterialsSecurity } from '@/utils/meeting.utils'
 import type { MeetingFormData } from '@/types'
 
 // 导入组件
@@ -36,7 +37,8 @@ const EditMeetingPage: React.FC = () => {
     loadAgendas,
     addAgenda, 
     removeAgenda, 
-    updateAgendaName, 
+    updateAgendaName,
+    updateAgendaPresenter,
     reorderAgendas 
   } = useMeetingAgenda(id || null)
   
@@ -97,10 +99,11 @@ const EditMeetingPage: React.FC = () => {
           location: meeting.location || '',
           organizer: meeting.organizer || '',
           host: meeting.host || '',
+          // ✅ 修复：正确还原密码、有效期、签到方式（只使用驼峰命名）
           password: meeting.password || '',
-          expiryType: meeting.expiryType || 'none',
+          expiryType: (meeting.expiryType || 'none') as 'none' | 'today' | 'custom',
           expiryDate: meeting.expiryDate || '',
-          signInType: meeting.signInType || 'none',
+          signInType: (meeting.signInType || 'none') as 'none' | 'manual' | 'password',
           // ✅ 时间格式转换
           startTime: meeting.startTime ? meeting.startTime.slice(0, 16) : formData.startTime,
           endTime: meeting.endTime ? meeting.endTime.slice(0, 16) : formData.endTime,
@@ -169,6 +172,13 @@ const EditMeetingPage: React.FC = () => {
   // 保存更新
   const handleSave = async () => {
     if (!validateForm() || !id) return
+
+    // 🎯 问题4修复：验证材料密级
+    const materialsValidation = validateMeetingMaterialsSecurity(agendas)
+    if (!materialsValidation.valid) {
+      showWarning(materialsValidation.title!, materialsValidation.message!)
+      return
+    }
 
     setLoading(true)
     try {
@@ -272,6 +282,7 @@ const EditMeetingPage: React.FC = () => {
                 agendas={agendas}
                 onRemoveAgenda={removeAgenda}
                 onUpdateAgendaName={updateAgendaName}
+                onUpdateAgendaPresenter={updateAgendaPresenter}
                 onFileUpload={handleFileUpload}
                 onRemoveMaterial={removeMaterial}
                 onUpdateMaterialSecurity={updateMaterialSecurity}
