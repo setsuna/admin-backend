@@ -33,6 +33,12 @@ export const API_PATHS = {
   CONFIG_VALIDATE_YAML: '/configs/validate-yaml',
   CONFIG_EXPORT: '/configs/{id}/export',
   CONFIG_IMPORT: '/configs/import',
+  
+  // 策略配置
+  POLICY: '/policy',
+  POLICY_VALIDATE: '/policy/validate',
+  POLICY_DEFAULT: '/policy/default',
+  POLICY_EXPORT: '/policy/export',
 } as const
 
 // HTTP状态码配置

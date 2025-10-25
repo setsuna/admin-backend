@@ -18,6 +18,7 @@ export * from './core/error.handler'
 export { dictApiService } from './api/dict.api'
 export { meetingApiService } from './api/meeting.api'
 export { userApiService, permissionApiService } from './api/user.api'
+export { policyApi } from './api/policy.api'
 
 // ========================================
 // 业务服务导出 (services/*.ts)

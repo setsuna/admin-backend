@@ -1,51 +1,50 @@
 /**
- * 安全策略服务 - 重构后的简洁版本
- * 直接使用HTTP客户端，移除Mock逻辑
+ * 策略配置业务服务层
+ * 封装策略相关的业务逻辑，调用 API 服务层
  */
 
-import { httpClient } from './core/http.client'
+import { policyApi } from './api/policy.api'
 import type { SecurityPolicy } from '@/types'
 
 /**
- * 安全策略服务类
- * 封装安全策略相关的业务逻辑
+ * 策略配置业务服务类
  */
 class PolicyService {
-  private basePath = '/policies'
-
   /**
    * 获取当前策略配置
    */
-  async getPolicyConfig(): Promise<SecurityPolicy> {
-    return await httpClient.get<SecurityPolicy>(`${this.basePath}/current`)
+  async getPolicy(): Promise<SecurityPolicy> {
+    return await policyApi.getPolicy()
   }
 
   /**
    * 更新策略配置
+   * @param config - 策略配置
    */
-  async updatePolicyConfig(config: Partial<SecurityPolicy>): Promise<SecurityPolicy> {
-    return await httpClient.put<SecurityPolicy>(`${this.basePath}/current`, config)
-  }
-
-  /**
-   * 重置策略配置为默认值
-   */
-  async resetPolicyConfig(): Promise<SecurityPolicy> {
-    return await httpClient.post<SecurityPolicy>(`${this.basePath}/reset`)
-  }
-
-  /**
-   * 获取策略历史记录
-   */
-  async getPolicyHistory(page: number = 1, pageSize: number = 20): Promise<any> {
-    return await httpClient.get(`${this.basePath}/history`, { page, pageSize })
+  async updatePolicy(config: Omit<SecurityPolicy, 'id' | 'createdAt' | 'updatedAt'>): Promise<SecurityPolicy> {
+    return await policyApi.updatePolicy(config)
   }
 
   /**
    * 验证策略配置
+   * @param config - 待验证的配置
    */
-  async validatePolicyConfig(config: SecurityPolicy): Promise<{ valid: boolean; errors?: string[] }> {
-    return await httpClient.post<{ valid: boolean; errors?: string[] }>(`${this.basePath}/validate`, config)
+  async validatePolicy(config: Omit<SecurityPolicy, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ valid: boolean }> {
+    return await policyApi.validatePolicy(config)
+  }
+
+  /**
+   * 获取默认策略配置
+   */
+  async getDefaultPolicy(): Promise<SecurityPolicy> {
+    return await policyApi.getDefaultPolicy()
+  }
+
+  /**
+   * 导出策略配置
+   */
+  async exportPolicy(): Promise<Blob> {
+    return await policyApi.exportPolicy()
   }
 }
 

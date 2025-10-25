@@ -325,12 +325,12 @@ export interface TimeWindow {
   start: string
   end: string
   enabled: boolean
-  timezone: string
-  days: number[]
+  timezone?: string
+  days?: number[]
 }
 
-export interface SecurityPolicy {
-  systemSecurityLevel: 'internal' | 'confidential' | 'secret'
+export interface SecurityPolicy extends BaseEntity {
+  systemSecurityLevel: 'confidential' | 'secret'
   allowSecurityDowngrade: boolean
   serverFileRetentionDays: number
   clientFileExpirationHours: number
@@ -354,10 +354,6 @@ export interface SecurityPolicy {
   maintenanceWindow: TimeWindow
   autoBackupEnabled: boolean
   backupRetentionDays: number
-  encryptionAlgorithm: string
-  keyRotationDays: number
-  complianceStandards: string[]
-  riskAssessmentRequired: boolean
 }
 
 // 菜单管理
