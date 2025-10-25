@@ -19,12 +19,12 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  ChevronUp,
-  Server
+  ChevronUp
 } from 'lucide-react'
 import { cn } from '@/utils'
 import { useGlobalStore } from '@/store'
 import { useMenuPermission } from '@/hooks/usePermission'
+import { usePolicy } from '@/hooks/usePolicy'
 import { Button } from '@/components/ui/Button'
 
 interface SidebarProps {
@@ -67,7 +67,21 @@ function getIconComponent(iconName?: string | React.ReactNode): React.ComponentT
 export function Sidebar({ className }: SidebarProps) {
   const { sidebarCollapsed, setSidebarCollapsed } = useGlobalStore()
   const { menus: menuItems, isLoading } = useMenuPermission()
+  const { policy } = usePolicy()
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['workspace', 'meeting', 'sync', 'personnel', 'organization', 'system', 'monitoring'])
+  
+  // 密级文本映射
+  const securityLevelText: Record<string, string> = {
+    'confidential': '秘密级',
+    'secret': '机密级'
+  }
+  
+  // 获取密级标识
+  const getSecurityLevelBadge = () => {
+    if (!policy?.systemSecurityLevel) return null
+    const levelText = securityLevelText[policy.systemSecurityLevel]
+    return levelText ? `（${levelText}）` : null
+  }
   
   const toggleGroup = (groupKey: string) => {
     setExpandedGroups(prev => 
@@ -86,11 +100,18 @@ export function Sidebar({ className }: SidebarProps) {
       {/* Logo区域 */}
       <div className="flex h-16 items-center justify-between border-b px-4 min-h-16">
         {!sidebarCollapsed && (
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Server className="h-4 w-4" />
-            </div>
-            <span className="text-lg font-semibold leading-none">Admin</span>
+          <div className="flex items-center gap-0.5">
+            <span 
+              className="text-base font-semibold leading-tight tracking-tighter"
+              style={{ fontStretch: 'condensed' }}
+            >
+              文档综合管控系统
+            </span>
+            {getSecurityLevelBadge() && (
+              <span className="text-xs font-normal text-muted-foreground leading-tight">
+                {getSecurityLevelBadge()}
+              </span>
+            )}
           </div>
         )}
         <Button
