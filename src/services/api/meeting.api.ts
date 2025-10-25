@@ -15,6 +15,7 @@ import type {
   MeetingTemplate,
   MeetingSettings,
   MeetingAgenda,
+  MeetingSecurityLevel,
   PaginatedResponse,
   OperationResult,
   FileUploadResponse,
@@ -67,7 +68,7 @@ export class MeetingApiService {
   /**
    * 创建会议
    */
-  async createMeeting(meetingData: Omit<Meeting, 'id' | 'createdAt' | 'updatedAt'>): Promise<Meeting> {
+  async createMeeting(meetingData: CreateMeetingRequest): Promise<Meeting> {
     return await httpClient.post<Meeting>(this.basePath, meetingData)
   }
 
@@ -170,7 +171,7 @@ export class MeetingApiService {
     meetingId: string, 
     file: File, 
     agendaId?: string,
-    securityLevel?: string  // ✅ 添加密级参数
+    securityLevel?: MeetingSecurityLevel  // ✅ 使用正确的类型
   ): Promise<FileUploadResponse> {
     const formData = new FormData()
     formData.append('file', file)
@@ -258,6 +259,45 @@ export class MeetingApiService {
    */
   async deleteAgenda(meetingId: string, agendaId: string): Promise<OperationResult> {
     return await httpClient.delete<OperationResult>(`${this.basePath}/${meetingId}/agendas/${agendaId}`)
+  }
+
+  /**
+   * 更新议题排序
+   */
+  async updateAgendaOrder(meetingId: string, agendaIds: string[]): Promise<OperationResult> {
+    return await httpClient.patch<OperationResult>(
+      `${this.basePath}/${meetingId}/agendas/order`,
+      { agenda_ids: agendaIds }
+    )
+  }
+
+  // ===== 文件排序和密级管理 =====
+
+  /**
+   * 更新文件排序
+   */
+  async updateFileOrder(meetingId: string, agendaId: string, fileIds: string[]): Promise<OperationResult> {
+    return await httpClient.patch<OperationResult>(
+      `${this.basePath}/${meetingId}/files/order`,
+      {
+        agenda_id: agendaId,
+        file_ids: fileIds
+      }
+    )
+  }
+
+  /**
+   * 更新文件密级
+   */
+  async updateFileSecurityLevel(
+    meetingId: string,
+    fileId: string,
+    securityLevel: MeetingSecurityLevel  // ✅ 使用正确的类型
+  ): Promise<FileUploadResponse> {
+    return await httpClient.patch<FileUploadResponse>(
+      `${this.basePath}/${meetingId}/files/${fileId}`,
+      { security_level: securityLevel }
+    )
   }
 
   // ===== 统计和其他功能 =====

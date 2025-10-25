@@ -24,8 +24,9 @@ export type MeetingStatus =
 export type MeetingSecurityLevel = 
   | 'public'          // 公开
   | 'internal'        // 内部
-  | 'confidential'    // 机密
-  | 'secret'          // 秘密
+  | 'confidential'    // 秘密
+  | 'secret'          // 机密
+  | 'top_secret'      // 绝密
 
 /**
  * 会议类型

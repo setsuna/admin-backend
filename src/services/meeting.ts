@@ -10,6 +10,7 @@ import type {
   PaginatedResponse, 
   CreateMeetingRequest,
   MeetingAgenda,
+  MeetingSecurityLevel,
   OperationResult
 } from '@/types'  // ✅ 直接从 @/types 导入
 
@@ -100,7 +101,7 @@ class MeetingService {
   }
 
   // 文件管理相关
-  async uploadMeetingFile(meetingId: string, file: File, agendaId?: string, securityLevel?: string): Promise<any> {
+  async uploadMeetingFile(meetingId: string, file: File, agendaId?: string, securityLevel?: MeetingSecurityLevel): Promise<any> {
     return meetingApiService.uploadMeetingFile(meetingId, file, agendaId, securityLevel)
   }
 
@@ -146,6 +147,27 @@ class MeetingService {
     const result = await meetingApiService.deleteAgenda(meetingId, agendaId)
     return result.success
   }
+
+  /**
+   * 更新议题排序
+   */
+  async updateAgendaOrder(meetingId: string, agendaIds: string[]): Promise<OperationResult> {
+    return meetingApiService.updateAgendaOrder(meetingId, agendaIds)
+  }
+
+  /**
+   * 更新文件排序
+   */
+  async updateFileOrder(meetingId: string, agendaId: string, fileIds: string[]): Promise<OperationResult> {
+    return meetingApiService.updateFileOrder(meetingId, agendaId, fileIds)
+  }
+
+  /**
+   * 更新文件密级
+   */
+  async updateFileSecurityLevel(meetingId: string, fileId: string, securityLevel: MeetingSecurityLevel): Promise<any> {
+    return meetingApiService.updateFileSecurityLevel(meetingId, fileId, securityLevel)
+  }
 }
 
 export const meetingService = new MeetingService()
@@ -176,5 +198,10 @@ export const meetingApi = {
   getAgenda: meetingService.getAgenda.bind(meetingService),
   createAgenda: meetingService.createAgenda.bind(meetingService),
   updateAgenda: meetingService.updateAgenda.bind(meetingService),
-  deleteAgenda: meetingService.deleteAgenda.bind(meetingService)
+  deleteAgenda: meetingService.deleteAgenda.bind(meetingService),
+  updateAgendaOrder: meetingService.updateAgendaOrder.bind(meetingService),
+  
+  // 文件排序和密级管理
+  updateFileOrder: meetingService.updateFileOrder.bind(meetingService),
+  updateFileSecurityLevel: meetingService.updateFileSecurityLevel.bind(meetingService)
 }

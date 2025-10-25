@@ -2,7 +2,7 @@
  * 会议相关工具函数
  */
 
-import type { MeetingFormData } from '@/types'
+import type { MeetingFormData, MeetingSecurityLevel } from '@/types'
 
 /**
  * 格式化日期为本地时间字符串（YYYY-MM-DDTHH:mm）
@@ -202,7 +202,7 @@ export function transformAgendaFromApi(apiAgenda: any, meetingId: string): any {
  * @param filename - 文件名
  * @returns 检测到的密级，如果未检测到则返回 null
  */
-export function detectSecurityLevelFromFilename(filename: string): 'internal' | 'confidential' | 'secret' | null {
+export function detectSecurityLevelFromFilename(filename: string): MeetingSecurityLevel | null {
   const lowerName = filename.toLowerCase()
   
   if (lowerName.includes('机密') || lowerName.includes('secret')) {
@@ -232,7 +232,7 @@ export function transformFileFromApi(
   apiFile: any, 
   meetingId: string, 
   agendaId: string, 
-  securityLevel: 'internal' | 'confidential' | 'secret' | null
+  securityLevel: MeetingSecurityLevel | null
 ): any {
   return {
     id: apiFile.id,

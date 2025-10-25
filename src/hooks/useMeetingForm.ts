@@ -67,7 +67,7 @@ export function useMeetingForm(
     removeMaterial, 
     updateMaterialSecurity, 
     reorderMaterials 
-  } = useMeetingMaterial(currentMeetingId, agendas)
+  } = useMeetingMaterial(currentMeetingId)
   
   // 表单数据状态
   const [formData, setFormData] = useState<MeetingFormData>(getInitialFormData)

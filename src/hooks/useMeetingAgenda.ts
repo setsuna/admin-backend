@@ -216,9 +216,11 @@ export function useMeetingAgenda(meetingId: string | null) {
   const reorderAgendasMutation = useMutation({
     mutationFn: async (newAgendas: MeetingAgenda[]) => {
       if (!meetingId) throw new Error('会议ID不存在')
-      // TODO: 调用后端 API 更新排序
-      // const agendaIds = newAgendas.map(a => a.id)
-      // await meetingApi.updateAgendaOrder(meetingId, agendaIds)
+      
+      // ✅ 调用后端 API 更新排序
+      const agendaIds = newAgendas.map(a => a.id)
+      await meetingApi.updateAgendaOrder(meetingId, agendaIds)
+      
       return newAgendas
     },
     onSuccess: () => {

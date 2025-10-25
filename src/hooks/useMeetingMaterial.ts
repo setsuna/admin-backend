@@ -8,11 +8,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { meetingApi } from '@/services/meeting'
 import { detectSecurityLevelFromFilename, transformFileFromApi } from '@/utils/meeting.utils'
 import { useNotifications } from './useNotifications'
-import type { MeetingMaterial, MeetingSecurityLevel, MeetingAgenda } from '@/types'
+import type { MeetingMaterial, MeetingSecurityLevel } from '@/types'
 
 export function useMeetingMaterial(
-  meetingId: string | null,
-  agendas: MeetingAgenda[]
+  meetingId: string | null
 ) {
   const queryClient = useQueryClient()
   const { showError } = useNotifications()
@@ -93,29 +92,36 @@ export function useMeetingMaterial(
 
   /**
    * 更新文件密级
-   * ✅ 重构：使用 queryClient.setQueryData 进行乐观更新
+   * ✅ 重构：使用 useMutation 调用后端 API
    */
-  const updateMaterialSecurity = (
-    agendaId: string, 
-    materialId: string, 
+  const updateMaterialSecurityMutation = useMutation({
+    mutationFn: async ({
+      materialId,
+      securityLevel
+    }: {
+      agendaId: string
+      materialId: string
+      securityLevel: MeetingSecurityLevel
+    }) => {
+      if (!meetingId) throw new Error('会议ID不存在')
+      
+      // ✅ 调用后端 API 更新密级
+      await meetingApi.updateFileSecurityLevel(meetingId, materialId, securityLevel)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['meeting-agendas', meetingId] })
+    },
+    onError: (error: any) => {
+      showError('更新密级失败', error.message)
+    }
+  })
+
+  const updateMaterialSecurity = async (
+    agendaId: string,
+    materialId: string,
     securityLevel: MeetingSecurityLevel
   ) => {
-    queryClient.setQueryData<MeetingAgenda[]>(
-      ['meeting-agendas', meetingId],
-      (oldData) => {
-        if (!oldData) return oldData
-        return oldData.map(agenda => 
-          agenda.id === agendaId 
-            ? {
-                ...agenda,
-                materials: agenda.materials.map(material =>
-                  material.id === materialId ? { ...material, securityLevel } : material
-                )
-              }
-            : agenda
-        )
-      }
-    )
+    await updateMaterialSecurityMutation.mutateAsync({ agendaId, materialId, securityLevel })
   }
 
   /**
@@ -129,22 +135,12 @@ export function useMeetingMaterial(
     }) => {
       if (!meetingId) throw new Error('会议ID不存在')
       
-      // TODO: 调用后端 API 更新排序
-      // const materialIds = newMaterials.map(m => m.id)
-      // await meetingApi.updateMaterialOrder(meetingId, agendaId, materialIds)
-      
-      // 乐观更新
-      queryClient.setQueryData<MeetingAgenda[]>(
-        ['meeting-agendas', meetingId],
-        (oldData) => {
-          if (!oldData) return oldData
-          return oldData.map(agenda => 
-            agenda.id === agendaId 
-              ? { ...agenda, materials: newMaterials }
-              : agenda
-          )
-        }
-      )
+      // ✅ 调用后端 API 更新排序
+      const fileIds = newMaterials.map(m => m.id)
+      await meetingApi.updateFileOrder(meetingId, agendaId, fileIds)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['meeting-agendas', meetingId] })
     },
     onError: (error: any) => {
       showError('排序失败', error.message)
