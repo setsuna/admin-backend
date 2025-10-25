@@ -141,6 +141,7 @@ export interface MeetingMaterial {
   type: string
   url: string
   securityLevel: MeetingSecurityLevel | null
+  orderNum?: number  // 🔧 Bug3修复：添加排序字段
   uploadedBy: string
   uploadedByName: string
   downloadCount: number

@@ -11,15 +11,18 @@ interface MeetingTypeSelectProps {
   onChange: (type: MeetingType) => void
   signInType: 'none' | 'manual' | 'password'
   onSignInTypeChange: (type: 'none' | 'manual' | 'password') => void
+  readOnly?: boolean
 }
 
 const MeetingTypeSelect: React.FC<MeetingTypeSelectProps> = ({
   value,
   onChange,
   signInType,
-  onSignInTypeChange
+  onSignInTypeChange,
+  readOnly = false
 }) => {
   const handleSignInTypeToggle = () => {
+    if (readOnly) return
     const signInTypes = ['none', 'manual', 'password'] as const
     const currentIndex = signInTypes.indexOf(signInType)
     const nextIndex = (currentIndex + 1) % signInTypes.length
@@ -38,12 +41,13 @@ const MeetingTypeSelect: React.FC<MeetingTypeSelectProps> = ({
             {(Object.entries(typeConfig) as [MeetingType, typeof typeConfig.standard][]).map(([type, config]) => (
               <button
                 key={type}
-                onClick={() => onChange(type)}
+                onClick={() => !readOnly && onChange(type)}
+                disabled={readOnly}
                 className={`flex items-center gap-1.5 px-2 py-1 text-xs rounded-lg border transition-colors ${
                   value === type
                     ? 'border-blue-500 bg-blue-50 text-blue-700'
                     : 'border-gray-200 hover:border-gray-300'
-                }`}
+                } ${readOnly ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
                 <span>{config.icon}</span>
                 {config.label}
@@ -64,13 +68,14 @@ const MeetingTypeSelect: React.FC<MeetingTypeSelectProps> = ({
         <label className="block text-sm font-medium mb-1">签到方式</label>
         <button
           onClick={handleSignInTypeToggle}
+          disabled={readOnly}
           className={`px-2 py-1 text-xs rounded-lg border transition-colors ${
             signInType === 'none'
               ? 'border-green-500 bg-green-50 text-green-700'
               : signInType === 'manual'
               ? 'border-blue-500 bg-blue-50 text-blue-700'
               : 'border-orange-500 bg-orange-50 text-orange-700'
-          }`}
+          } ${readOnly ? 'opacity-60 cursor-not-allowed' : ''}`}
         >
           {signInType === 'none' && '免签'}
           {signInType === 'manual' && '手写签到'}

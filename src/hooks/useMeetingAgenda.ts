@@ -58,6 +58,7 @@ export function useMeetingAgenda(meetingId: string | null) {
               type: file.mime_type || file.mimeType || file.type || '',
               url: file.file_path || file.filePath || file.url || '',
               securityLevel: file.security_level || file.securityLevel || null,
+              orderNum: file.order_num || file.orderNum,  // 🔧 Bug3修复：映射排序字段
               uploadedBy: file.uploaded_by || file.uploadedBy || '',
               uploadedByName: file.uploaded_by_name || file.uploadedByName || '',
               downloadCount: file.download_count || file.downloadCount || 0,
@@ -66,6 +67,13 @@ export function useMeetingAgenda(meetingId: string | null) {
               createdAt: file.created_at || file.createdAt || new Date().toISOString(),
               updatedAt: file.updated_at || file.updatedAt || new Date().toISOString()
             }))
+            
+            // 📦 Bug3修复：按 orderNum 排序，确保文件顺序正确
+            agenda.materials.sort((a, b) => {
+              const aOrder = a.orderNum ?? 999
+              const bOrder = b.orderNum ?? 999
+              return aOrder - bOrder
+            })
             
             return agenda
           } catch (error) {

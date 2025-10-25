@@ -94,6 +94,9 @@ export function useMeetingForm(
   useEffect(() => {
     if ((mode !== 'edit' && mode !== 'view') || !meeting) return
     
+    // 🎯 Bug修复：兼容后端的下划线格式和驼峰格式
+    const meetingData = meeting as any
+    
     const convertedData: Partial<MeetingFormData> = {
       name: meeting.name || meeting.title || '',
       description: meeting.description || '',
@@ -104,9 +107,10 @@ export function useMeetingForm(
       organizer: meeting.organizer || '',
       host: meeting.host || '',
       password: meeting.password || '',
-      expiryType: (meeting.expiryType || 'none') as 'none' | 'today' | 'custom',
-      expiryDate: meeting.expiryDate || '',
-      signInType: (meeting.signInType || 'none') as 'none' | 'manual' | 'password',
+      // 🔧 Bug1&2修复：兼容下划线和驼峰格式
+      expiryType: (meetingData.expiry_type || meetingData.expiryType || 'none') as 'none' | 'today' | 'custom',
+      expiryDate: meetingData.expiry_date || meetingData.expiryDate || '',
+      signInType: (meetingData.sign_in_type || meetingData.signInType || 'none') as 'none' | 'manual' | 'password',
       startTime: meeting.startTime ? meeting.startTime.slice(0, 16) : formData.startTime,
       endTime: meeting.endTime ? meeting.endTime.slice(0, 16) : formData.endTime,
       participants: []

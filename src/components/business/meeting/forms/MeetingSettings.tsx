@@ -10,6 +10,7 @@ interface MeetingSettingsProps {
   onPasswordChange: (password: string) => void
   onExpiryTypeChange: (type: 'none' | 'today' | 'custom') => void
   onExpiryDateChange: (date: string) => void
+  readOnly?: boolean
 }
 
 const MeetingSettings: React.FC<MeetingSettingsProps> = ({
@@ -19,7 +20,8 @@ const MeetingSettings: React.FC<MeetingSettingsProps> = ({
   signInType,
   onPasswordChange,
   onExpiryTypeChange,
-  onExpiryDateChange
+  onExpiryDateChange,
+  readOnly = false
 }) => {
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [showExpiryModal, setShowExpiryModal] = useState(false)
@@ -41,7 +43,8 @@ const MeetingSettings: React.FC<MeetingSettingsProps> = ({
       <div className="space-y-2">
         <div className="flex gap-2">
           <button
-            onClick={() => setShowPasswordModal(true)}
+            onClick={() => !readOnly && setShowPasswordModal(true)}
+            disabled={readOnly}
             className={`px-2 py-1 text-xs rounded-lg border transition-colors ${
               password 
                 ? 'border-blue-500 bg-blue-50 text-blue-700' 
@@ -53,7 +56,8 @@ const MeetingSettings: React.FC<MeetingSettingsProps> = ({
             🔐 {password ? '密码: ***' : '会议密码'}
           </button>
           <button
-            onClick={() => setShowExpiryModal(true)}
+            onClick={() => !readOnly && setShowExpiryModal(true)}
+            disabled={readOnly}
             className={`px-2 py-1 text-xs rounded-lg border transition-colors ${
               expiryType !== 'none' 
                 ? 'border-blue-500 bg-blue-50 text-blue-700' 
