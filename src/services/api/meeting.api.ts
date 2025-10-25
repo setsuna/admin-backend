@@ -206,6 +206,19 @@ export class MeetingApiService {
   }
 
   /**
+   * 获取指定议题的所有文件（无分页）
+   * 🔧 新接口：直接获取议题下的所有文件
+   */
+  async getAgendaFiles(
+    meetingId: string,
+    agendaId: string
+  ): Promise<FileUploadResponse[]> {
+    return await httpClient.get<FileUploadResponse[]>(
+      `${this.basePath}/${meetingId}/agendas/${agendaId}/files`
+    )
+  }
+
+  /**
    * 删除会议文件
    */
   async deleteMeetingFile(meetingId: string, fileId: string): Promise<OperationResult> {

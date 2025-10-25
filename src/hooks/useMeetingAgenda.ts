@@ -39,37 +39,35 @@ export function useMeetingAgenda(meetingId: string | null) {
       const agendasWithFiles = await Promise.all(
         existingAgendas.map(async (a: any) => {
           try {
-            const filesResponse = await meetingApi.getMeetingFiles(meetingId, {
-              agendaId: a.id,
-              page: 1,
-              size: 100
-            })
+            // 🔧 使用新接口：直接获取议题下的所有文件，无分页
+            const files = await meetingApi.getAgendaFiles(meetingId, a.id)
             
             const agenda = transformAgendaFromApi(a, meetingId)
             
-            // ✅ 转换文件数据：后端下划线 → 前端驼峰
-            agenda.materials = (filesResponse.items || []).map((file: any) => ({
+            // ✅ 转换文件数据：后端驼峰/下划线 → 前端驼峰
+            agenda.materials = (files || []).map((file: any) => ({
               id: file.id,
               meetingId: meetingId,
               agendaId: a.id,
-              name: file.original_name || file.originalName || file.name || '',
-              originalName: file.original_name || file.originalName || file.name || '',
-              size: file.file_size || file.fileSize || file.size || 0,
-              type: file.mime_type || file.mimeType || file.type || '',
-              url: file.file_path || file.filePath || file.url || '',
-              securityLevel: file.security_level || file.securityLevel || null,
-              orderNum: file.order_num || file.orderNum,  // 🔧 Bug3修复：映射排序字段
-              uploadedBy: file.uploaded_by || file.uploadedBy || '',
-              uploadedByName: file.uploaded_by_name || file.uploadedByName || '',
-              downloadCount: file.download_count || file.downloadCount || 0,
+              // 🔧 兼容驼峰和下划线格式
+              name: file.originalName || file.original_name || file.name || '',
+              originalName: file.originalName || file.original_name || file.name || '',
+              size: file.fileSize || file.file_size || file.size || 0,
+              type: file.mimeType || file.mime_type || file.type || '',
+              url: file.filePath || file.file_path || file.url || '',
+              securityLevel: file.securityLevel || file.security_level || null,
+              orderNum: file.orderNum || file.order_num,
+              uploadedBy: file.uploadedBy || file.uploaded_by || '',
+              uploadedByName: file.uploadedByName || file.uploaded_by_name || '',
+              downloadCount: file.downloadCount || file.download_count || 0,
               version: file.version || 1,
-              isPublic: file.is_public || file.isPublic || false,
-              createdAt: file.created_at || file.createdAt || new Date().toISOString(),
-              updatedAt: file.updated_at || file.updatedAt || new Date().toISOString()
+              isPublic: file.isPublic || file.is_public || false,
+              createdAt: file.createdAt || file.created_at || new Date().toISOString(),
+              updatedAt: file.updatedAt || file.updated_at || new Date().toISOString()
             }))
             
             // 📦 Bug3修复：按 orderNum 排序，确保文件顺序正确
-            agenda.materials.sort((a, b) => {
+            agenda.materials.sort((a: any, b: any) => {
               const aOrder = a.orderNum ?? 999
               const bOrder = b.orderNum ?? 999
               return aOrder - bOrder

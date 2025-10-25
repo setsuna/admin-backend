@@ -109,6 +109,10 @@ class MeetingService {
     return meetingApiService.getMeetingFiles(meetingId, filters)
   }
 
+  async getAgendaFiles(meetingId: string, agendaId: string): Promise<any[]> {
+    return meetingApiService.getAgendaFiles(meetingId, agendaId)
+  }
+
   async deleteMeetingFile(meetingId: string, fileId: string): Promise<boolean> {
     const result = await meetingApiService.deleteMeetingFile(meetingId, fileId)
     return result.success
@@ -191,6 +195,7 @@ export const meetingApi = {
   // 文件管理相关
   uploadMeetingFile: meetingService.uploadMeetingFile.bind(meetingService),
   getMeetingFiles: meetingService.getMeetingFiles.bind(meetingService),
+  getAgendaFiles: meetingService.getAgendaFiles.bind(meetingService),
   deleteMeetingFile: meetingService.deleteMeetingFile.bind(meetingService),
   
   // 议题管理相关
