@@ -36,10 +36,9 @@ export const DepartmentStats: React.FC<DepartmentStatsProps> = ({ className }) =
     )
   }
   
-  const { total, active = 0, inactive = 0 } = stats
+  const { total, active = 0, inactive = 0, topLevel = 0, avgEmployees = 0 } = stats
   const enabled = active
   const disabled = inactive
-  const topLevel = 0
   
   const statItems = [
     {

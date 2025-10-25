@@ -27,6 +27,7 @@ export interface DepartmentStats {
   active: number
   inactive: number
   avgEmployees: number
+  topLevel?: number  // 顶级部门数量（可选）
 }
 
 export class DepartmentApiService {
