@@ -71,3 +71,47 @@ export interface UpdateMeetingStatusRequest {
   status: MeetingStatus
   reason?: string
 }
+
+// ========== 部门相关请求 ==========
+
+/**
+ * 部门筛选条件
+ */
+export interface DepartmentFilters {
+  keyword?: string
+  status?: 'enabled' | 'disabled'
+  parentId?: string
+}
+
+/**
+ * 创建部门请求
+ */
+export interface CreateDepartmentRequest {
+  name: string
+  code: string
+  description?: string
+  parentId?: string
+  managerId?: string
+  sort: number
+  status: 'enabled' | 'disabled'
+  phone?: string
+  email?: string
+  address?: string
+}
+
+/**
+ * 更新部门请求
+ */
+export interface UpdateDepartmentRequest {
+  id: string
+  name?: string
+  code?: string
+  description?: string
+  parentId?: string
+  managerId?: string
+  sort?: number
+  status?: 'enabled' | 'disabled'
+  phone?: string
+  email?: string
+  address?: string
+}

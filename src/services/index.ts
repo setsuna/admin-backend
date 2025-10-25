@@ -19,6 +19,7 @@ export { dictApiService } from './api/dict.api'
 export { meetingApiService } from './api/meeting.api'
 export { userApiService, permissionApiService } from './api/user.api'
 export { policyApi } from './api/policy.api'
+export { departmentApiService } from './api/department.api'
 
 // ========================================
 // 业务服务导出 (services/*.ts)
@@ -150,5 +151,48 @@ export const permissionApi = {
   async checkUserPermission(userId: string, permission: string) {
     const { permissionApiService } = await import('./api/user.api')
     return permissionApiService.checkUserPermission(userId, permission)
+  }
+}
+
+// 部门API兼容接口
+export const departmentApi = {
+  async getDepartments(filters = {}, page = 1, pageSize = 20) {
+    const { departmentApiService } = await import('./api/department.api')
+    return departmentApiService.getDepartments(filters, page, pageSize)
+  },
+  
+  async getDepartmentTree() {
+    const { departmentApiService } = await import('./api/department.api')
+    return departmentApiService.getDepartmentTree()
+  },
+  
+  async getDepartmentOptions() {
+    const { departmentApiService } = await import('./api/department.api')
+    return departmentApiService.getDepartmentOptions()
+  },
+  
+  async getDepartment(id: string) {
+    const { departmentApiService } = await import('./api/department.api')
+    return departmentApiService.getDepartment(id)
+  },
+  
+  async createDepartment(data: any) {
+    const { departmentApiService } = await import('./api/department.api')
+    return departmentApiService.createDepartment(data)
+  },
+  
+  async updateDepartment(id: string, data: any) {
+    const { departmentApiService } = await import('./api/department.api')
+    return departmentApiService.updateDepartment(id, data)
+  },
+  
+  async deleteDepartment(id: string) {
+    const { departmentApiService } = await import('./api/department.api')
+    return departmentApiService.deleteDepartment(id)
+  },
+  
+  async batchDeleteDepartments(ids: string[]) {
+    const { departmentApiService } = await import('./api/department.api')
+    return departmentApiService.batchDeleteDepartments(ids)
   }
 }

@@ -18,6 +18,11 @@ export const API_PATHS = {
   ROLES: '/roles',
   PERMISSIONS: '/permissions',
   
+  // 部门管理
+  DEPARTMENTS: '/departments',
+  DEPARTMENT_TREE: '/departments/tree',
+  DEPARTMENT_OPTIONS: '/departments/options',
+  
   // 认证相关
   AUTH_LOGIN: '/auth/login',
   AUTH_LOGOUT: '/auth/logout',
@@ -87,6 +92,13 @@ export const PERMISSIONS = {
   USER_MANAGE: 'user:manage',
   ROLE_MANAGE: 'role:manage',
   PERMISSION_MANAGE: 'permission:manage',
+  
+  // 部门管理权限
+  DEPARTMENT_VIEW: 'department:view',
+  DEPARTMENT_CREATE: 'department:create',
+  DEPARTMENT_UPDATE: 'department:update',
+  DEPARTMENT_DELETE: 'department:delete',
+  DEPARTMENT_MANAGE: 'department:manage',
   
   // 审计权限
   AUDIT_VIEW: 'audit:view',
