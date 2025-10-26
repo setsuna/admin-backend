@@ -5,6 +5,14 @@ import { Loading } from '@/components/ui/Loading'
 import { cn } from '@/utils'
 import type { TableProps } from '@/types'
 
+interface DataTableProps<T> extends TableProps<T> {
+  bordered?: boolean
+  compact?: boolean
+  selectable?: boolean
+  selectedRowKeys?: string[]
+  onSelectionChange?: (selectedKeys: string[]) => void
+}
+
 export function DataTable<T = any>({ 
   data, 
   columns, 
@@ -14,8 +22,11 @@ export function DataTable<T = any>({
   rowKey = 'id' as keyof T,
   className,
   bordered = false,
-  compact = false
-}: TableProps<T> & { bordered?: boolean; compact?: boolean }) {
+  compact = false,
+  selectable = false,
+  selectedRowKeys = [],
+  onSelectionChange
+}: DataTableProps<T>) {
   const getRowKey = (record: T, index: number): string => {
     if (typeof rowKey === 'function') {
       return rowKey(record)
@@ -52,6 +63,28 @@ export function DataTable<T = any>({
     }
   }
   
+  // 选择功能相关
+  const allRowKeys = data.map((record, index) => getRowKey(record, index))
+  const isAllSelected = selectable && allRowKeys.length > 0 && 
+    allRowKeys.every(key => selectedRowKeys.includes(key))
+  const isSomeSelected = selectable && selectedRowKeys.length > 0 && 
+    selectedRowKeys.length < allRowKeys.length
+  
+  const handleSelectAll = (checked: boolean) => {
+    if (onSelectionChange) {
+      onSelectionChange(checked ? allRowKeys : [])
+    }
+  }
+  
+  const handleSelectRow = (key: string, checked: boolean) => {
+    if (onSelectionChange) {
+      const newSelectedKeys = checked
+        ? [...selectedRowKeys, key]
+        : selectedRowKeys.filter(k => k !== key)
+      onSelectionChange(newSelectedKeys)
+    }
+  }
+  
   const totalPages = pagination?.total ? Math.ceil(pagination.total / pagination.pageSize) : 0
   const currentPage = pagination?.page || 1
   
@@ -62,6 +95,22 @@ export function DataTable<T = any>({
         <Table>
           <TableHeader>
             <TableRow>
+              {/* 选择列表头 */}
+              {selectable && (
+                <TableHead style={{ width: 50 }} className="text-center">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 cursor-pointer"
+                    checked={isAllSelected}
+                    ref={(input) => {
+                      if (input) {
+                        input.indeterminate = isSomeSelected
+                      }
+                    }}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                  />
+                </TableHead>
+              )}
               {columns.map((column) => (
                 <TableHead 
                   key={column.key.toString()}
@@ -79,33 +128,49 @@ export function DataTable<T = any>({
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell colSpan={columns.length + (selectable ? 1 : 0)} className="h-24 text-center">
                   <Loading />
                 </TableCell>
               </TableRow>
             ) : data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell colSpan={columns.length + (selectable ? 1 : 0)} className="h-24 text-center">
                   <div className="text-muted-foreground">暂无数据</div>
                 </TableCell>
               </TableRow>
             ) : (
-              data.map((record, index) => (
-                <TableRow key={getRowKey(record, index)} className={cn(compact && 'h-12')}>
-                  {columns.map((column) => (
-                    <TableCell 
-                      key={column.key.toString()}
-                      className={cn(
-                        column.align === 'center' && 'text-center',
-                        column.align === 'right' && 'text-right',
-                        compact && 'py-2'
-                      )}
-                    >
-                      {renderCell(column, record, index)}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              data.map((record, index) => {
+                const key = getRowKey(record, index)
+                const isSelected = selectedRowKeys.includes(key)
+                
+                return (
+                  <TableRow key={key} className={cn(compact && 'h-12')}>
+                    {/* 选择列 */}
+                    {selectable && (
+                      <TableCell className="text-center">
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300 cursor-pointer"
+                          checked={isSelected}
+                          onChange={(e) => handleSelectRow(key, e.target.checked)}
+                        />
+                      </TableCell>
+                    )}
+                    {columns.map((column) => (
+                      <TableCell 
+                        key={column.key.toString()}
+                        className={cn(
+                          column.align === 'center' && 'text-center',
+                          column.align === 'right' && 'text-right',
+                          compact && 'py-2'
+                        )}
+                      >
+                        {renderCell(column, record, index)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                )
+              })
             )}
           </TableBody>
         </Table>
