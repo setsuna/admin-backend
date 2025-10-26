@@ -18,7 +18,7 @@ export type Theme = 'light' | 'dark' | 'system' | 'gov-red'
 // 安全等级
 export type UserSecurityLevel = 'unknown' | 'internal' | 'confidential' | 'secret'
 export type SystemSecurityLevel = 'internal' | 'confidential' | 'secret'
-export type MeetingSecurityLevel = 'internal' | 'confidential' | 'secret'
+// MeetingSecurityLevel 在 domain/meeting.types.ts 中定义
 
 // 通用实体基础字段
 export interface BaseEntity {

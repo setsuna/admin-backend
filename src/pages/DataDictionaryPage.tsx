@@ -18,7 +18,6 @@ import { DataTable } from '@/components/features/DataTable'
 import { Card, CardContent } from '@/components/ui/Card'
 import DictEditModal from '@/components/features/DictEditModal'
 import { dictApi } from '@/services/dict'
-import { getConfig } from '@/config'
 import { debounce } from '@/utils'
 import type { 
   DataDict, 
@@ -36,9 +35,6 @@ const statusConfig = {
 }
 
 const DataDictionaryPage: React.FC = () => {
-  // 显示当前使用的API模式
-  const config = getConfig()
-  console.log('📋 Dict Page: API Base URL =', config.api.baseURL)
   const [dictionaries, setDictionaries] = useState<DataDict[]>([])
   const [loading, setLoading] = useState(false)
   const [searchText, setSearchText] = useState('')
@@ -75,7 +71,6 @@ const DataDictionaryPage: React.FC = () => {
       setDictionaries(response.items)
       setPagination(prev => ({ ...prev, total: response.pagination.total }))
     } catch (error) {
-      console.error('❌ Failed to load dictionaries:', error)
       setDictionaries([])
       setPagination(prev => ({ ...prev, total: 0 }))
     } finally {
@@ -89,7 +84,6 @@ const DataDictionaryPage: React.FC = () => {
       const types = await dictApi.getDictTypes()
       setDictTypes(types || [])
     } catch (error) {
-      console.error('Failed to load dict types:', error)
       setDictTypes([])
     }
   }
@@ -157,7 +151,6 @@ const DataDictionaryPage: React.FC = () => {
           alert('删除失败')
         }
       } catch (error) {
-        console.error('Delete dictionary failed:', error)
         alert('删除失败')
       }
     }
@@ -179,7 +172,6 @@ const DataDictionaryPage: React.FC = () => {
           alert('批量删除失败')
         }
       } catch (error) {
-        console.error('Batch delete failed:', error)
         alert('批量删除失败')
       }
     }
@@ -199,7 +191,6 @@ const DataDictionaryPage: React.FC = () => {
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
     } catch (error) {
-      console.error('Export failed:', error)
       alert('导出失败')
     }
   }
@@ -219,7 +210,6 @@ const DataDictionaryPage: React.FC = () => {
           alert('同步失败')
         }
       } catch (error) {
-        console.error('Sync failed:', error)
         alert('同步失败')
       }
     }
@@ -246,7 +236,6 @@ const DataDictionaryPage: React.FC = () => {
       setIsEditModalOpen(false)
       setEditingDict(null)
     } catch (error) {
-      console.error('Save dictionary failed:', error)
       throw error
     }
   }
@@ -255,7 +244,6 @@ const DataDictionaryPage: React.FC = () => {
     // EntityStatus 已经是 'enabled' | 'disabled'，直接使用
     const config = statusConfig[status]
     if (!config) {
-      console.warn('未知状态:', status)
       return <span>{status}</span>
     }
     const Icon = config.icon

@@ -18,7 +18,7 @@ const SecurityUserManagePage = () => {
   const {
     users,
     departmentOptions,
-    // userStats, // TODO: 待后端实现
+    userStats,
     pagination,
     filters,
     selectedIds,
@@ -29,8 +29,8 @@ const SecurityUserManagePage = () => {
     setSelectedIds,
     resetPassword,
     updateUserStatus,
-    // isResettingPassword, // 根据 hook 实际状态使用
-    // isUpdatingStatus, // 根据 hook 实际状态使用
+    isResettingPassword,
+    isUpdatingStatus,
     resetFilters,
     refreshData
   } = useUser()
@@ -43,8 +43,8 @@ const SecurityUserManagePage = () => {
     { label: '管理员', value: 'admin' },
     { label: '普通用户', value: 'user' },
     { label: '会议管理员', value: 'meeting_admin' },
-    { label: '审计员', value: 'auditadm' },
-    { label: '安全管理员', value: 'secadm' }
+    { label: '审计员', value: 'auditor' },
+    { label: '安全管理员', value: 'security_admin' }
   ]
   
   // 状态选项
@@ -182,7 +182,7 @@ const SecurityUserManagePage = () => {
           security_admin: { label: '安全管理员', color: 'purple' },
           user: { label: '普通用户', color: 'gray' }
         }
-        const roleInfo = roleMap[role] || { label: role, color: 'gray' }
+        const roleInfo = roleMap[role] || { label: role || '未知', color: 'gray' }
         return (
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${roleInfo.color}-100 text-${roleInfo.color}-800`}>
             {roleInfo.label}
@@ -200,7 +200,7 @@ const SecurityUserManagePage = () => {
           confidential: { label: '机密', color: 'yellow' },
           secret: { label: '绝密', color: 'red' }
         }
-        const levelInfo = levelMap[securityLevel]
+        const levelInfo = levelMap[securityLevel] || { label: securityLevel || '未知', color: 'gray' }
         return (
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${levelInfo.color}-100 text-${levelInfo.color}-800`}>
             <Shield className="w-3 h-3 mr-1" />
@@ -218,7 +218,7 @@ const SecurityUserManagePage = () => {
           inactive: { label: '禁用', type: 'warning' },
           suspended: { label: '停用', type: 'error' }
         }
-        const statusInfo = statusMap[status] || { label: status, type: 'warning' }
+        const statusInfo = statusMap[status] || { label: status || '未知', type: 'warning' as const }
         return <StatusIndicator status={statusInfo.type} text={statusInfo.label} />
       }
     },
@@ -240,7 +240,7 @@ const SecurityUserManagePage = () => {
             variant="ghost"
             size="sm"
             onClick={() => handleResetPassword(user)}
-            disabled={false /* isResettingPassword */}
+            disabled={isResettingPassword}
             title="重置密码"
           >
             <Key className="w-4 h-4" />
@@ -250,7 +250,7 @@ const SecurityUserManagePage = () => {
               variant="ghost"
               size="sm"
               onClick={() => handleUpdateStatus(user, 'inactive')}
-              disabled={false /* isUpdatingStatus */}
+              disabled={isUpdatingStatus}
               title="禁用用户"
             >
               <UserX className="w-4 h-4 text-orange-500" />
@@ -260,7 +260,7 @@ const SecurityUserManagePage = () => {
               variant="ghost"
               size="sm"
               onClick={() => handleUpdateStatus(user, 'active')}
-              disabled={false /* isUpdatingStatus */}
+              disabled={isUpdatingStatus}
               title="启用用户"
             >
               <UserCheck className="w-4 h-4 text-green-500" />
@@ -271,7 +271,7 @@ const SecurityUserManagePage = () => {
               variant="ghost"
               size="sm"
               onClick={() => handleUpdateStatus(user, 'suspended')}
-              disabled={false /* isUpdatingStatus */}
+              disabled={isUpdatingStatus}
               title="停用用户"
             >
               <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -300,7 +300,7 @@ const SecurityUserManagePage = () => {
   return (
     <div className="space-y-6">
       {/* 统计卡片 */}
-      {false && ( /* TODO: 待userStats实现 */
+      {userStats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-6">
@@ -392,7 +392,7 @@ const SecurityUserManagePage = () => {
                 }}
                 options={[
                   { label: '全部部门', value: '' },
-                  ...departmentOptions
+                  ...departmentOptions.map(dept => ({ label: dept.name, value: dept.id }))
                 ]}
               />
               
@@ -463,7 +463,7 @@ const SecurityUserManagePage = () => {
               <Button
                 variant="outline"
                 onClick={handleBatchResetPassword}
-                disabled={false /* isResettingPassword */}
+                disabled={isResettingPassword}
               >
                 <Key className="w-4 h-4 mr-2" />
                 批量重置密码 ({selectedIds.length})
@@ -472,7 +472,7 @@ const SecurityUserManagePage = () => {
               <Button
                 variant="outline"
                 onClick={() => handleBatchUpdateStatus('active')}
-                disabled={false /* isUpdatingStatus */}
+                disabled={isUpdatingStatus}
               >
                 <UserCheck className="w-4 h-4 mr-2" />
                 批量启用 ({selectedIds.length})
@@ -481,7 +481,7 @@ const SecurityUserManagePage = () => {
               <Button
                 variant="outline"
                 onClick={() => handleBatchUpdateStatus('inactive')}
-                disabled={false /* isUpdatingStatus */}
+                disabled={isUpdatingStatus}
               >
                 <UserX className="w-4 h-4 mr-2" />
                 批量禁用 ({selectedIds.length})
@@ -490,7 +490,7 @@ const SecurityUserManagePage = () => {
               <Button
                 variant="destructive"
                 onClick={() => handleBatchUpdateStatus('suspended')}
-                disabled={false /* isUpdatingStatus */}
+                disabled={isUpdatingStatus}
               >
                 <AlertTriangle className="w-4 h-4 mr-2" />
                 批量停用 ({selectedIds.length})

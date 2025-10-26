@@ -2,7 +2,7 @@
  * UI 组件通用类型定义
  */
 
-import type { PaginationParams } from '../api/request.types'
+import type { PaginationParams, SelectOption } from '../common/base.types'
 
 // ========== 表格相关 ==========
 
@@ -31,15 +31,7 @@ export interface TableProps<T = any> {
 }
 
 // ========== 表单相关 ==========
-
-/**
- * 选项类型
- */
-export interface SelectOption<T = any> {
-  label: string
-  value: T
-  disabled?: boolean
-}
+// SelectOption 已在 base.types 中定义
 
 /**
  * 表单字段

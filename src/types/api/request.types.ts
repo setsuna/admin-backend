@@ -3,24 +3,11 @@
  */
 
 import type { MeetingStatus, MeetingSecurityLevel, MeetingType } from '../domain/meeting.types'
+import type { UserRole } from '../domain/user.types'
+import type { UserSecurityLevel, ActiveStatus } from '../common/base.types'
 
 // ========== 通用请求参数 ==========
-
-/**
- * 分页参数
- */
-export interface PaginationParams {
-  page: number
-  pageSize: number
-}
-
-/**
- * 排序参数
- */
-export interface SortParams {
-  sortBy?: string
-  sortOrder?: 'asc' | 'desc'
-}
+// PaginationParams 和 SortParams 已在 base.types 中定义
 
 // ========== 会议相关请求 ==========
 
@@ -114,4 +101,49 @@ export interface UpdateDepartmentRequest {
   phone?: string
   email?: string
   address?: string
+}
+
+// ========== 用户相关请求 ==========
+
+/**
+ * 用户筛选条件
+ */
+export interface UserFilters {
+  keyword?: string
+  role?: UserRole
+  status?: ActiveStatus
+  department?: string
+  securityLevel?: UserSecurityLevel
+}
+
+/**
+ * 创建用户请求
+ */
+export interface CreateUserRequest {
+  username: string
+  email: string
+  password: string
+  role: UserRole
+  department?: string
+  position?: string
+  phone?: string
+  status: ActiveStatus
+  securityLevel: UserSecurityLevel
+  permissions?: string[]
+}
+
+/**
+ * 更新用户请求
+ */
+export interface UpdateUserRequest {
+  id: string
+  username?: string
+  email?: string
+  role?: UserRole
+  department?: string
+  position?: string
+  phone?: string
+  status?: ActiveStatus
+  securityLevel?: UserSecurityLevel
+  permissions?: string[]
 }

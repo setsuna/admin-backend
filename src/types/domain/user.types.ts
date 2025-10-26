@@ -12,7 +12,7 @@ import type {
 } from '../common'
 
 // 用户角色枚举
-export type UserRole = 'admin' | 'sysadm' | 'secadm' | 'auditadm' 
+export type UserRole = 'admin' | 'user' | 'meeting_admin' | 'auditor' | 'security_admin' 
 
 // 用户实体
 export interface User extends BaseEntity {

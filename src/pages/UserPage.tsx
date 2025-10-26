@@ -16,7 +16,7 @@ interface UserFormData {
   username: string
   email: string
   password?: string
-  role: 'admin' | 'user' | 'meeting_admin' | 'auditor'
+  role: 'admin' | 'user' | 'meeting_admin' | 'auditor' | 'security_admin'
   department?: string
   position?: string
   phone?: string
@@ -32,7 +32,7 @@ const UserPage = () => {
   const {
     users,
     departmentOptions,
-    // userStats, // TODO: 待后端实现
+    userStats,
     pagination,
     filters,
     selectedIds,
@@ -49,8 +49,8 @@ const UserPage = () => {
     isDeleting,
     isBatchDeleting,
     resetFilters,
-    refreshData
-    // getPermissionsByRole // TODO: 待后端实现
+    refreshData,
+    getPermissionsByRole
   } = useUser()
   
   // 表单状态
@@ -197,7 +197,7 @@ const UserPage = () => {
           security_admin: { label: '安全管理员', color: 'purple' },
           user: { label: '普通用户', color: 'gray' }
         }
-        const roleInfo = roleMap[role] || { label: role, color: 'gray' }
+        const roleInfo = roleMap[role] || { label: role || '未知', color: 'gray' }
         return (
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${roleInfo.color}-100 text-${roleInfo.color}-800`}>
             {roleInfo.label}
@@ -215,7 +215,7 @@ const UserPage = () => {
           confidential: { label: '机密', color: 'yellow' },
           secret: { label: '绝密', color: 'red' }
         }
-        const levelInfo = levelMap[securityLevel]
+        const levelInfo = levelMap[securityLevel] || { label: securityLevel || '未知', color: 'gray' }
         return (
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${levelInfo.color}-100 text-${levelInfo.color}-800`}>
             <Shield className="w-3 h-3 mr-1" />
@@ -233,7 +233,7 @@ const UserPage = () => {
           inactive: { label: '禁用', type: 'warning' },
           suspended: { label: '停用', type: 'error' }
         }
-        const statusInfo = statusMap[status] || { label: status, type: 'warning' }
+        const statusInfo = statusMap[status] || { label: status || '未知', type: 'warning' as const }
         return <StatusIndicator status={statusInfo.type} text={statusInfo.label} />
       }
     },
@@ -419,7 +419,7 @@ const UserPage = () => {
       {/* 筛选和搜索区域 */}
       <Card>
         <CardHeader>
-          <CardTitle>用户管理（系统管理员）</CardTitle>
+          <CardTitle>用户管理</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">

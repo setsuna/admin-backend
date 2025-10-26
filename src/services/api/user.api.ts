@@ -101,8 +101,39 @@ export class UserApiService {
   /**
    * 更新用户状态
    */
-  async updateUserStatus(id: string, status: 'active' | 'inactive'): Promise<OperationResult> {
-    return await httpClient.patch<OperationResult>(`${this.basePath}/${id}/status`, { status })
+  async updateUserStatus(id: string, status: 'active' | 'inactive' | 'suspended'): Promise<OperationResult> {
+    return await httpClient.put<OperationResult>(`${this.basePath}/${id}/status`, { status })
+  }
+
+  /**
+   * 获取用户统计信息
+   */
+  async getUserStats(): Promise<{
+    total: number
+    active: number
+    inactive: number
+    suspended: number
+    byRole: Record<string, number>
+    bySecurityLevel: Record<string, number>
+  }> {
+    return await httpClient.get(`${this.basePath}/stats`)
+  }
+
+  /**
+   * 更新用户密级
+   */
+  async updateUserSecurityLevel(id: string, securityLevel: string): Promise<User> {
+    return await httpClient.put<User>(`${this.basePath}/${id}/security-level`, { securityLevel })
+  }
+
+  /**
+   * 批量更新用户密级
+   */
+  async batchUpdateSecurityLevel(ids: string[], securityLevel: string): Promise<OperationResult> {
+    return await httpClient.put<OperationResult>(`${this.basePath}/batch-security-level`, {
+      ids,
+      securityLevel
+    })
   }
 
   /**
