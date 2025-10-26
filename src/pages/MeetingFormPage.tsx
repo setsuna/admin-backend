@@ -11,7 +11,7 @@ import { useNotifications } from '@/hooks/useNotifications'
 
 import BasicInfoForm from '@/components/business/meeting/BasicInfoForm'
 import AgendaForm from '@/components/business/meeting/AgendaForm'
-import OrganizationSelector from '@/components/business/meeting/OrganizationSelector'
+import AddParticipantModal from '@/components/business/meeting/AddParticipantModal'
 
 interface MeetingFormPageProps {
   mode: 'create' | 'edit' | 'view'
@@ -220,7 +220,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
       </div>
 
       {mode !== 'view' && (
-        <OrganizationSelector
+        <AddParticipantModal
           isOpen={showOrgModal}
           onClose={() => setShowOrgModal(false)}
           selectedParticipants={formData.participants}

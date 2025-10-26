@@ -18,6 +18,7 @@ export type UserRole = 'admin' | 'user' | 'meeting_admin' | 'auditor' | 'securit
 export interface User extends BaseEntity {
   username: string
   realName?: string
+  name?: string
   email?: string
   role: UserRole
   avatar?: string
@@ -27,9 +28,12 @@ export interface User extends BaseEntity {
   phone?: string
   status: ActiveStatus
   securityLevel: UserSecurityLevel
-  ukeyId?: string  // UKey ID，如果绑定了key就只能用这个key才能登录
-  allowedIps?: string[]  // 允许登录的IP地址列表
+  ukeyId?: string
+  allowedIps?: string[]
   lastLoginAt?: ISODateString
+  lastLoginIp?: string
+  isHide?: boolean
+  isDeleted?: boolean
   permissions?: string[]
   profile?: UserProfile
   preferences?: UserPreferences

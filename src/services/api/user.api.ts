@@ -242,3 +242,7 @@ export class PermissionApiService {
 // 导出服务实例
 export const userApiService = new UserApiService()
 export const permissionApiService = new PermissionApiService()
+
+// 简写导出（保持兼容）
+export const userApi = userApiService
+export const permissionApi = permissionApiService

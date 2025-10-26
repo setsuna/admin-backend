@@ -17,9 +17,13 @@ export * from './core/error.handler'
 // ========================================
 export { dictApiService } from './api/dict.api'
 export { meetingApiService } from './api/meeting.api'
-export { userApiService, permissionApiService } from './api/user.api'
+export { userApiService, permissionApiService, userApi, permissionApi } from './api/user.api'
 export { policyApi } from './api/policy.api'
 export { departmentApiService } from './api/department.api'
+export { participantApi } from './api/participant.api'
+
+// 简写导出
+export { departmentApiService as departmentApi } from './api/department.api'
 
 // ========================================
 // 业务服务导出 (services/*.ts)

@@ -121,6 +121,8 @@ export interface UserFilters {
  */
 export interface CreateUserRequest {
   username: string
+  realName?: string
+  name?: string
   email?: string
   password: string
   role: UserRole
@@ -131,6 +133,7 @@ export interface CreateUserRequest {
   securityLevel: UserSecurityLevel
   ukeyId?: string
   allowedIps?: string[]
+  isHide?: boolean
   permissions?: string[]
 }
 
@@ -140,6 +143,8 @@ export interface CreateUserRequest {
 export interface UpdateUserRequest {
   id: string
   username?: string
+  realName?: string
+  name?: string
   email?: string
   role?: UserRole
   department?: string
@@ -149,6 +154,7 @@ export interface UpdateUserRequest {
   securityLevel?: UserSecurityLevel
   ukeyId?: string
   allowedIps?: string[]
+  isHide?: boolean
   permissions?: string[]
 }
 
@@ -201,4 +207,52 @@ export interface UpdateDictRequest {
     remark?: string
     status: 'enabled' | 'disabled'
   }>
+}
+
+// ========== 参会人员相关请求 ==========
+
+import type { ParticipantRole, ParticipantStatus } from '../domain/meeting.types'
+
+/**
+ * 创建参会人员请求
+ */
+export interface CreateParticipantRequest {
+  meetingId: string
+  userId?: string
+  name?: string
+  tempDepartment?: string
+  tempPosition?: string
+  tempSecurityLevel?: string
+  role?: ParticipantRole
+  status?: ParticipantStatus
+}
+
+/**
+ * 批量创建参会人员请求
+ */
+export interface BatchCreateParticipantRequest {
+  meetingId: string
+  participants: Array<{
+    userId?: string
+    name?: string
+    tempDepartment?: string
+    tempPosition?: string
+    tempSecurityLevel?: string
+    role?: ParticipantRole
+  }>
+}
+
+/**
+ * 更新参会人员请求
+ */
+export interface UpdateParticipantRequest {
+  role?: ParticipantRole
+  status?: ParticipantStatus
+}
+
+/**
+ * 更新参会人员状态请求
+ */
+export interface UpdateParticipantStatusRequest {
+  status: ParticipantStatus
 }
