@@ -43,9 +43,9 @@ const parseTemporaryParticipants = (text: string): ParseResult => {
 
     success.push({
       name,
-      tempDepartment: parts[1] || '外部',
-      tempPosition: parts[2] || '',
-      tempSecurityLevel: parts[3] || 'unclassified'
+      department: parts[1] || '外部',
+      email: parts[2] || '',
+      securityLevel: parts[3] || 'unclassified'
     })
   })
 
@@ -84,13 +84,13 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
           <div className="flex-1 text-sm">
             <div className="font-medium text-blue-900 mb-1">格式说明</div>
             <div className="text-blue-700 space-y-1">
-              <div>• 完整格式：姓名,部门,职位,密级</div>
+              <div>• 完整格式：姓名,部门,邮箱,密级</div>
               <div className="text-xs text-blue-600 pl-4">
-                示例：张三,外部单位,顾问,confidential
+                示例：张三,外部单位,zhang@example.com,confidential
               </div>
-              <div>• 简化格式：姓名,部门,职位</div>
+              <div>• 简化格式：姓名,部门,邮箱</div>
               <div className="text-xs text-blue-600 pl-4">
-                示例：李四,合作方,经理
+                示例：李四,合作方,li@example.com
               </div>
               <div>• 仅姓名：张三（默认外部人员、普通密级）</div>
             </div>
@@ -118,16 +118,16 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
                 </div>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {parseResult.success.map((p, i) => {
-                    const securityConfig = SECURITY_LEVEL_CONFIG[p.tempSecurityLevel as keyof typeof SECURITY_LEVEL_CONFIG]
+                    const securityConfig = SECURITY_LEVEL_CONFIG[p.securityLevel as keyof typeof SECURITY_LEVEL_CONFIG]
                     return (
                       <div key={i} className="flex items-center gap-2 text-sm text-green-800">
                         <span className="font-medium">{p.name}</span>
                         <span className="text-green-600">·</span>
-                        <span>{p.tempDepartment}</span>
-                        {p.tempPosition && (
+                        <span>{p.department}</span>
+                        {p.email && (
                           <>
                             <span className="text-green-600">·</span>
-                            <span>{p.tempPosition}</span>
+                            <span>{p.email}</span>
                           </>
                         )}
                         {securityConfig && (

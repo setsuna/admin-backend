@@ -162,11 +162,17 @@ export type ParticipantRole = 'host' | 'participant' | 'observer'
 export type ParticipantStatus = 'invited' | 'accepted' | 'declined' | 'attended'
 
 /**
+ * 参会人员类型（前端用于区分）
+ */
+export type ParticipantType = 'internal' | 'temporary'
+
+/**
  * 参会人员基础信息
  */
 export interface MeetingParticipant {
   id: string
   meetingId: string
+  participantType?: ParticipantType  // 前端用于区分类型
   userId: string
   userName: string
   name: string                    // 姓名（后端新增）
@@ -182,7 +188,15 @@ export interface MeetingParticipant {
   updatedAt?: string
 }
 
-
+/**
+ * 临时参会人员（导入用）
+ */
+export interface TemporaryParticipant {
+  name: string
+  email?: string
+  department?: string
+  securityLevel?: string
+}
 
 /**
  * 会议表单数据（用于创建/编辑）

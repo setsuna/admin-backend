@@ -34,6 +34,10 @@ const ParticipantSelector: React.FC<ParticipantSelectorProps> = ({
     return participant.securityLevel
   }
 
+  const isTemporary = (participant: MeetingParticipant) => {
+    return participant.participantType === 'temporary'
+  }
+
   return (
     <div>
       <label className="block text-sm font-medium mb-1">
@@ -56,13 +60,19 @@ const ParticipantSelector: React.FC<ParticipantSelectorProps> = ({
                 const securityConfig = securityLevel 
                   ? SECURITY_LEVEL_CONFIG[securityLevel as keyof typeof SECURITY_LEVEL_CONFIG]
                   : null
+                const isTemp = isTemporary(participant)
 
                 return (
                   <span
                     key={participant.id}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm ${
+                      isTemp ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
+                    }`}
                   >
                     <span>{displayName}</span>
+                    {isTemp && (
+                      <span className="text-xs opacity-75">(临时)</span>
+                    )}
                     {securityConfig && (
                       <span className={`text-xs px-1.5 py-0.5 rounded ${securityConfig.badge}`}>
                         {securityConfig.icon}
@@ -74,7 +84,7 @@ const ParticipantSelector: React.FC<ParticipantSelectorProps> = ({
                           e.stopPropagation()
                           onRemoveParticipant(participant.id)
                         }}
-                        className="hover:text-blue-600"
+                        className={isTemp ? 'hover:text-amber-600' : 'hover:text-blue-600'}
                       >
                         <X className="h-3 w-3" />
                       </button>
