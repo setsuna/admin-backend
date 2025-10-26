@@ -212,12 +212,12 @@ const DepartmentPage = () => {
       )
     },
     {
-      key: 'managerName',
+      key: 'manager_name',  // 🔧 修复：使用后端实际字段名
       title: '负责人',
       render: (value: string) => value || '-'
     },
     {
-      key: 'employeeCount',
+      key: 'employee_count',  // 🔧 修复：使用后端实际字段名
       title: '人员数量',
       render: (value: number) => (
         <div className="flex items-center space-x-1">
@@ -364,7 +364,11 @@ const DepartmentPage = () => {
                   <Search className="h-4 w-4 mr-2" />
                   搜索
                 </Button>
-                <Button variant="outline" onClick={resetFilters}>
+                <Button 
+                  variant="outline" 
+                  onClick={refreshData}  // 🔧 修复：使用刷新函数而不是重置筛选
+                  title="刷新数据"
+                >
                   <RefreshCw className="h-4 w-4" />
                 </Button>
               </div>
@@ -449,8 +453,8 @@ const DepartmentPage = () => {
           name: editingDepartment.name,
           code: editingDepartment.code,
           description: editingDepartment.description || '',
-          parentId: editingDepartment.parentId || '',
-          managerId: editingDepartment.managerId || '',
+          parentId: (editingDepartment as any).parent_id || editingDepartment.parentId || '',  // 🔧 支持 snake_case
+          managerId: (editingDepartment as any).manager_id || editingDepartment.managerId || '',  // 🔧 支持 snake_case
           sort: editingDepartment.sort,
           status: editingDepartment.status,
           phone: editingDepartment.phone || '',

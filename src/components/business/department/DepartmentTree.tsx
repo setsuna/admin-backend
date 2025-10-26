@@ -134,16 +134,16 @@ const TreeNode: React.FC<TreeNodeProps> = ({
               
               <div className="flex items-center space-x-4 mt-1">
                 {/* 负责人 */}
-                {node.managerName && (
+                {((node as any).manager_name || node.managerName) && (
                   <span className="text-xs text-muted-foreground">
-                    负责人: {node.managerName}
+                    负责人: {(node as any).manager_name || node.managerName}
                   </span>
                 )}
                 
                 {/* 人员数量 */}
                 <div className="flex items-center space-x-1 text-xs text-muted-foreground">
                   <Users className="h-3 w-3" />
-                  <span>{node.employeeCount || 0}人</span>
+                  <span>{(node as any).employee_count || node.employeeCount || 0}人</span>
                 </div>
                 
                 {/* 状态 */}
@@ -233,7 +233,8 @@ export const DepartmentTree: React.FC<DepartmentTreeProps> = ({
       const matchesSearch = !searchTerm || 
         dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         dept.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        dept.managerName?.toLowerCase().includes(searchTerm.toLowerCase())
+        ((dept as any).manager_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         dept.managerName?.toLowerCase().includes(searchTerm.toLowerCase()))
       
       const filteredChildren = dept.children
         ?.map(child => filterNode(child))
