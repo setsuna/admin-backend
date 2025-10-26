@@ -32,6 +32,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
     isLoading,
     isError,
     submitPending,
+    currentMeetingId,
     
     agendas,
     addAgenda,
@@ -223,6 +224,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
         <AddParticipantModal
           isOpen={showOrgModal}
           onClose={() => setShowOrgModal(false)}
+          meetingId={currentMeetingId}
           selectedParticipants={formData.participants}
           onParticipantsChange={handleParticipantsChange}
         />

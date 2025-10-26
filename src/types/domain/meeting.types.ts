@@ -152,14 +152,9 @@ export interface MeetingMaterial {
 }
 
 /**
- * 参会人员类型
- */
-export type ParticipantType = 'internal' | 'temporary'
-
-/**
  * 参会人员角色
  */
-export type ParticipantRole = 'participant' | 'presenter' | 'moderator'
+export type ParticipantRole = 'host' | 'participant' | 'observer'
 
 /**
  * 参会人员状态
@@ -172,38 +167,22 @@ export type ParticipantStatus = 'invited' | 'accepted' | 'declined' | 'attended'
 export interface MeetingParticipant {
   id: string
   meetingId: string
-  participantType: ParticipantType
-  
-  // 内部人员（组织架构）
-  userId?: string
-  username?: string
+  userId: string
+  userName: string
+  name: string                    // 姓名（后端新增）
+  email?: string
   department?: string
-  departmentName?: string
-  position?: string
-  securityLevel?: string
-  
-  // 临时人员
-  name?: string
-  tempDepartment?: string
-  tempPosition?: string
-  tempSecurityLevel?: string
-  
-  // 通用字段
+  securityLevel?: string          // 密级（后端新增）
+  password?: string               // 密码（后端新增）
   role: ParticipantRole
   status: ParticipantStatus
+  joinedAt?: string
+  leftAt?: string
   createdAt: string
   updatedAt?: string
 }
 
-/**
- * 临时参会人员（导入用）
- */
-export interface TemporaryParticipant {
-  name: string
-  tempDepartment?: string
-  tempPosition?: string
-  tempSecurityLevel?: string
-}
+
 
 /**
  * 会议表单数据（用于创建/编辑）

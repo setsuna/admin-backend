@@ -10,6 +10,7 @@ import { useMeetingAgenda } from './useMeetingAgenda'
 import { useMeetingMaterial } from './useMeetingMaterial'
 import { useNotifications } from './useNotifications'
 import { meetingApi } from '@/services/meeting'
+import { participantApi } from '@/services/api/participant.api'
 import { 
   getInitialFormData, 
   convertDraftDataToFormData, 
@@ -41,6 +42,14 @@ export function useMeetingForm(
   const { data: meeting, isLoading: meetingLoading, isError } = useQuery({
     queryKey: ['meeting', meetingId],
     queryFn: () => meetingApi.getMeetingById(meetingId!),
+    enabled: (mode === 'edit' || mode === 'view') && !!meetingId,
+    retry: 1,
+  })
+  
+  // ===== 编辑/查看模式：加载参会人员 =====
+  const { data: participants = [], isLoading: participantsLoading } = useQuery({
+    queryKey: ['meeting-participants', meetingId],
+    queryFn: () => participantApi.listParticipants(meetingId!),
     enabled: (mode === 'edit' || mode === 'view') && !!meetingId,
     retry: 1,
   })
@@ -113,7 +122,7 @@ export function useMeetingForm(
       signInType: (meetingData.sign_in_type || meetingData.signInType || 'none') as 'none' | 'manual' | 'password',
       startTime: meeting.startTime ? meeting.startTime.slice(0, 16) : formData.startTime,
       endTime: meeting.endTime ? meeting.endTime.slice(0, 16) : formData.endTime,
-      participants: []
+      participants: participants || []
     }
     
     setFormData(prev => ({
@@ -122,7 +131,7 @@ export function useMeetingForm(
     }))
     
     loadAgendas()
-  }, [mode, meeting])
+  }, [mode, meeting, participants])
   
   // ===== 创建模式：初始化议题 =====
   useEffect(() => {
@@ -252,8 +261,8 @@ export function useMeetingForm(
   }
   
   // 确定加载和初始化状态
-  const isLoading = mode === 'create' ? draftLoading : meetingLoading
-  const isInitialized = mode === 'create' ? draftInitialized : !!meeting
+  const isLoading = mode === 'create' ? draftLoading : (meetingLoading || participantsLoading)
+  const isInitialized = mode === 'create' ? draftInitialized : (!!meeting && !participantsLoading)
   const submitPending = mode === 'edit' ? updateMutation.isPending : draftLoading
   
   return {
@@ -263,6 +272,7 @@ export function useMeetingForm(
     isLoading,
     isError,
     submitPending,
+    currentMeetingId,
     
     agendas,
     addAgenda,

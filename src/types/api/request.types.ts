@@ -214,45 +214,45 @@ export interface UpdateDictRequest {
 import type { ParticipantRole, ParticipantStatus } from '../domain/meeting.types'
 
 /**
+ * 创建参会人员请求项
+ */
+export interface CreateParticipantItemRequest {
+  user_id: string
+  user_name: string
+  name?: string          // 姓名
+  email?: string
+  department?: string
+  security_level?: string // 密级
+  password?: string       // 密码（可选，如果不提供则从用户表查询）
+  role: 'host' | 'participant' | 'observer'
+}
+
+/**
  * 创建参会人员请求
  */
-export interface CreateParticipantRequest {
-  meetingId: string
-  userId?: string
-  name?: string
-  tempDepartment?: string
-  tempPosition?: string
-  tempSecurityLevel?: string
-  role?: ParticipantRole
-  status?: ParticipantStatus
+export interface CreateParticipantRequest extends CreateParticipantItemRequest {
+  meeting_id?: string  // 从路径参数获取，不在请求体中
 }
 
 /**
  * 批量创建参会人员请求
  */
 export interface BatchCreateParticipantRequest {
-  meetingId: string
-  participants: Array<{
-    userId?: string
-    name?: string
-    tempDepartment?: string
-    tempPosition?: string
-    tempSecurityLevel?: string
-    role?: ParticipantRole
-  }>
+  meeting_id?: string  // 从路径参数获取
+  participants: CreateParticipantItemRequest[]
 }
 
 /**
  * 更新参会人员请求
  */
 export interface UpdateParticipantRequest {
-  role?: ParticipantRole
-  status?: ParticipantStatus
+  role?: 'host' | 'participant' | 'observer'
+  department?: string
 }
 
 /**
  * 更新参会人员状态请求
  */
 export interface UpdateParticipantStatusRequest {
-  status: ParticipantStatus
+  status: 'invited' | 'accepted' | 'declined' | 'attended'
 }

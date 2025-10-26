@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { Search, X, ChevronRight, ChevronDown } from 'lucide-react'
+import { Search, X, ChevronRight, ChevronDown, ChevronLeft } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { userApi } from '@/services/api/user.api'
 import { departmentApiService } from '@/services/api/department.api'
@@ -39,6 +39,8 @@ const UserSelector: React.FC<UserSelectorProps> = ({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
     new Set(value.map(u => u.id))
   )
+  const [page, setPage] = useState(1)
+  const [pageSize] = useState(10)
 
   // 获取部门树
   const { data: deptTree = [] } = useQuery({
@@ -47,19 +49,23 @@ const UserSelector: React.FC<UserSelectorProps> = ({
   })
 
   // 获取用户列表
-  const { data: users = [], isLoading } = useQuery({
-    queryKey: ['users', keyword, selectedDeptId, filters],
+  const { data: usersResult, isLoading } = useQuery({
+    queryKey: ['users', keyword, selectedDeptId, filters, page, pageSize],
     queryFn: async () => {
       const result = await userApi.getUsers({
         keyword,
         department: selectedDeptId || filters.department,
         ...filters,
-        page: 1,
-        size: 100
+        page,
+        size: pageSize
       })
-      return result.items || []
+      return result
     }
   })
+
+  const users = usersResult?.items || []
+  const total = usersResult?.pagination?.total || 0
+  const totalPages = Math.ceil(total / pageSize)
 
   const selectedUsers = useMemo(() => {
     return users.filter(u => selectedIds.has(u.id))
@@ -71,6 +77,11 @@ const UserSelector: React.FC<UserSelectorProps> = ({
       setExpandedDepts(new Set(deptTree.map(d => d.id)))
     }
   }, [deptTree])
+
+  // 搜索或切换部门时重置页码
+  useEffect(() => {
+    setPage(1)
+  }, [keyword, selectedDeptId])
 
   const handleToggleUser = (user: User) => {
     const newIds = new Set(selectedIds)
@@ -221,15 +232,15 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                         className="h-4 w-4"
                       />
                       <div className="flex-1">
-                        <div className="font-medium text-gray-900">
-                          {user.username}
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-900">{user.name || user.realName || user.username}</span>
+                          {showSecurityLevel && securityConfig && (
+                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs flex-shrink-0 ${securityConfig.badge}`}>
+                              <span>{securityConfig.icon}</span>
+                              <span>{securityConfig.label}</span>
+                            </span>
+                          )}
                         </div>
-                        {showSecurityLevel && securityConfig && (
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs mt-1 ${securityConfig.badge}`}>
-                            <span>{securityConfig.icon}</span>
-                            <span>{securityConfig.label}</span>
-                          </span>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -238,6 +249,59 @@ const UserSelector: React.FC<UserSelectorProps> = ({
             </div>
           )}
         </div>
+
+        {/* 分页 */}
+        {!isLoading && total > 0 && (
+          <div className="p-4 border-t bg-white">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                共 {total} 人，第 {page}/{totalPages} 页
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum: number
+                    if (totalPages <= 5) {
+                      pageNum = i + 1
+                    } else if (page <= 3) {
+                      pageNum = i + 1
+                    } else if (page >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i
+                    } else {
+                      pageNum = page - 2 + i
+                    }
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => setPage(pageNum)}
+                        className={`
+                          px-3 py-1 border rounded min-w-[36px]
+                          ${page === pageNum ? 'bg-blue-500 text-white border-blue-500' : 'hover:bg-gray-50'}
+                        `}
+                      >
+                        {pageNum}
+                      </button>
+                    )
+                  })}
+                </div>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {selectedUsers.length > 0 && (
           <div className="p-4 border-t bg-gray-50">
@@ -254,7 +318,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                     className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border rounded-md"
                   >
                     <span className="text-sm">
-                      {user.username}
+                      {user.name || user.realName || user.username}
                     </span>
                     {showSecurityLevel && securityConfig && (
                       <span className={`text-xs ${securityConfig.badge} px-1.5 py-0.5 rounded`}>
