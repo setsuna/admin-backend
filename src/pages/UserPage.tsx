@@ -152,18 +152,26 @@ const UserPage = () => {
   // 表格列定义
   const columns = [
     {
-      key: 'avatar',
-      title: '头像',
-      width: 80,
-      render: (avatar: string, user: User) => (
-        <div className="flex justify-center">
-          <img 
-            src={avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`}
-            alt={user.username}
-            className="w-8 h-8 rounded-full"
-          />
-        </div>
-      )
+      key: 'icon',
+      title: '',
+      width: 60,
+      render: (_: any, user: User) => {
+        const roleIconMap: Record<string, any> = {
+          admin: Shield,
+          meeting_admin: Users,
+          auditor: Search,
+          security_admin: Shield,
+          user: UserIcon
+        }
+        const Icon = roleIconMap[user.role] || UserIcon
+        return (
+          <div className="flex justify-center">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <Icon className="w-5 h-5 text-blue-600" />
+            </div>
+          </div>
+        )
+      }
     },
     {
       key: 'username',
