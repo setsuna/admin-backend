@@ -3,6 +3,7 @@ import { X, Plus, Trash2, Save } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { useNotifications } from '@/hooks/useNotifications'
 import type { DataDict, DictItem, CreateDictRequest, EntityStatus } from '@/types'
 
 interface DictEditModalProps {
@@ -18,6 +19,7 @@ const DictEditModal: React.FC<DictEditModalProps> = ({
   onSave,
   dict
 }) => {
+  const { showError } = useNotifications()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     dictCode: '',
@@ -83,9 +85,19 @@ const DictEditModal: React.FC<DictEditModalProps> = ({
   }
 
   const handleSave = async () => {
+    // 验证必填字段
     if (!formData.dictCode || !formData.dictName || !formData.dictType) {
-      alert('请填写必填字段')
+      showError('验证失败', '请填写所有必填字段')
       return
+    }
+
+    // 验证字典项
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      if (!item.code || !item.name || !item.value) {
+        showError('验证失败', `字典项 ${i + 1} 缺少必填字段`)
+        return
+      }
     }
 
     try {
@@ -94,10 +106,15 @@ const DictEditModal: React.FC<DictEditModalProps> = ({
         ...formData,
         items
       })
+      // 成功通知由 useDict hook 处理
       onClose()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Save failed:', error)
-      alert('保存失败')
+      // 错误通知由 useDict hook 处理，这里只需要记录
+      // 如果 hook 没有处理，则显示通用错误
+      if (error?.message !== 'Handled by mutation') {
+        showError('保存失败', error?.message || '请稍后重试')
+      }
     } finally {
       setLoading(false)
     }

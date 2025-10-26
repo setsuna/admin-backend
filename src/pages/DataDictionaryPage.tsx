@@ -19,6 +19,7 @@ import { Card, CardContent } from '@/components/ui/Card'
 import DictEditModal from '@/components/features/DictEditModal'
 import { useGlobalDialog } from '@/components/ui/DialogProvider'
 import { useDict } from '@/hooks/useDict'
+import { useNotifications } from '@/hooks/useNotifications'
 import { dictApi } from '@/services/dict'
 import { debounce } from '@/utils'
 import type { 
@@ -37,6 +38,7 @@ const statusConfig = {
 
 const DataDictionaryPage: React.FC = () => {
   const { showConfirm } = useGlobalDialog()
+  const { showError } = useNotifications()
   
   // 使用字典管理hook
   const {
@@ -118,9 +120,19 @@ const DataDictionaryPage: React.FC = () => {
     }
   }
 
-  const handleEdit = (dict: DataDict) => {
-    setEditingDict(dict)
-    setIsEditModalOpen(true)
+  const handleEdit = async (dict: DataDict) => {
+    // 加载完整的字典详情（包括 items）
+    setLoadingDetails(true)
+    try {
+      const fullDict = await dictApi.getDictionary(dict.id)
+      setEditingDict(fullDict)
+      setIsEditModalOpen(true)
+    } catch (error: any) {
+      console.error('Failed to load dictionary details:', error)
+      showError('加载失败', error?.message || '无法加载字典详情，请重试')
+    } finally {
+      setLoadingDetails(false)
+    }
   }
 
   const handleDelete = async (id: string) => {
@@ -132,7 +144,11 @@ const DataDictionaryPage: React.FC = () => {
     })
     
     if (confirmed) {
-      deleteDict(id)
+      try {
+        await deleteDict(id)
+      } catch (error) {
+        console.error('Failed to delete dict:', error)
+      }
     }
   }
 
@@ -145,13 +161,21 @@ const DataDictionaryPage: React.FC = () => {
     })
     
     if (confirmed) {
-      batchDeleteDicts(selectedIds)
+      try {
+        await batchDeleteDicts(selectedIds)
+      } catch (error) {
+        console.error('Failed to batch delete dicts:', error)
+      }
     }
   }
 
   const handleExport = async () => {
-    const exportIds = selectedIds.length > 0 ? selectedIds : undefined
-    exportDicts(exportIds)
+    try {
+      const exportIds = selectedIds.length > 0 ? selectedIds : undefined
+      await exportDicts(exportIds)
+    } catch (error) {
+      console.error('Failed to export dicts:', error)
+    }
   }
 
   const handleSyncToDevices = async () => {
@@ -163,7 +187,11 @@ const DataDictionaryPage: React.FC = () => {
     })
     
     if (confirmed) {
-      syncToDevices(selectedIds)
+      try {
+        await syncToDevices(selectedIds)
+      } catch (error) {
+        console.error('Failed to sync to devices:', error)
+      }
     }
   }
 
@@ -173,13 +201,19 @@ const DataDictionaryPage: React.FC = () => {
   }
 
   const handleSaveDict = async (data: CreateDictRequest) => {
-    if (editingDict) {
-      updateDict(editingDict.id, data as Omit<UpdateDictRequest, 'id'>)
-    } else {
-      createDict(data)
+    try {
+      if (editingDict) {
+        await updateDict(editingDict.id, data as Omit<UpdateDictRequest, 'id'>)
+      } else {
+        await createDict(data)
+      }
+      setIsEditModalOpen(false)
+      setEditingDict(null)
+    } catch (error) {
+      // 错误已由 useDict hook 处理，这里只需要捕获以防止未处理的 Promise rejection
+      console.error('Failed to save dict:', error)
+      throw error // 重新抛出以便 DictEditModal 可以处理
     }
-    setIsEditModalOpen(false)
-    setEditingDict(null)
   }
 
   const renderStatus = (status: EntityStatus) => {
@@ -323,6 +357,7 @@ const DataDictionaryPage: React.FC = () => {
             variant="ghost" 
             size="sm"
             onClick={() => handleEdit(record)}
+            disabled={loadingDetails}
             title="编辑"
           >
             <Edit className="w-4 h-4" />

@@ -186,14 +186,14 @@ export const useDict = (options: UseDictOptions = {}) => {
     isAllSelected: isAllSelected(),
     isIndeterminate: isIndeterminate(),
     
-    // 操作
-    createDict: createMutation.mutate,
+    // 操作（返回 Promise）
+    createDict: createMutation.mutateAsync,
     updateDict: (id: string, data: Omit<UpdateDictRequest, 'id'>) => 
-      updateMutation.mutate({ id, data: { ...data, id } }),
-    deleteDict: deleteMutation.mutate,
-    batchDeleteDicts: batchDeleteMutation.mutate,
-    syncToDevices: syncToDevicesMutation.mutate,
-    exportDicts: exportMutation.mutate,
+      updateMutation.mutateAsync({ id, data: { ...data, id } }),
+    deleteDict: deleteMutation.mutateAsync,
+    batchDeleteDicts: batchDeleteMutation.mutateAsync,
+    syncToDevices: syncToDevicesMutation.mutateAsync,
+    exportDicts: exportMutation.mutateAsync,
     
     // 过滤和分页
     setFilters,
