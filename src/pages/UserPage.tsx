@@ -14,14 +14,16 @@ import type { User, CreateUserRequest, UpdateUserRequest, UserSecurityLevel } fr
 
 interface UserFormData {
   username: string
-  email: string
+  email?: string
   password?: string
   role: 'admin' | 'user' | 'meeting_admin' | 'auditor' | 'security_admin'
   department?: string
   position?: string
   phone?: string
-  status: 'active' | 'inactive' | 'suspended'
-  securityLevel: UserSecurityLevel
+  status?: 'active' | 'inactive' | 'suspended'
+  securityLevel?: UserSecurityLevel
+  ukeyId?: string
+  allowedIps?: string
   permissions?: string[]
 }
 
@@ -69,14 +71,14 @@ const UserPage = () => {
     { label: '安全管理员', value: 'security_admin' }
   ]
   
-  // 状态选项
+  // 状态选项（仅编辑时使用）
   const statusOptions = [
     { label: '正常', value: 'active' },
     { label: '禁用', value: 'inactive' },
     { label: '停用', value: 'suspended' }
   ]
   
-  // 密级选项
+  // 密级选项（仅编辑时使用）
   const securityLevelOptions = [
     { label: '密级未知', value: 'unknown' },
     { label: '内部', value: 'internal' },
@@ -132,17 +134,28 @@ const UserPage = () => {
   
   // 表单提交处理
   const handleFormSubmit = (formData: UserFormData) => {
+    // 处理 allowedIps - 从字符串转为数组
+    const allowedIpsArray = formData.allowedIps 
+      ? formData.allowedIps.split(',').map(ip => ip.trim()).filter(ip => ip)
+      : undefined
+    
     if (editingUser) {
+      // 编辑用户
       const { password, ...updateData } = formData
       updateUser({
         id: editingUser.id,
         ...updateData,
+        allowedIps: allowedIpsArray,
         permissions: getPermissionsByRole(formData.role)
       } as UpdateUserRequest)
     } else {
+      // 新增用户 - 默认设置 status 和 securityLevel
       createUser({
         ...formData,
         password: formData.password || '123456',
+        status: 'active',  // 新增用户默认正常状态
+        securityLevel: 'unknown',  // 新增用户默认未知密级
+        allowedIps: allowedIpsArray,
         permissions: getPermissionsByRole(formData.role)
       } as CreateUserRequest)
     }
@@ -180,7 +193,7 @@ const UserPage = () => {
       render: (username: string, user: User) => (
         <div>
           <div className="font-medium">{username}</div>
-          <div className="text-sm text-gray-500">{user.email}</div>
+          <div className="text-sm text-gray-500">{user.email || '-'}</div>
         </div>
       )
     },
@@ -282,7 +295,7 @@ const UserPage = () => {
     }
   ]
   
-  // 表单字段定义
+  // 表单字段定义 - 新增和编辑时的字段不同
   const formFields = [
     {
       name: 'username',
@@ -295,15 +308,16 @@ const UserPage = () => {
       name: 'email',
       label: '邮箱',
       type: 'email' as const,
-      required: true,
-      placeholder: '请输入邮箱地址'
+      required: false,  // 邮箱改为非必填
+      placeholder: '请输入邮箱地址（可选）'
     },
+    // 新增时显示密码字段
     ...(editingUser ? [] : [{
       name: 'password',
       label: '密码',
       type: 'password' as const,
-      required: !editingUser,
-      placeholder: editingUser ? '不修改请留空' : '请输入密码（默认123456）'
+      required: true,
+      placeholder: '请输入密码（默认123456）'
     }]),
     {
       name: 'role',
@@ -331,34 +345,38 @@ const UserPage = () => {
       placeholder: '请输入手机号'
     },
     {
-      name: 'securityLevel',
-      label: '密级',
-      type: 'select' as const,
-      required: true,
-      options: securityLevelOptions
+      name: 'ukeyId',
+      label: 'UKey ID',
+      type: 'text' as const,
+      placeholder: '如果绑定UKey，只能用此Key登录'
     },
     {
-      name: 'status',
-      label: '状态',
-      type: 'select' as const,
-      required: true,
-      options: statusOptions
-    }
+      name: 'allowedIps',
+      label: '允许登录的IP',
+      type: 'text' as const,
+      placeholder: '多个IP用逗号分隔，例如：192.168.1.1,192.168.1.2'
+    },
+    // 编辑时才显示密级和状态字段
+    ...(editingUser ? [
+      {
+        name: 'securityLevel',
+        label: '密级',
+        type: 'select' as const,
+        required: true,
+        options: securityLevelOptions
+      },
+      {
+        name: 'status',
+        label: '状态',
+        type: 'select' as const,
+        required: true,
+        options: statusOptions
+      }
+    ] : [])
   ]
   
   if (isLoading && !users.length) {
     return <Loading />
-  }
-  
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">加载失败</p>
-          <Button onClick={refreshData}>重试</Button>
-        </div>
-      </div>
-    )
   }
   
   return (
@@ -571,12 +589,13 @@ const UserPage = () => {
           department: editingUser.department,
           position: editingUser.position,
           phone: editingUser.phone,
+          ukeyId: editingUser.ukeyId,
+          allowedIps: editingUser.allowedIps?.join(', '),
           securityLevel: editingUser.securityLevel,
           status: editingUser.status
         } : {
-          status: 'active',
-          securityLevel: 'unknown',
           role: 'user'
+          // status 和 securityLevel 不在初始值中，提交时会自动设置
         }}
         onSubmit={handleFormSubmit}
         loading={isCreating || isUpdating}

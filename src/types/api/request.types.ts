@@ -121,7 +121,7 @@ export interface UserFilters {
  */
 export interface CreateUserRequest {
   username: string
-  email: string
+  email?: string
   password: string
   role: UserRole
   department?: string
@@ -129,6 +129,8 @@ export interface CreateUserRequest {
   phone?: string
   status: ActiveStatus
   securityLevel: UserSecurityLevel
+  ukeyId?: string
+  allowedIps?: string[]
   permissions?: string[]
 }
 
@@ -145,5 +147,7 @@ export interface UpdateUserRequest {
   phone?: string
   status?: ActiveStatus
   securityLevel?: UserSecurityLevel
+  ukeyId?: string
+  allowedIps?: string[]
   permissions?: string[]
 }

@@ -286,17 +286,6 @@ const SecurityLevelManagePage = () => {
     return <Loading />
   }
   
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">加载失败</p>
-          <Button onClick={refreshData}>重试</Button>
-        </div>
-      </div>
-    )
-  }
-  
   return (
     <div className="space-y-6">
       {/* 统计卡片 */}

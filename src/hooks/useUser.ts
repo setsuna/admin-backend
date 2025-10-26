@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { userService, departmentService } from '@/services'
 import { userApiService } from '@/services/api/user.api'
@@ -36,20 +36,43 @@ export const useUser = (options: UseUserOptions = {}) => {
   const userQuery = useQuery({
     queryKey: ['users', filters, pagination],
     queryFn: () => userService.getUsers({ ...filters, ...pagination }),
-    refetchInterval: enableAutoRefresh ? autoRefreshInterval : false
+    refetchInterval: enableAutoRefresh ? autoRefreshInterval : false,
+    retry: 1
   })
   
   const departmentOptionsQuery = useQuery({
     queryKey: ['departmentOptions'],
     queryFn: () => departmentService.getDepartmentOptions(),
     staleTime: 10 * 60 * 1000,
+    retry: 1
   })
   
   const userStatsQuery = useQuery({
     queryKey: ['userStats'],
     queryFn: () => userApiService.getUserStats(),
     staleTime: 1 * 60 * 1000,
+    retry: 1
   })
+  
+  // 监听查询错误，使用通知系统提示
+  useEffect(() => {
+    if (userQuery.isError && userQuery.error) {
+      showError('加载用户列表失败', (userQuery.error as any)?.message || '请稍后重试')
+    }
+  }, [userQuery.isError, userQuery.error, showError])
+  
+  useEffect(() => {
+    if (departmentOptionsQuery.isError && departmentOptionsQuery.error) {
+      showError('加载部门列表失败', (departmentOptionsQuery.error as any)?.message || '请稍后重试')
+    }
+  }, [departmentOptionsQuery.isError, departmentOptionsQuery.error, showError])
+  
+  // 统计信息失败不显著提示，因为不影响主要功能
+  useEffect(() => {
+    if (userStatsQuery.isError && userStatsQuery.error) {
+      console.error('Failed to load user stats:', userStatsQuery.error)
+    }
+  }, [userStatsQuery.isError, userStatsQuery.error])
   
   // 缓存失效函数
   const invalidateQueries = () => {
