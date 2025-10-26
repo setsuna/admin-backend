@@ -151,3 +151,54 @@ export interface UpdateUserRequest {
   allowedIps?: string[]
   permissions?: string[]
 }
+
+// ========== 数据字典相关请求 ==========
+
+/**
+ * 字典筛选条件
+ */
+export interface DictFilters {
+  keyword?: string
+  dictType?: string
+  status?: 'enabled' | 'disabled'
+}
+
+/**
+ * 创建字典请求
+ */
+export interface CreateDictRequest {
+  dictCode: string
+  dictName: string
+  dictType: string
+  remark?: string
+  status: 'enabled' | 'disabled'
+  items?: Array<{
+    code: string
+    name: string
+    value: string | number
+    sort: number
+    remark?: string
+    status: 'enabled' | 'disabled'
+  }>
+}
+
+/**
+ * 更新字典请求
+ */
+export interface UpdateDictRequest {
+  id: string
+  dictCode?: string
+  dictName?: string
+  dictType?: string
+  remark?: string
+  status?: 'enabled' | 'disabled'
+  items?: Array<{
+    id?: string
+    code: string
+    name: string
+    value: string | number
+    sort: number
+    remark?: string
+    status: 'enabled' | 'disabled'
+  }>
+}
