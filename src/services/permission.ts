@@ -10,7 +10,6 @@ import type {
   Role, 
   User, 
   MenuItem, 
-  MenuItemConfig, 
   PermissionGroup, 
   RolePermissionMatrix 
 } from '@/types'
@@ -97,7 +96,7 @@ class PermissionService {
    * 更新角色权限
    */
   async updateRolePermissions(roleId: string, permissions: string[]): Promise<Role> {
-    return permissionApiService.updateRole(roleId, { permissions })
+    return permissionApiService.updateRole(roleId, { id: roleId, permissions })
   }
 
   /**
@@ -143,7 +142,7 @@ class PermissionService {
   /**
    * 检查角色是否有指定权限
    */
-  private roleHasPermission(role: string, permission: string): boolean {
+  private roleHasPermission(_role: string, _permission: string): boolean {
     // 这里应该根据实际的权限系统来实现
     // 暂时返回true，实际使用时需要调用API
     return true

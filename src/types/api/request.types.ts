@@ -9,6 +9,38 @@ import type { UserSecurityLevel, ActiveStatus } from '../common/base.types'
 // ========== 通用请求参数 ==========
 // PaginationParams 和 SortParams 已在 base.types 中定义
 
+/**
+ * 查询参数
+ */
+export interface QueryParams {
+  [key: string]: string | number | boolean | undefined
+}
+
+/**
+ * 批量请求
+ */
+export interface BatchRequest<T = any> {
+  ids: string[]
+  data?: T
+}
+
+/**
+ * 导出请求
+ */
+export interface ExportRequest {
+  format?: 'csv' | 'xlsx' | 'pdf'
+  filters?: Record<string, any>
+  columns?: string[]
+}
+
+/**
+ * 导入请求
+ */
+export interface ImportRequest {
+  file: File
+  overwrite?: boolean
+}
+
 // ========== 会议相关请求 ==========
 
 /**
@@ -114,6 +146,8 @@ export interface UserFilters {
   status?: ActiveStatus
   department?: string
   securityLevel?: UserSecurityLevel
+  page?: number
+  pageSize?: number
 }
 
 /**
@@ -210,8 +244,6 @@ export interface UpdateDictRequest {
 }
 
 // ========== 参会人员相关请求 ==========
-
-import type { ParticipantRole, ParticipantStatus } from '../domain/meeting.types'
 
 /**
  * 创建参会人员请求项

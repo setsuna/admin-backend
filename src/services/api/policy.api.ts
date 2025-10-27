@@ -49,12 +49,7 @@ export class PolicyApiService {
    * @returns Blob 对象，用于下载
    */
   async exportPolicy(): Promise<Blob> {
-    const response = await httpClient.request<SecurityPolicy>({
-      url: `${API_BASE}/export`,
-      method: 'GET',
-      responseType: 'blob'
-    })
-    return response as unknown as Blob
+    return await httpClient.download(`${API_BASE}/export`)
   }
 }
 

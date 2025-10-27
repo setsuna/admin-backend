@@ -11,8 +11,7 @@ export { useAuth, useUI, useApp } from '@/store'
 
 // 重新导出其他hooks（保持现有导入路径兼容）
 export { useDepartment } from './useDepartment'
-export { useDeviceStatus } from './useDeviceStatus'  
-export { useMeeting } from './useMeeting'
+export { useDeviceStatus } from './useDeviceStatus'
 export { useRole, useRoleOptions, useRoleDisplayName } from './useRole'
 export { usePolicy } from './usePolicy'
 export { useConfig } from './useConfig'

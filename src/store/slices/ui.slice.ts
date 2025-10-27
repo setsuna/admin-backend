@@ -30,10 +30,10 @@ export const createUISlice: StateCreator<
   // 🔄 更新：增强的通知系统
   notifications: [],
   addNotification: (notification) => {
-    const id = Math.random().toString(36).substring(2)
+    const notificationId = Math.random().toString(36).substring(2)
     const newNotification: ExtendedNotification = {
       ...notification,
-      id,
+      id: notificationId,
       timestamp: Date.now(),
     }
     
@@ -44,7 +44,7 @@ export const createUISlice: StateCreator<
     // 🆕 自动移除通知 - 支持持久显示
     if (!newNotification.persistent && notification.duration !== 0) {
       setTimeout(() => {
-        get().removeNotification(id)
+        get().removeNotification(notificationId)
       }, notification.duration || 5000)
     }
   },

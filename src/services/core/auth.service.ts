@@ -80,8 +80,8 @@ class AuthService {
       
       // 更新权限store
       try {
-        const { useAuth } = await import('@/store')
-        const { setUser, setPermissions } = useAuth.getState()
+        const { useStore } = await import('@/store')
+        const { setUser, setPermissions } = useStore.getState()
         setUser(userInfo)
         setPermissions(userInfo.permissions)
       } catch (error) {
@@ -110,8 +110,8 @@ class AuthService {
       this.clearStorage()
       
       try {
-        const { useAuth } = await import('@/store')
-        const { clearAuth } = useAuth.getState()
+        const { useStore } = await import('@/store')
+        const { clearAuth } = useStore.getState()
         clearAuth()
       } catch (error) {
         console.warn('Failed to clear auth store:', error)

@@ -4,6 +4,46 @@
 
 import type { PaginationParams, SelectOption } from '../common/base.types'
 
+// ========== 通知相关 ==========
+
+/**
+ * 通知类型
+ */
+export type NotificationType = 'success' | 'error' | 'warning' | 'info'
+
+/**
+ * 通知
+ */
+export interface Notification {
+  id?: string
+  type: NotificationType
+  title?: string
+  message: string
+  duration?: number
+  timestamp?: number
+}
+
+/**
+ * 操作按钮
+ */
+export interface ActionButton {
+  label: string
+  onClick: () => void
+  type?: 'primary' | 'secondary' | 'danger'
+  disabled?: boolean
+}
+
+/**
+ * 批量操作
+ */
+export interface BatchAction {
+  label: string
+  icon?: React.ReactNode
+  onClick: (selectedIds: string[]) => void
+  danger?: boolean
+  disabled?: boolean
+}
+
 // ========== 表格相关 ==========
 
 /**
@@ -44,4 +84,49 @@ export interface FormField {
   placeholder?: string
   options?: SelectOption[]
   rules?: any[]
+}
+
+// ========== 错误处理相关 ==========
+
+/**
+ * 错误信息
+ */
+export interface ErrorInfo {
+  message: string
+  isAuthError: boolean
+  authData?: AuthErrorData
+}
+
+/**
+ * 认证错误数据
+ */
+export interface AuthErrorData {
+  device_fingerprint?: string
+  hardware_summary?: string
+  error_code?: string
+  need_license?: boolean
+}
+
+/**
+ * 认证错误对话框数据
+ */
+export interface AuthErrorDialogData {
+  message: string
+  deviceFingerprint?: string
+  hardwareSummary?: string
+  errorCode?: string
+  mode: 'error' | 'warning' | 'info'
+  allowClose: boolean
+  showCurrentStatus: boolean
+}
+
+// ========== WebSocket 相关 ==========
+
+/**
+ * WebSocket 消息
+ */
+export interface WebSocketMessage {
+  type: string
+  data: any
+  timestamp?: number
 }

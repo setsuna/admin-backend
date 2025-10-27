@@ -46,7 +46,7 @@ class DeviceService {
    */
   async deleteDevice(id: string): Promise<boolean> {
     const response = await httpClient.delete<{ success: boolean }>(`${this.basePath}/${id}`)
-    return response.data.success
+    return response.success
   }
 
   /**
@@ -54,7 +54,7 @@ class DeviceService {
    */
   async batchDeleteDevices(ids: string[]): Promise<boolean> {
     const response = await httpClient.post<{ successCount: number }>(`${this.basePath}/batch-delete`, { ids })
-    return response.data.successCount === ids.length
+    return response.successCount === ids.length
   }
 
   /**
@@ -69,15 +69,15 @@ class DeviceService {
    */
   async restartDevice(id: string): Promise<boolean> {
     const response = await httpClient.post<{ success: boolean }>(`${this.basePath}/${id}/restart`)
-    return response.data.success
+    return response.success
   }
 
   /**
    * 更新设备配置
    */
   async updateDeviceConfig(id: string, config: Record<string, any>): Promise<boolean> {
-    return await httpClient.put<{ success: boolean }>(`${this.basePath}/${id}/config`, config)
-    return response.data.success
+    const response = await httpClient.put<{ success: boolean }>(`${this.basePath}/${id}/config`, config)
+    return response.success
   }
 }
 

@@ -5,6 +5,46 @@
 // ========== 通用响应 ==========
 
 /**
+ * 标准 API 响应
+ */
+export interface ApiResponse<T = any> {
+  code: number
+  message: string
+  data: T
+  timestamp?: number
+  requestId?: string
+}
+
+/**
+ * API 错误响应
+ */
+export interface ApiErrorResponse {
+  code: number
+  message: string
+  errors?: ValidationError[]
+  timestamp?: number
+  requestId?: string
+}
+
+/**
+ * 登录响应
+ */
+export interface LoginResponse {
+  access_token: string
+  refresh_token: string
+  token_type: string
+  expires_in: number
+  user: {
+    id: string
+    username: string
+    email?: string
+    role: string
+    avatar?: string
+    status: string
+  }
+}
+
+/**
  * 验证错误项
  */
 export interface ValidationError {

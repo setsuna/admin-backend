@@ -40,7 +40,6 @@ const DepartmentPage = () => {
     viewMode,
     selectedIds,
     isLoading,
-    error,
     setFilters,
     setPagination,
     setViewMode,
@@ -51,7 +50,6 @@ const DepartmentPage = () => {
     isCreating,
     isUpdating,
     isBatchDeleting,
-    resetFilters,
     refreshData,
     countTotalDepartments
   } = useDepartment()

@@ -24,7 +24,6 @@ const SecurityLevelManagePage = () => {
     filters,
     selectedIds,
     isLoading,
-    error,
     setFilters,
     setPagination,
     setSelectedIds,

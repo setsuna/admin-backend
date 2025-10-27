@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { departmentService } from '@/services'
 import { useUI } from '@/store'
 import type { Department, DepartmentFilters, CreateDepartmentRequest, UpdateDepartmentRequest } from '@/types'
-import type { DepartmentOption, DepartmentStats } from '@/services/api/department.api'
 
 export interface UseDepartmentOptions {
   initialFilters?: DepartmentFilters

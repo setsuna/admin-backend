@@ -23,7 +23,6 @@ const SecurityUserManagePage = () => {
     filters,
     selectedIds,
     isLoading,
-    error,
     setFilters,
     setPagination,
     setSelectedIds,

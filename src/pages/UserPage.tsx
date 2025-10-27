@@ -39,7 +39,6 @@ const UserPage = () => {
     filters,
     selectedIds,
     isLoading,
-    error,
     setFilters,
     setPagination,
     createUser,

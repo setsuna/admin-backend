@@ -58,7 +58,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
         department: selectedDeptId || filters.department,
         ...filters,
         page,
-        size: pageSize
+        pageSize
       })
       return result
     }

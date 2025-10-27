@@ -87,12 +87,11 @@ export class DictApiService {
   /**
    * 批量删除数据字典
    */
-  async deleteDictionaries(ids: string[]): Promise<BatchResponse> {
+  async deleteDictionaries(ids: string[]): Promise<BatchResponse<OperationResult>> {
     const batchRequest: BatchRequest = {
-      ids,
-      action: 'delete'
+      ids
     }
-    return await httpClient.post<BatchResponse>(`${this.basePath}/batch`, batchRequest)
+    return await httpClient.post<BatchResponse<OperationResult>>(`${this.basePath}/batch-delete`, batchRequest)
   }
 
   /**

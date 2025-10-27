@@ -14,7 +14,7 @@ export const useSecurityLevels = () => {
     queryKey: ['securityLevels'],
     queryFn: async () => {
       const dict = await dictApiService.getDictionary(SECURITY_LEVELS_DICT_ID)
-      return dict.items
+      return (dict.items || [])
         .filter(item => item.status === 'enabled')
         .sort((a, b) => a.sort - b.sort)
         .map(item => ({
