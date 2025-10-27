@@ -181,7 +181,7 @@ async function handleApiError(
 /**
  * 🔧 修复：认证错误处理 - 使用后端原始消息
  */
-async function handleAuthError(code: number, backendMessage: string) {
+async function handleAuthError(code: number, backendMessage: string, _userMessage?: string, _requestId?: string) {
   // 需要自动跳转登录的错误码
   if (needsAutoLogin(code)) {
     await auth.logout()
@@ -196,7 +196,7 @@ async function handleAuthError(code: number, backendMessage: string) {
 /**
  * 🔧 修复：文件错误处理 - 优先使用后端信息
  */
-function handleFileError(code: number, backendMessage: string, userMessage: string) {
+function handleFileError(code: number, backendMessage: string, userMessage: string, _errors?: ValidationError[]) {
   // 优先使用后端返回的具体错误信息
   let finalMessage = backendMessage
   
@@ -235,7 +235,7 @@ function handleGeneralError(code: number, backendMessage: string, _userMessage: 
 /**
  * 🔧 修复：授权错误处理 - 使用后端原始消息
  */
-function handleAuthorizationError(_code: number, backendMessage: string) {
+function handleAuthorizationError(_code: number, backendMessage: string, _userMessage?: string) {
   // 直接使用后端返回的错误信息
   errorHandler.handleError(new Error(backendMessage + '，请联系系统管理员'), 'PERMISSION_DENIED')
 }
@@ -243,7 +243,7 @@ function handleAuthorizationError(_code: number, backendMessage: string) {
 /**
  * 🔧 修复：系统错误处理 - 使用后端原始消息
  */
-function handleSystemError(_code: number, backendMessage: string) {
+function handleSystemError(_code: number, backendMessage: string, _userMessage?: string) {
   // 系统错误可能需要重试，使用后端原始消息
   const error = new Error(backendMessage)
   ;(error as any).retryable = true

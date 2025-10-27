@@ -10,7 +10,8 @@ export { httpClient } from './core/http.client'
 
 // 延迟导入其他核心服务，避免初始化问题
 export * from './core/auth.service'
-export * from './core/error.handler'
+// 只导出 error.handler 的服务，不导出类型（避免与 ../types 冲突）
+export { errorHandler, retryManager } from './core/error.handler'
 
 // ========================================
 // API服务导出 (services/api/*.ts)
@@ -40,7 +41,9 @@ export { websocketService } from './websocket'
 // ========================================
 // 类型导出
 // ========================================
-export type * from './types/api.types'
+// 只从 error.handler 导出类型（明确导出，避免冲突）
+export type { ErrorType, ErrorInfo, ErrorHandler } from './core/error.handler'
+// 导出其他服务类型
 export type * from './types/dict.types'  
 export type * from './types/meeting.types'
 export type * from '../types'

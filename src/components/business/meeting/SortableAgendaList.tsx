@@ -292,8 +292,7 @@ const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
   onUpdateMaterialSecurity,
   onReorderMaterials,
   getFileIcon,
-  FileDropzone,
-  readOnly = false
+  FileDropzone
 }) => {
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)

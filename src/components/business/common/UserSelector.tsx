@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { userApi } from '@/services/api/user.api'
 import { departmentApiService } from '@/services/api/department.api'
 import { useSecurityLevels } from '@/hooks/useSecurityLevels'
-import type { User, UserSecurityLevel, Department } from '@/types'
+import type { User, UserSecurityLevel, Department, ActiveStatus } from '@/types'
 
 interface UserSelectorProps {
   mode?: 'single' | 'multiple'
@@ -56,7 +56,8 @@ const UserSelector: React.FC<UserSelectorProps> = ({
       const result = await userApi.getUsers({
         keyword,
         department: selectedDeptId || filters.department,
-        ...filters,
+        securityLevel: filters.securityLevel,
+        status: filters.status as ActiveStatus | undefined,  // 明确类型断言
         page,
         pageSize
       })

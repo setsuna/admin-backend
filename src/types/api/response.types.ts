@@ -11,6 +11,7 @@ export interface ApiResponse<T = any> {
   code: number
   message: string
   data: T
+  errors?: ValidationError[]  // 添加验证错误字段
   timestamp?: number
   requestId?: string
 }
