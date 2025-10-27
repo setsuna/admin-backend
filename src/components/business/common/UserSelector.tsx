@@ -38,6 +38,11 @@ const UserSelector: React.FC<UserSelectorProps> = ({
 
   const { securityLevels } = useSecurityLevels()
 
+  // 同步 value prop 的变化到 selectedIds
+  useEffect(() => {
+    setSelectedIds(new Set(value.map(u => u.id)))
+  }, [value])
+
   // 获取部门树
   const { data: deptTree = [] } = useQuery({
     queryKey: ['department-tree'],
@@ -96,8 +101,13 @@ const UserSelector: React.FC<UserSelectorProps> = ({
     setSelectedIds(newIds)
     
     if (onChange) {
-      const selected = users.filter(u => newIds.has(u.id))
-      onChange(selected)
+      // 保留之前选中的、不在当前页的用户
+      const currentUserIds = new Set(users.map(u => u.id))
+      const previouslySelected = value.filter(u => !currentUserIds.has(u.id))
+      
+      // 合并：之前选中的 + 当前页选中的
+      const currentlySelected = users.filter(u => newIds.has(u.id))
+      onChange([...previouslySelected, ...currentlySelected])
     }
   }
 
@@ -107,7 +117,8 @@ const UserSelector: React.FC<UserSelectorProps> = ({
     setSelectedIds(newIds)
     
     if (onChange) {
-      const selected = users.filter(u => newIds.has(u.id))
+      // 直接从 value 中过滤掉被移除的用户
+      const selected = value.filter(u => u.id !== userId)
       onChange(selected)
     }
   }
