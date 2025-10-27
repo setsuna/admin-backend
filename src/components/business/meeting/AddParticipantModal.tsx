@@ -127,15 +127,16 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
         }
       })
 
-      // 添加临时人员
+      // 添加临时人员（user_id传空字符串）
       tempImportedParticipants.forEach(temp => {
         participantsToAdd.push({
-          user_id: `temp-${Date.now()}-${Math.random()}`,  // 生成临时ID
+          user_id: '',  // 临时人员user_id传空
           user_name: temp.name,
           name: temp.name,
-          email: temp.email,
-          department: temp.department,
+          email: temp.email || '',
+          department: temp.department || '外部',
           security_level: temp.securityLevel || 'unclassified',
+          password: temp.password,
           role: 'participant'
         })
       })

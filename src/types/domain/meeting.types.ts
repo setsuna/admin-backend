@@ -196,6 +196,7 @@ export interface TemporaryParticipant {
   email?: string
   department?: string
   securityLevel?: string
+  password?: string
 }
 
 /**
