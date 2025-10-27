@@ -5,6 +5,7 @@ import UserSelector from '@/components/business/common/UserSelector'
 import TemporaryParticipantImporter from '@/components/business/common/TemporaryParticipantImporter'
 import { participantApi } from '@/services/api/participant.api'
 import { useNotifications } from '@/hooks/useNotifications'
+import { useSecurityLevels } from '@/hooks/useSecurityLevels'
 import type { MeetingParticipant, User, TemporaryParticipant, CreateParticipantItemRequest } from '@/types'
 
 interface AddParticipantModalProps {
@@ -17,12 +18,6 @@ interface AddParticipantModalProps {
 
 type TabType = 'org' | 'temp'
 
-const SECURITY_LEVEL_CONFIG = {
-  unclassified: { label: '普通', icon: '🔓', badge: 'bg-gray-100 text-gray-800' },
-  confidential: { label: '机密', icon: '🔒', badge: 'bg-blue-100 text-blue-800' },
-  secret: { label: '绝密', icon: '🔒', badge: 'bg-orange-100 text-orange-800' },
-  top_secret: { label: '最高机密', icon: '🔐', badge: 'bg-red-100 text-red-800' }
-}
 
 const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
   isOpen,
@@ -32,6 +27,7 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
   onParticipantsChange
 }) => {
   const { showSuccess, showError } = useNotifications()
+  const { securityLevels } = useSecurityLevels()
   const [activeTab, setActiveTab] = useState<TabType>('org')
   const [tempSelectedUsers, setTempSelectedUsers] = useState<User[]>([])
   const [tempImportedParticipants, setTempImportedParticipants] = useState<TemporaryParticipant[]>([])
@@ -271,15 +267,15 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                 <div className="space-y-2">
                   {/* 组织架构人员 */}
                   {tempSelectedUsers.map(user => {
-                    const securityConfig = SECURITY_LEVEL_CONFIG[user.securityLevel as keyof typeof SECURITY_LEVEL_CONFIG]
+                    const securityLevel = securityLevels.find(s => s.value === user.securityLevel)
                     return (
                       <div key={user.id} className="flex items-center justify-between p-3 bg-white rounded border">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium truncate">{user.name}</span>
-                            {securityConfig && (
-                              <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded flex-shrink-0 ${securityConfig.badge}`}>
-                                {securityConfig.icon} {securityConfig.label}
+                            {securityLevel && (
+                              <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 flex-shrink-0">
+                                {securityLevel.name}
                               </span>
                             )}
                           </div>
@@ -296,16 +292,15 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                   
                   {/* 临时人员 */}
                   {tempImportedParticipants.map((participant, index) => {
-                    const securityConfig = SECURITY_LEVEL_CONFIG[participant.securityLevel as keyof typeof SECURITY_LEVEL_CONFIG]
+                    const securityLevel = securityLevels.find(s => s.value === participant.securityLevel)
                     return (
                       <div key={index} className="flex items-center justify-between p-3 bg-white rounded border border-amber-200">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium truncate">{participant.name}</span>
-                            <span className="text-xs text-amber-600 flex-shrink-0">(临时)</span>
-                            {securityConfig && (
-                              <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded flex-shrink-0 ${securityConfig.badge}`}>
-                                {securityConfig.icon} {securityConfig.label}
+                            {securityLevel && (
+                              <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 flex-shrink-0">
+                                {securityLevel.name}
                               </span>
                             )}
                           </div>

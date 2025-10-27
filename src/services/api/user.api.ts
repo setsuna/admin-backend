@@ -46,18 +46,54 @@ export class UserApiService {
     page: number = 1,
     pageSize: number = 20
   ): Promise<PaginatedResponse<User>> {
-    return await httpClient.get<PaginatedResponse<User>>(this.basePath, {
+    const result = await httpClient.get<PaginatedResponse<any>>(this.basePath, {
       ...filters,
       page,
       pageSize
     })
+    
+    // 字段映射：security_level -> securityLevel
+    if (result.items) {
+      result.items = result.items.map((user: any) => ({
+        ...user,
+        securityLevel: user.security_level || user.securityLevel,
+        departmentName: user.department_name || user.departmentName,
+        ukeyId: user.ukey_id || user.ukeyId,
+        allowedIps: user.allowed_ips || user.allowedIps,
+        lastLoginAt: user.last_login_at || user.lastLoginAt,
+        lastLoginIp: user.last_login_ip || user.lastLoginIp,
+        isHide: user.is_hide !== undefined ? user.is_hide : user.isHide,
+        isDeleted: user.is_deleted !== undefined ? user.is_deleted : user.isDeleted,
+        realName: user.real_name || user.realName,
+        createdAt: user.created_at || user.createdAt,
+        updatedAt: user.updated_at || user.updatedAt
+      }))
+    }
+    
+    return result as PaginatedResponse<User>
   }
 
   /**
    * 获取单个用户详情
    */
   async getUser(id: string): Promise<User> {
-    return await httpClient.get<User>(`${this.basePath}/${id}`)
+    const user = await httpClient.get<any>(`${this.basePath}/${id}`)
+    
+    // 字段映射
+    return {
+      ...user,
+      securityLevel: user.security_level || user.securityLevel,
+      departmentName: user.department_name || user.departmentName,
+      ukeyId: user.ukey_id || user.ukeyId,
+      allowedIps: user.allowed_ips || user.allowedIps,
+      lastLoginAt: user.last_login_at || user.lastLoginAt,
+      lastLoginIp: user.last_login_ip || user.lastLoginIp,
+      isHide: user.is_hide !== undefined ? user.is_hide : user.isHide,
+      isDeleted: user.is_deleted !== undefined ? user.is_deleted : user.isDeleted,
+      realName: user.real_name || user.realName,
+      createdAt: user.created_at || user.createdAt,
+      updatedAt: user.updated_at || user.updatedAt
+    } as User
   }
 
   /**

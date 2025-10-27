@@ -3,6 +3,7 @@ import { Search, X, ChevronRight, ChevronDown, ChevronLeft } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { userApi } from '@/services/api/user.api'
 import { departmentApiService } from '@/services/api/department.api'
+import { useSecurityLevels } from '@/hooks/useSecurityLevels'
 import type { User, UserSecurityLevel, Department } from '@/types'
 
 interface UserSelectorProps {
@@ -16,13 +17,6 @@ interface UserSelectorProps {
   }
   showSecurityLevel?: boolean
   enableSearch?: boolean
-}
-
-const SECURITY_LEVEL_CONFIG = {
-  unclassified: { label: '普通', icon: '🔓', badge: 'bg-gray-100 text-gray-800' },
-  confidential: { label: '机密', icon: '🔒', badge: 'bg-blue-100 text-blue-800' },
-  secret: { label: '绝密', icon: '🔒', badge: 'bg-orange-100 text-orange-800' },
-  top_secret: { label: '最高机密', icon: '🔐', badge: 'bg-red-100 text-red-800' }
 }
 
 const UserSelector: React.FC<UserSelectorProps> = ({
@@ -41,6 +35,8 @@ const UserSelector: React.FC<UserSelectorProps> = ({
   )
   const [page, setPage] = useState(1)
   const [pageSize] = useState(10)
+
+  const { securityLevels } = useSecurityLevels()
 
   // 获取部门树
   const { data: deptTree = [] } = useQuery({
@@ -213,7 +209,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
             <div className="space-y-2">
               {users.map(user => {
                 const isSelected = selectedIds.has(user.id)
-                const securityConfig = SECURITY_LEVEL_CONFIG[user.securityLevel as keyof typeof SECURITY_LEVEL_CONFIG]
+                const securityLevel = securityLevels.find(s => s.value === user.securityLevel)
                 
                 return (
                   <div
@@ -234,10 +230,9 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-gray-900">{user.name || user.realName || user.username}</span>
-                          {showSecurityLevel && securityConfig && (
-                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs flex-shrink-0 ${securityConfig.badge}`}>
-                              <span>{securityConfig.icon}</span>
-                              <span>{securityConfig.label}</span>
+                          {showSecurityLevel && securityLevel && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 flex-shrink-0">
+                              {securityLevel.name}
                             </span>
                           )}
                         </div>
@@ -310,7 +305,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
             </div>
             <div className="flex flex-wrap gap-2">
               {selectedUsers.map(user => {
-                const securityConfig = SECURITY_LEVEL_CONFIG[user.securityLevel as keyof typeof SECURITY_LEVEL_CONFIG]
+                const securityLevel = securityLevels.find(s => s.value === user.securityLevel)
                 
                 return (
                   <div
@@ -320,9 +315,9 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                     <span className="text-sm">
                       {user.name || user.realName || user.username}
                     </span>
-                    {showSecurityLevel && securityConfig && (
-                      <span className={`text-xs ${securityConfig.badge} px-1.5 py-0.5 rounded`}>
-                        {securityConfig.icon}
+                    {showSecurityLevel && securityLevel && (
+                      <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
+                        {securityLevel.name}
                       </span>
                     )}
                     <button
