@@ -4,8 +4,7 @@
  */
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import { getConfig, ERROR_CODES } from '@/config'
-import { ApiResponse } from '@/types/api/response.types'
+import { getConfig } from '@/config'
 import { requestInterceptor, responseInterceptor, errorInterceptor } from './interceptors'
 
 export class HttpClient {

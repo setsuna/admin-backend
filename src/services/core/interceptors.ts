@@ -3,8 +3,8 @@
  */
 
 import { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios'
-import { getConfig, HTTP_STATUS, JWT_CONFIG, ERROR_CODES, getErrorCategory, needsAutoLogin, getErrorMessage } from '@/config'
-import { ApiResponse, ValidationError } from '@/types/api/response.types'
+import { HTTP_STATUS, JWT_CONFIG, ERROR_CODES, getErrorCategory, needsAutoLogin, getErrorMessage } from '@/config'
+import type { ApiResponse, ValidationError } from '@/types/api/response.types'
 import { errorHandler } from './error.handler'
 // 使用统一的认证服务
 import { auth } from './auth.service'
@@ -181,7 +181,7 @@ async function handleApiError(
 /**
  * 🔧 修复：认证错误处理 - 使用后端原始消息
  */
-async function handleAuthError(code: number, backendMessage: string, userMessage: string, requestId?: string) {
+async function handleAuthError(code: number, backendMessage: string) {
   // 需要自动跳转登录的错误码
   if (needsAutoLogin(code)) {
     await auth.logout()
@@ -196,7 +196,7 @@ async function handleAuthError(code: number, backendMessage: string, userMessage
 /**
  * 🔧 修复：文件错误处理 - 优先使用后端信息
  */
-function handleFileError(code: number, backendMessage: string, userMessage: string, errors?: ValidationError[]) {
+function handleFileError(code: number, backendMessage: string, userMessage: string) {
   // 优先使用后端返回的具体错误信息
   let finalMessage = backendMessage
   
@@ -220,7 +220,7 @@ function handleFileError(code: number, backendMessage: string, userMessage: stri
 /**
  * 🔧 修复：通用错误处理 - 优先使用后端信息
  */
-function handleGeneralError(code: number, backendMessage: string, userMessage: string, errors?: ValidationError[]) {
+function handleGeneralError(code: number, backendMessage: string, _userMessage: string, errors?: ValidationError[]) {
   if (code === ERROR_CODES.VALIDATION_ERROR && errors && errors.length > 0) {
     // 表单验证错误，触发专门的验证错误事件
     window.dispatchEvent(new CustomEvent('app:validation-error', {
@@ -235,7 +235,7 @@ function handleGeneralError(code: number, backendMessage: string, userMessage: s
 /**
  * 🔧 修复：授权错误处理 - 使用后端原始消息
  */
-function handleAuthorizationError(code: number, backendMessage: string, userMessage: string) {
+function handleAuthorizationError(_code: number, backendMessage: string) {
   // 直接使用后端返回的错误信息
   errorHandler.handleError(new Error(backendMessage + '，请联系系统管理员'), 'PERMISSION_DENIED')
 }
@@ -243,7 +243,7 @@ function handleAuthorizationError(code: number, backendMessage: string, userMess
 /**
  * 🔧 修复：系统错误处理 - 使用后端原始消息
  */
-function handleSystemError(code: number, backendMessage: string, userMessage: string) {
+function handleSystemError(_code: number, backendMessage: string) {
   // 系统错误可能需要重试，使用后端原始消息
   const error = new Error(backendMessage)
   ;(error as any).retryable = true

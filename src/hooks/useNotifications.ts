@@ -26,19 +26,19 @@ export function useNotifications() {
   }
   
   const showSuccess = (title: string, message?: string, options?: NotificationOptions) => {
-    addNotification({ type: 'success', title, message, ...options })
+    addNotification({ type: 'success', title, message: message || '', ...options })
   }
   
   const showError = (title: string, message?: string, options?: NotificationOptions) => {
-    addNotification({ type: 'error', title, message, ...options })
+    addNotification({ type: 'error', title, message: message || '', ...options })
   }
   
   const showWarning = (title: string, message?: string, options?: NotificationOptions) => {
-    addNotification({ type: 'warning', title, message, ...options })
+    addNotification({ type: 'warning', title, message: message || '', ...options })
   }
   
   const showInfo = (title: string, message?: string, options?: NotificationOptions) => {
-    addNotification({ type: 'info', title, message, ...options })
+    addNotification({ type: 'info', title, message: message || '', ...options })
   }
   
   // 🆕 API错误专用通知方法

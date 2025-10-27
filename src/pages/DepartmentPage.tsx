@@ -40,6 +40,7 @@ const DepartmentPage = () => {
     viewMode,
     selectedIds,
     isLoading,
+    error,
     setFilters,
     setPagination,
     setViewMode,

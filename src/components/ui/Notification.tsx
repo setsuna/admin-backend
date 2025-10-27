@@ -25,7 +25,7 @@ const notificationConfig = {
 interface NotificationItemProps {
   id: string
   type: NotificationType
-  title: string
+  title?: string
   message?: string
   onClose: (id: string) => void
 }
@@ -41,9 +41,9 @@ function NotificationItem({ id, type, title, message, onClose }: NotificationIte
     )}>
       <Icon className="h-5 w-5 flex-shrink-0 mt-0.5" />
       <div className="flex-1 min-w-0">
-        <h4 className="font-medium">{title}</h4>
+        {title && <h4 className="font-medium">{title}</h4>}
         {message && (
-          <p className="mt-1 text-sm opacity-90">{message}</p>
+          <p className={cn("text-sm opacity-90", title && "mt-1")}>{message}</p>
         )}
       </div>
       <button
@@ -65,8 +65,11 @@ export function NotificationContainer() {
     <div className="fixed top-4 right-4 z-50 w-96 max-w-sm">
       {notifications.map((notification) => (
         <NotificationItem
-          key={notification.id}
-          {...notification}
+          key={notification.id!}
+          id={notification.id!}
+          type={notification.type}
+          title={notification.title || ''}
+          message={notification.message}
           onClose={removeNotification}
         />
       ))}

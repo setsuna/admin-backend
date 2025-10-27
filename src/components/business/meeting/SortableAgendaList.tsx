@@ -276,6 +276,7 @@ interface SortableAgendaListProps {
   onReorderMaterials: (agendaId: string, materials: MeetingMaterial[]) => void
   getFileIcon: (fileName: string) => React.ReactNode
   FileDropzone: React.ComponentType<{ agendaId: string }>
+  readOnly?: boolean
 }
 
 const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
@@ -291,7 +292,8 @@ const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
   onUpdateMaterialSecurity,
   onReorderMaterials,
   getFileIcon,
-  FileDropzone
+  FileDropzone,
+  readOnly = false
 }) => {
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)

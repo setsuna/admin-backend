@@ -18,7 +18,7 @@ export interface Notification {
   id?: string
   type: NotificationType
   title?: string
-  message: string
+  message?: string
   duration?: number
   timestamp?: number
 }

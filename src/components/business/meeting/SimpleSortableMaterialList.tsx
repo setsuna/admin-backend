@@ -29,21 +29,31 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
   dragOverIndex
 }) => {
   // ✅ 密级配置：颜色圆点 + 标签
-  const securityLevelConfig = {
+  const securityLevelConfig: Record<MeetingSecurityLevel, { color: string; label: string; textColor: string }> = {
+    public: {
+      color: 'bg-gray-500 hover:bg-gray-600',  // ⚪ 灰色 = 公开
+      label: '[公开]',
+      textColor: 'text-gray-600'
+    },
     internal: { 
       color: 'bg-green-500 hover:bg-green-600',  // 🟢 绿色 = 内部
       label: '[内部]',
       textColor: 'text-green-600'
     },
-    secret: { 
+    confidential: { 
       color: 'bg-yellow-500 hover:bg-yellow-600',  // 🟡 黄色 = 秘密
       label: '[秘密]',
       textColor: 'text-yellow-600'
     },
-    confidential: { 
+    secret: { 
       color: 'bg-red-500 hover:bg-red-600',  // 🔴 红色 = 机密
       label: '[机密]',
       textColor: 'text-red-600'
+    },
+    top_secret: {
+      color: 'bg-purple-500 hover:bg-purple-600',  // 🟣 紫色 = 绝密
+      label: '[绝密]',
+      textColor: 'text-purple-600'
     }
   }
 

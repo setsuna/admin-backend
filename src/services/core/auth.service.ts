@@ -42,7 +42,7 @@ class AuthService {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role,
+        role: user.role as any,
         avatar: user.avatar || '',
         department: '',
         position: '',
@@ -83,7 +83,7 @@ class AuthService {
         const { useStore } = await import('@/store')
         const { setUser, setPermissions } = useStore.getState()
         setUser(userInfo)
-        setPermissions(userInfo.permissions)
+        setPermissions(userInfo.permissions || [])
       } catch (error) {
         console.warn('Failed to update auth store:', error)
       }

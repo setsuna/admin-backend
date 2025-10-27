@@ -101,7 +101,8 @@ export default function PermissionManagePage() {
       setSelectedRole(null)
       addNotification({
         type: 'success',
-        title: '角色创建成功'
+        title: '角色创建成功',
+        message: '角色已成功创建'
       })
     },
     onError: () => {
@@ -126,7 +127,8 @@ export default function PermissionManagePage() {
       setSelectedRole(null)
       addNotification({
         type: 'success',
-        title: '角色更新成功'
+        title: '角色更新成功',
+        message: '角色信息已成功更新'
       })
     },
     onError: () => {
@@ -148,7 +150,8 @@ export default function PermissionManagePage() {
       setRoleToDelete(null)
       addNotification({
         type: 'success',
-        title: '角色删除成功'
+        title: '角色删除成功',
+        message: '角色已成功删除'
       })
     },
     onError: () => {
