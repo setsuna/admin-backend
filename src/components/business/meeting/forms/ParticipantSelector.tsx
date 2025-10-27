@@ -1,5 +1,6 @@
 import React from 'react'
 import { X } from 'lucide-react'
+import { useSecurityLevels } from '@/hooks/useSecurityLevels'
 import type { MeetingParticipant } from '@/types'
 
 interface ParticipantSelectorProps {
@@ -10,13 +11,6 @@ interface ParticipantSelectorProps {
   readOnly?: boolean
 }
 
-const SECURITY_LEVEL_CONFIG = {
-  unclassified: { label: '普通', icon: '🔓', badge: 'bg-gray-100 text-gray-600' },
-  confidential: { label: '机密', icon: '🔒', badge: 'bg-blue-100 text-blue-700' },
-  secret: { label: '绝密', icon: '🔒', badge: 'bg-orange-100 text-orange-700' },
-  top_secret: { label: '最高机密', icon: '🔐', badge: 'bg-red-100 text-red-700' }
-}
-
 const ParticipantSelector: React.FC<ParticipantSelectorProps> = ({
   participants,
   onOpenSelector,
@@ -24,18 +18,17 @@ const ParticipantSelector: React.FC<ParticipantSelectorProps> = ({
   isVisible,
   readOnly = false
 }) => {
+  const { securityLevels } = useSecurityLevels()
+
   if (!isVisible) return null
 
   const getDisplayName = (participant: MeetingParticipant) => {
     return participant.name || participant.userName || participant.userId
   }
 
-  const getSecurityLevel = (participant: MeetingParticipant) => {
-    return participant.securityLevel
-  }
-
   const isTemporary = (participant: MeetingParticipant) => {
-    return participant.participantType === 'temporary'
+    // 判断 user_id 是否以 temp 开头
+    return participant.userId?.startsWith('temp')
   }
 
   return (
@@ -56,26 +49,22 @@ const ParticipantSelector: React.FC<ParticipantSelectorProps> = ({
             <div className="flex flex-wrap gap-2">
               {participants.map((participant) => {
                 const displayName = getDisplayName(participant)
-                const securityLevel = getSecurityLevel(participant)
-                const securityConfig = securityLevel 
-                  ? SECURITY_LEVEL_CONFIG[securityLevel as keyof typeof SECURITY_LEVEL_CONFIG]
-                  : null
                 const isTemp = isTemporary(participant)
+                const securityLevel = securityLevels.find(s => s.value === participant.securityLevel)
 
                 return (
                   <span
                     key={participant.id}
                     className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm ${
-                      isTemp ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
+                      isTemp ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-blue-100 text-blue-800'
                     }`}
                   >
                     <span>{displayName}</span>
-                    {isTemp && (
-                      <span className="text-xs opacity-75">(临时)</span>
-                    )}
-                    {securityConfig && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${securityConfig.badge}`}>
-                        {securityConfig.icon}
+                    {securityLevel && (
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        isTemp ? 'bg-amber-200 text-amber-900' : 'bg-blue-200 text-blue-900'
+                      }`}>
+                        {securityLevel.name}
                       </span>
                     )}
                     {!readOnly && (

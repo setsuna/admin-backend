@@ -18,9 +18,21 @@ export class ParticipantApiService {
    * 获取会议参会人员列表
    */
   async listParticipants(meetingId: string): Promise<MeetingParticipant[]> {
-    return await httpClient.get<MeetingParticipant[]>(
+    const participants = await httpClient.get<any[]>(
       `${API_PATHS.MEETINGS}/${meetingId}/participants`
     )
+    
+    // 字段映射：security_level -> securityLevel, user_id -> userId 等
+    return participants.map(p => ({
+      ...p,
+      userId: p.user_id || p.userId,
+      userName: p.user_name || p.userName,
+      securityLevel: p.security_level || p.securityLevel,
+      joinedAt: p.joined_at || p.joinedAt,
+      leftAt: p.left_at || p.leftAt,
+      createdAt: p.created_at || p.createdAt,
+      updatedAt: p.updated_at || p.updatedAt
+    }))
   }
 
   /**
@@ -52,10 +64,22 @@ export class ParticipantApiService {
     meetingId: string,
     data: BatchCreateParticipantRequest
   ): Promise<MeetingParticipant[]> {
-    return await httpClient.post<MeetingParticipant[]>(
+    const participants = await httpClient.post<any[]>(
       `${API_PATHS.MEETINGS}/${meetingId}/participants/batch`,
       data
     )
+    
+    // 字段映射
+    return participants.map(p => ({
+      ...p,
+      userId: p.user_id || p.userId,
+      userName: p.user_name || p.userName,
+      securityLevel: p.security_level || p.securityLevel,
+      joinedAt: p.joined_at || p.joinedAt,
+      leftAt: p.left_at || p.leftAt,
+      createdAt: p.created_at || p.createdAt,
+      updatedAt: p.updated_at || p.updatedAt
+    }))
   }
 
   /**

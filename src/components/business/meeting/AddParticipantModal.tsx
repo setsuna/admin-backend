@@ -18,7 +18,6 @@ interface AddParticipantModalProps {
 
 type TabType = 'org' | 'temp'
 
-
 const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
   isOpen,
   onClose,
@@ -32,6 +31,29 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
   const [tempSelectedUsers, setTempSelectedUsers] = useState<User[]>([])
   const [tempImportedParticipants, setTempImportedParticipants] = useState<TemporaryParticipant[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // 当模态框打开时，初始化已选人员（只包含组织架构人员）
+  React.useEffect(() => {
+    if (isOpen) {
+      // 筛选出已添加的组织架构人员（userId 不以 temp 开头）
+      const existingOrgUsers = selectedParticipants
+        .filter(p => !p.userId?.startsWith('temp'))
+        .map(p => ({
+          id: p.userId,
+          username: p.userName,
+          name: p.name || p.userName,
+          email: p.email || '',
+          department: p.department || '',
+          securityLevel: p.securityLevel || 'unclassified',
+          role: 'user' as const,
+          status: 'active' as const,
+          createdAt: p.createdAt || new Date().toISOString()
+        } as User))
+      
+      setTempSelectedUsers(existingOrgUsers)
+      setTempImportedParticipants([])
+    }
+  }, [isOpen, selectedParticipants])
 
   const handleOrgUsersChange = (users: User[]) => {
     setTempSelectedUsers(users)
@@ -50,37 +72,42 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
   }
 
   const handleConfirm = async () => {
-    // 如果没有会议ID，则仅保存到本地状态（创建会议时）
-    if (!meetingId) {
+    // 判断是否需要调用后端接口：
+    // 检查 selectedParticipants 中是否有后端返回的真实 ID（不是 participant- 开头的临时ID）
+    const hasRealParticipants = selectedParticipants.some(p => !p.id.startsWith('participant-'))
+    
+    // 如果没有真实参会人员，说明还未提交到后端，仅保存到本地状态
+    if (!hasRealParticipants) {
       const newParticipants: MeetingParticipant[] = []
+      
+      // 保留临时人员（不受影响）
+      const tempParticipants = selectedParticipants.filter(p => p.userId?.startsWith('temp'))
 
-      // 添加组织架构人员
+      // 添加组织架构人员（根据 tempSelectedUsers）
       tempSelectedUsers.forEach(user => {
-        if (!selectedParticipants.some(p => p.userId === user.id)) {
-          newParticipants.push({
-            id: `participant-${Date.now()}-${Math.random()}`,
-            meetingId: '',
-            participantType: 'internal',
-            userId: user.id,
-            userName: user.username,
-            name: user.name || user.username,
-            email: user.email,
-            department: user.department,
-            securityLevel: user.securityLevel,
-            role: 'participant',
-            status: 'invited',
-            createdAt: new Date().toISOString()
-          })
-        }
+        newParticipants.push({
+          id: `participant-${Date.now()}-${Math.random()}`,
+          meetingId: meetingId || '',
+          participantType: 'internal',
+          userId: user.id,
+          userName: user.username,
+          name: user.name || user.username,
+          email: user.email,
+          department: user.department,
+          securityLevel: user.securityLevel,
+          role: 'participant',
+          status: 'invited',
+          createdAt: new Date().toISOString()
+        })
       })
 
-      // 添加临时人员
+      // 添加新导入的临时人员
       tempImportedParticipants.forEach(temp => {
         newParticipants.push({
           id: `participant-${Date.now()}-${Math.random()}`,
-          meetingId: '',
+          meetingId: meetingId || '',
           participantType: 'temporary',
-          userId: `temp-${Date.now()}-${Math.random()}`,  // 临时ID
+          userId: `temp-${Date.now()}-${Math.random()}`,
           userName: temp.name,
           name: temp.name,
           email: temp.email,
@@ -92,7 +119,8 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
         })
       })
 
-      onParticipantsChange([...selectedParticipants, ...newParticipants])
+      // 合并：临时人员 + 组织架构人员
+      onParticipantsChange([...tempParticipants, ...newParticipants])
       
       // 重置状态
       setTempSelectedUsers([])
@@ -101,26 +129,40 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
       return
     }
 
-    // 如果有会议ID，则批量调用接口添加
+    // 如果有真实参会人员，说明已提交到后端，需要调用接口添加/删除
+    if (!meetingId) {
+      showError('错误', '会议ID不存在')
+      return
+    }
+
     try {
       setIsSubmitting(true)
+
+      // 找出需要删除的人员（原有的组织架构人员中，不在 tempSelectedUsers 中的）
+      const existingOrgParticipants = selectedParticipants.filter(p => !p.userId?.startsWith('temp'))
+      const existingOrgUserIds = existingOrgParticipants.map(p => p.userId)
+      const newSelectedUserIds = tempSelectedUsers.map(u => u.id)
+      const toDelete = existingOrgParticipants.filter(
+        p => !newSelectedUserIds.includes(p.userId)
+      )
+
+      // 找出需要添加的人员（tempSelectedUsers 中，不在原有列表中的）
+      const toAdd = tempSelectedUsers.filter(u => !existingOrgUserIds.includes(u.id))
 
       // 构建请求数据
       const participantsToAdd: CreateParticipantItemRequest[] = []
 
       // 添加组织架构人员
-      tempSelectedUsers.forEach(user => {
-        if (!selectedParticipants.some(p => p.userId === user.id)) {
-          participantsToAdd.push({
-            user_id: user.id,
-            user_name: user.username,
-            name: user.name || user.username,
-            email: user.email,
-            department: user.department,
-            security_level: user.securityLevel,
-            role: 'participant'
-          })
-        }
+      toAdd.forEach(user => {
+        participantsToAdd.push({
+          user_id: user.id,
+          user_name: user.username,
+          name: user.name || user.username,
+          email: user.email,
+          department: user.department,
+          security_level: user.securityLevel,
+          role: 'participant'
+        })
       })
 
       // 添加临时人员（user_id传空字符串）
@@ -137,37 +179,48 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
         })
       })
 
-      if (participantsToAdd.length === 0) {
-        showError('添加失败', '没有需要添加的参会人员')
-        return
+      // 执行删除操作
+      if (toDelete.length > 0) {
+        await Promise.all(
+          toDelete.map(p => participantApi.deleteParticipant(meetingId, p.id))
+        )
       }
 
-      // 调用批量添加接口
-      const addedParticipants = await participantApi.batchCreateParticipants(meetingId, {
-        participants: participantsToAdd
-      })
+      // 执行添加操作
+      let addedParticipants: MeetingParticipant[] = []
+      if (participantsToAdd.length > 0) {
+        addedParticipants = await participantApi.batchCreateParticipants(meetingId, {
+          participants: participantsToAdd
+        })
 
-      // 标记哪些是临时人员
-      const participantsWithType = addedParticipants.map(p => {
-        const isTemp = tempImportedParticipants.some(temp => temp.name === p.name)
-        return {
-          ...p,
-          participantType: isTemp ? 'temporary' as const : 'internal' as const
-        }
-      })
+        // 标记哪些是临时人员
+        addedParticipants = addedParticipants.map(p => {
+          const isTemp = p.userId?.startsWith('temp')
+          return {
+            ...p,
+            participantType: isTemp ? 'temporary' as const : 'internal' as const
+          }
+        })
+      }
 
-      // 更新本地状态
-      onParticipantsChange([...selectedParticipants, ...participantsWithType])
+      // 更新本地状态：移除被删除的 + 添加新增的
+      const remaining = selectedParticipants.filter(
+        p => !toDelete.some(d => d.id === p.id)
+      )
+      onParticipantsChange([...remaining, ...addedParticipants])
 
-      showSuccess('添加成功', `已添加 ${addedParticipants.length} 名参会人员`)
+      const message = []
+      if (toDelete.length > 0) message.push(`删除 ${toDelete.length} 人`)
+      if (addedParticipants.length > 0) message.push(`添加 ${addedParticipants.length} 人`)
+      showSuccess('操作成功', message.join('，'))
       
       // 重置状态
       setTempSelectedUsers([])
       setTempImportedParticipants([])
       onClose()
     } catch (error) {
-      console.error('Failed to add participants:', error)
-      showError('添加失败', '无法添加参会人员，请稍后重试')
+      console.error('Failed to update participants:', error)
+      showError('操作失败', '无法更新参会人员，请稍后重试')
     } finally {
       setIsSubmitting(false)
     }
@@ -179,7 +232,16 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
     onClose()
   }
 
-  const totalSelected = tempSelectedUsers.length + tempImportedParticipants.length
+  // 计算待添加人员：只显示新增的，不显示已存在的
+  const existingOrgUserIds = selectedParticipants
+    .filter(p => !p.userId?.startsWith('temp'))
+    .map(p => p.userId)
+  
+  const newlySelectedUsers = tempSelectedUsers.filter(
+    user => !existingOrgUserIds.includes(user.id)
+  )
+  
+  const totalSelected = newlySelectedUsers.length + tempImportedParticipants.length
 
   if (!isOpen) return null
 
@@ -265,8 +327,8 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {/* 组织架构人员 */}
-                  {tempSelectedUsers.map(user => {
+                  {/* 组织架构人员 - 只显示新增的 */}
+                  {newlySelectedUsers.map(user => {
                     const securityLevel = securityLevels.find(s => s.value === user.securityLevel)
                     return (
                       <div key={user.id} className="flex items-center justify-between p-3 bg-white rounded border">
