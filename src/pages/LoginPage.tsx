@@ -142,10 +142,13 @@ const LoginPage = () => {
       <div className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
         <div className="w-full max-w-md">
           {/* Logo 和产品名称 - 移到卡片外 */}
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
+          <div className="text-center mb-6">
+            <div className="flex justify-center mb-3">
               <Logo size="lg" className="drop-shadow-lg" />
             </div>
+            <h1 className="text-4xl font-bold text-text-primary mb-2">
+              {import.meta.env.VITE_APP_NAME || '管理后台'}
+            </h1>
             <p className="text-text-tertiary text-sm">
               欢迎登录，开始您的安全会议
             </p>
