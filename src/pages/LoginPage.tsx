@@ -3,18 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Card, CardHeader, CardContent } from '@/components/ui/Card'
+import { Card, CardContent } from '@/components/ui/Card'
 import { Logo } from '@/components/ui/Logo'
 import { useAuth } from '@/store'
 import { auth } from '@/services/core/auth.service'
 import { isDevelopment } from '@/config'
-// 🔧 修复：导入通知Hook用于处理特殊情况
 import { useNotifications } from '@/hooks/useNotifications'
 
 const LoginPage = () => {
   const navigate = useNavigate()
   const { setUser, setPermissions } = useAuth()
-  // 🔧 修复：使用通知系统显示成功消息
   const { showSuccess } = useNotifications()
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -131,17 +129,31 @@ const LoginPage = () => {
   }
   
   return (
-    <div className="min-h-screen bg-bg-page flex flex-col">
+    <div className="min-h-screen bg-bg-page flex flex-col relative overflow-hidden">
+      {/* 装饰性背景元素 */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* 渐变圆形装饰 - 左上 */}
+        <div className="absolute -top-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl"></div>
+        {/* 渐变圆形装饰 - 右下 */}
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-primary/8 rounded-full blur-3xl"></div>
+      </div>
+      
       {/* 主内容区域 */}
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <Card className="w-full max-w-md shadow-lg border-0">
-          <CardHeader className="text-center pb-8">
-            {/* Logo 和产品名称 */}
-            <div className="flex justify-center mb-6">
-              <Logo size="md" className="" />
+      <div className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
+        <div className="w-full max-w-md">
+          {/* Logo 和产品名称 - 移到卡片外 */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <Logo size="lg" className="drop-shadow-lg" />
             </div>
-          </CardHeader>
-          <CardContent className="px-6 pb-6">
+            <p className="text-text-tertiary text-sm">
+              欢迎登录，开始您的安全会议
+            </p>
+          </div>
+          
+          {/* 登录卡片 */}
+          <Card className="shadow-2xl border-border/50 backdrop-blur-sm bg-card/95">
+            <CardContent className="px-8 py-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2">
@@ -211,6 +223,7 @@ const LoginPage = () => {
             {getTestAccountHints()}
           </CardContent>
         </Card>
+        </div>
       </div>
       
       {/* 底部信息 */}
