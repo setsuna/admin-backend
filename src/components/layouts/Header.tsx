@@ -1,22 +1,31 @@
 import { Bell, LogOut } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { cn } from '@/utils'
-import { useGlobalStore } from '@/store'
+import { useAuth } from '@/store'
 import { Button } from '@/components/ui/Button'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
+import { authService } from '@/services/core/auth.service'
 
 interface HeaderProps {
   className?: string
 }
 
 export function Header({ className }: HeaderProps) {
-  const { user, setUser } = useGlobalStore()
+  const { user, clearAuth } = useAuth()
   const location = useLocation()
   
-  const handleLogout = () => {
-    localStorage.removeItem('token')
-    setUser(null)
-    window.location.href = '/login'
+  const handleLogout = async () => {
+    try {
+      // 🔧 调用认证服务清理 token 和 localStorage
+      await authService.logout()
+    } catch (error) {
+      console.warn('Logout API error:', error)
+    } finally {
+      // 🔧 清理 store 状态
+      clearAuth()
+      // 跳转到登录页
+      window.location.href = '/login'
+    }
   }
   
   // 根据路径获取面包屑导航

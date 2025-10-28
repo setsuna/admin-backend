@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardHeader, CardContent } from '@/components/ui/Card'
 import { Logo } from '@/components/ui/Logo'
-import { useGlobalStore } from '@/store'
+import { useAuth } from '@/store'
 import { auth } from '@/services/core/auth.service'
 import { isDevelopment } from '@/config'
 // 🔧 修复：导入通知Hook用于处理特殊情况
@@ -13,7 +13,7 @@ import { useNotifications } from '@/hooks/useNotifications'
 
 const LoginPage = () => {
   const navigate = useNavigate()
-  const { setUser } = useGlobalStore()
+  const { setUser, setPermissions } = useAuth()
   // 🔧 修复：使用通知系统显示成功消息
   const { showSuccess } = useNotifications()
   const [loading, setLoading] = useState(false)
@@ -67,8 +67,17 @@ const LoginPage = () => {
       
       console.log('Login success:', result)
       
-      // 保存用户信息到全局状态
-      setUser(result.user as any) // 临时使用any避免类型错误
+      // 🔧 完整更新 store：从 localStorage 读取包含 permissions 的完整用户信息
+      const userStr = localStorage.getItem('user')
+      if (userStr) {
+        const fullUser = JSON.parse(userStr)
+        setUser(fullUser)
+        setPermissions(fullUser.permissions || [])
+      } else {
+        // 降级方案：使用返回的简化用户信息
+        setUser(result.user as any)
+        setPermissions([])
+      }
       
       // 显示成功消息
       showSuccess('登录成功', `欢迎回来，${result.user.username}!`)

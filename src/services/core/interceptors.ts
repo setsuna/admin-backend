@@ -8,6 +8,7 @@ import type { ApiResponse, ValidationError } from '@/types/api/response.types'
 import { errorHandler } from './error.handler'
 // 使用统一的认证服务
 import { auth } from './auth.service'
+import { useStore } from '@/store'
 
 // 扩展配置类型以包含metadata
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -239,8 +240,7 @@ function handleGeneralError(code: number, backendMessage: string, _userMessage: 
 function handleAuthorizationError(code: number, backendMessage: string, _userMessage?: string, fullData?: any) {
   // 🆕 检测授权验证失败且需要授权码 (code: 6001, need_license: true)
   if (code === ERROR_CODES.AUTHORIZATION_CODE_INVALID) {
-    // 异步导入store并触发授权对话框
-    import('@/store').then(({ useStore }) => {
+    try {
       const { showAuthError } = useStore.getState()
       
       // 显示授权错误对话框，附带后端返回的完整授权信息
@@ -257,11 +257,11 @@ function handleAuthorizationError(code: number, backendMessage: string, _userMes
         errorMessage: fullData?.error_message,
         needLicense: fullData?.need_license
       })
-    }).catch(err => {
+    } catch (err) {
       console.error('Failed to show auth error dialog:', err)
       // 降级处理：显示普通错误提示
       errorHandler.handleError(new Error(backendMessage + '，请联系系统管理员'), 'PERMISSION_DENIED')
-    })
+    }
     return
   }
   

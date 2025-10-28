@@ -78,15 +78,8 @@ class AuthService {
       
       localStorage.setItem('user', JSON.stringify(userInfo))
       
-      // 更新权限store
-      try {
-        const { useStore } = await import('@/store')
-        const { setUser, setPermissions } = useStore.getState()
-        setUser(userInfo)
-        setPermissions(userInfo.permissions || [])
-      } catch (error) {
-        console.warn('Failed to update auth store:', error)
-      }
+      // 🔧 Store 更新由调用者负责（LoginPage 等组件）
+      // 这样避免了循环依赖和动态导入警告
       
       console.log('[认证服务] 登录成功')
       return loginResult
@@ -108,14 +101,7 @@ class AuthService {
       console.warn('Logout API warning:', error)
     } finally {
       this.clearStorage()
-      
-      try {
-        const { useStore } = await import('@/store')
-        const { clearAuth } = useStore.getState()
-        clearAuth()
-      } catch (error) {
-        console.warn('Failed to clear auth store:', error)
-      }
+      // 🔧 Store 清理由调用者负责（Header、路由守卫等）
     }
   }
 
