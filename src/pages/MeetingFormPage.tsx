@@ -101,8 +101,8 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
     return (
       <div className="p-2 flex items-center justify-center h-[calc(100vh-120px)]">
         <div className="text-center">
-          <div className="text-lg text-gray-500 mb-2">正在加载...</div>
-          <div className="text-sm text-gray-400">
+          <div className="text-lg text-text-regular mb-2">正在加载...</div>
+          <div className="text-sm text-text-tertiary">
             {mode === 'create' ? '创建会议草稿中，请稍候' : '加载会议信息中，请稍候'}
           </div>
         </div>
@@ -114,7 +114,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
     return (
       <div className="p-2 flex items-center justify-center h-[calc(100vh-120px)]">
         <div className="text-center">
-          <div className="text-lg text-gray-500 mb-2">正在初始化...</div>
+          <div className="text-lg text-text-regular mb-2">正在初始化...</div>
         </div>
       </div>
     )
@@ -124,8 +124,8 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
     return (
       <div className="p-2 flex items-center justify-center h-[calc(100vh-120px)]">
         <div className="text-center">
-          <div className="text-lg text-red-500 mb-2">加载失败</div>
-          <div className="text-sm text-gray-400">无法加载会议信息</div>
+          <div className="text-lg text-error mb-2">加载失败</div>
+          <div className="text-sm text-text-tertiary">无法加载会议信息</div>
         </div>
       </div>
     )
@@ -138,10 +138,10 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
         className="h-[calc(100vh-200px)]"
         separator={true}
       >
-        <Allotment.Pane minSize={350} maxSize={600} className="bg-white rounded-lg border flex flex-col">
-          <div className="p-4 border-b bg-gray-50 flex-shrink-0 h-[72px]">
+        <Allotment.Pane minSize={350} maxSize={600} className="bg-bg-card rounded-lg border flex flex-col">
+          <div className="p-4 border-b bg-bg-container flex-shrink-0 h-[72px]">
             <div className="flex items-center justify-between h-full">
-              <h2 className="text-lg font-semibold text-gray-900">基本信息</h2>
+              <h2 className="text-lg font-semibold text-text-primary">基本信息</h2>
             </div>
           </div>
           <div className="flex-1 p-4 overflow-y-auto">
@@ -157,10 +157,10 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
           </div>
         </Allotment.Pane>
 
-        <Allotment.Pane minSize={400} className="bg-white rounded-lg border flex flex-col">
-          <div className="p-4 border-b bg-gray-50 flex-shrink-0 h-[72px]">
+        <Allotment.Pane minSize={400} className="bg-bg-card rounded-lg border flex flex-col">
+          <div className="p-4 border-b bg-bg-container flex-shrink-0 h-[72px]">
             <div className="flex items-center justify-between h-full">
-              <h2 className="text-lg font-semibold text-gray-900">会议议题</h2>
+              <h2 className="text-lg font-semibold text-text-primary">会议议题</h2>
               <Button variant="outline" size="sm" onClick={addAgenda}>
                 <Plus className="h-4 w-4 mr-2" />
                 添加议题
@@ -168,8 +168,8 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
             </div>
           </div>
           <div className="flex-1 p-4 overflow-y-auto">
-            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-              <p className="text-sm text-yellow-800">
+            <div className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-md">
+              <p className="text-sm text-warning">
                 议题材料支持格式：{getFormattedExtensions()}
               </p>
             </div>
@@ -190,7 +190,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
         </Allotment.Pane>
       </Allotment>
 
-      <div className="mt-4 p-4 bg-white rounded-lg border">
+      <div className="mt-4 p-4 bg-bg-card rounded-lg border">
         <div className="flex justify-end gap-3">
           {mode === 'view' ? (
             <Button onClick={() => navigate('/meetings')}>
