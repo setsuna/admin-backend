@@ -16,6 +16,7 @@ import type {
   MeetingSettings,
   MeetingAgenda,
   MeetingSecurityLevel,
+  MeetingType,
   PaginatedResponse,
   OperationResult,
   FileUploadResponse,
@@ -311,6 +312,13 @@ export class MeetingApiService {
       `${this.basePath}/${meetingId}/files/${fileId}`,
       { security_level: securityLevel }
     )
+  }
+
+  /**
+   * 切换会议类型
+   */
+  async updateMeetingType(id: string, type: MeetingType): Promise<Meeting> {
+    return await httpClient.patch<Meeting>(`${this.basePath}/${id}/type`, { type })
   }
 
   // ===== 统计和其他功能 =====

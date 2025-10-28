@@ -33,6 +33,8 @@ interface BasicInfoFormProps {
   onFormDataChange: (field: string, value: any) => void
   onOpenOrgSelector: () => void
   onRemoveParticipant: (id: string) => void
+  meetingId?: string  // 会议ID
+  mode?: 'create' | 'edit' | 'view'  // 模式
   readOnly?: boolean
 }
 
@@ -41,6 +43,8 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   onFormDataChange,
   onOpenOrgSelector,
   onRemoveParticipant,
+  meetingId,
+  mode,
   readOnly = false
 }) => {
   const [categories, setCategories] = useState<MeetingCategory[]>([])
@@ -189,6 +193,8 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         onChange={(type) => onFormDataChange('type', type)}
         signInType={formData.signInType}
         onSignInTypeChange={(signInType) => onFormDataChange('signInType', signInType)}
+        meetingId={meetingId}
+        mode={mode}
         readOnly={readOnly}
       />
 

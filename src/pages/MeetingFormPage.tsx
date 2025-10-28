@@ -150,6 +150,8 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
               onFormDataChange={handleFormDataChange}
               onOpenOrgSelector={() => setShowOrgModal(true)}
               onRemoveParticipant={removeParticipant}
+              meetingId={currentMeetingId}
+              mode={mode}
               readOnly={mode === 'view'}
             />
           </div>
