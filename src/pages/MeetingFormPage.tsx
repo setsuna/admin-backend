@@ -138,7 +138,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
         className="h-[calc(100vh-200px)]"
         separator={true}
       >
-        <Allotment.Pane minSize={350} maxSize={600} className="bg-bg-card rounded-lg border flex flex-col">
+        <Allotment.Pane minSize={350} className="bg-bg-card rounded-lg border border-r-0 flex flex-col">
           <div className="p-4 border-b bg-bg-container flex-shrink-0 h-[72px]">
             <div className="flex items-center justify-between h-full">
               <h2 className="text-lg font-semibold text-text-primary">基本信息</h2>
@@ -157,7 +157,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
           </div>
         </Allotment.Pane>
 
-        <Allotment.Pane minSize={400} className="bg-bg-card rounded-lg border flex flex-col">
+        <Allotment.Pane minSize={400} className="bg-bg-card rounded-lg border border-l-0 flex flex-col">
           <div className="p-4 border-b bg-bg-container flex-shrink-0 h-[72px]">
             <div className="flex items-center justify-between h-full">
               <h2 className="text-lg font-semibold text-text-primary">会议议题</h2>
