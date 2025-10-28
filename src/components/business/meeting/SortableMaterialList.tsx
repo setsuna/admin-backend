@@ -88,7 +88,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
 
       {/* 安全级别选择 */}
       <select
-        value={material.securityLevel}
+        value={material.securityLevel || 'internal'}
         onChange={(e) => onUpdateSecurity(material.id, e.target.value as MeetingSecurityLevel)}
         className="text-xs px-2 py-1 border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary"
       >
