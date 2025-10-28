@@ -165,15 +165,15 @@ export const AuthErrorModal: React.FC = () => {
     >
       <div className="p-4 space-y-4">
         {/* 错误消息或状态信息 */}
-        <div className={`p-4 rounded-lg ${
+        <div className={`p-4 rounded-lg border ${
           isInfoMode 
-            ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'
-            : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
+            ? 'bg-info/10 border-info/20'
+            : 'bg-error/10 border-error/20'
         }`}>
           <p className={`text-sm ${
             isInfoMode 
-              ? 'text-blue-800 dark:text-blue-200' 
-              : 'text-red-800 dark:text-red-200'
+              ? 'text-info' 
+              : 'text-error'
           }`}>
             {data.message}
           </p>
@@ -188,11 +188,11 @@ export const AuthErrorModal: React.FC = () => {
             <CardContent>
               <div className="grid grid-cols-2 gap-x-8 gap-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">授权状态:</span>
+                  <span className="text-sm text-text-secondary">授权状态:</span>
                   <span className={`text-sm font-medium ${
                     licenseStatus.status.valid 
-                      ? 'text-green-600 dark:text-green-400' 
-                      : 'text-red-600 dark:text-red-400'
+                      ? 'text-success' 
+                      : 'text-error'
                   }`}>
                     {licenseStatus.status.valid ? '有效' : '无效/过期'}
                   </span>
@@ -200,15 +200,15 @@ export const AuthErrorModal: React.FC = () => {
                 
                 {licenseStatus.status.message && (
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">状态信息:</span>
-                    <span className="text-sm">{licenseStatus.status.message}</span>
+                    <span className="text-sm text-text-secondary">状态信息:</span>
+                    <span className="text-sm text-text-regular">{licenseStatus.status.message}</span>
                   </div>
                 )}
                 
                 {licenseStatus.status.expire_date && (
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">到期时间:</span>
-                    <span className="text-sm">
+                    <span className="text-sm text-text-secondary">到期时间:</span>
+                    <span className="text-sm text-text-regular">
                       {licenseStatus.status.expire_date}
                     </span>
                   </div>
@@ -216,13 +216,13 @@ export const AuthErrorModal: React.FC = () => {
                 
                 {remainingDays !== null && (
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">剩余天数:</span>
+                    <span className="text-sm text-text-secondary">剩余天数:</span>
                     <span className={`text-sm font-medium ${
                       remainingDays <= 7 
-                        ? 'text-yellow-600 dark:text-yellow-400' 
+                        ? 'text-warning' 
                         : remainingDays <= 0
-                        ? 'text-red-600 dark:text-red-400'
-                        : 'text-gray-900 dark:text-gray-100'
+                        ? 'text-error'
+                        : 'text-text-primary'
                     }`}>
                       {remainingDays}天
                     </span>
@@ -231,8 +231,8 @@ export const AuthErrorModal: React.FC = () => {
                 
                 {licenseStatus.status.device_count !== undefined && (
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">授权设备数:</span>
-                    <span className="text-sm font-medium">
+                    <span className="text-sm text-text-secondary">授权设备数:</span>
+                    <span className="text-sm font-medium text-text-primary">
                       {licenseStatus.status.device_count}台
                     </span>
                   </div>
@@ -240,15 +240,15 @@ export const AuthErrorModal: React.FC = () => {
                 
                 {licenseStatus.status.license_type && (
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">授权类型:</span>
-                    <span className="text-sm">{licenseStatus.status.license_type}</span>
+                    <span className="text-sm text-text-secondary">授权类型:</span>
+                    <span className="text-sm text-text-regular">{licenseStatus.status.license_type}</span>
                   </div>
                 )}
                 
                 {licenseStatus.current_time && (
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">当前时间:</span>
-                    <span className="text-sm">{licenseStatus.current_time}</span>
+                    <span className="text-sm text-text-secondary">当前时间:</span>
+                    <span className="text-sm text-text-regular">{licenseStatus.current_time}</span>
                   </div>
                 )}
               </div>
@@ -266,16 +266,16 @@ export const AuthErrorModal: React.FC = () => {
               {applicationCode ? (
                 <>
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <p className="text-sm text-text-secondary mb-2">
                       申请码:
                     </p>
-                    <p className="font-mono text-sm bg-gray-100 dark:bg-gray-800 p-3 rounded border break-all">
+                    <p className="font-mono text-sm bg-bg-container p-3 rounded border break-all">
                       {applicationCode.application_code}
                     </p>
                   </div>
                   
                   <div className="text-center">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <p className="text-sm text-text-secondary mb-2">
                       申请码二维码:
                     </p>
                     <SimpleQRCode 
@@ -283,17 +283,17 @@ export const AuthErrorModal: React.FC = () => {
                       size={180}
                       className="mx-auto"
                     />
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    <p className="text-xs text-text-tertiary mt-2">
                       请扫描此二维码获取申请码
                     </p>
                   </div>
 
                   {applicationCode.hardware_info && (
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      <p className="text-sm text-text-secondary mb-2">
                         硬件信息:
                       </p>
-                      <p className="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded break-all">
+                      <p className="text-xs bg-bg-container p-2 rounded break-all">
                         {applicationCode.hardware_info}
                       </p>
                     </div>
@@ -301,7 +301,7 @@ export const AuthErrorModal: React.FC = () => {
                 </>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-sm text-gray-500">加载申请码中...</p>
+                  <p className="text-sm text-text-tertiary">加载申请码中...</p>
                 </div>
               )}
             </CardContent>
@@ -314,7 +314,7 @@ export const AuthErrorModal: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-text-primary mb-2">
                   输入授权码:
                 </label>
                 <Input
@@ -324,14 +324,14 @@ export const AuthErrorModal: React.FC = () => {
                   className="font-mono text-sm"
                   disabled={isLoading}
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-xs text-text-tertiary mt-1">
                   请输入40位授权码（8组，每组5个字符），系统会自动添加分隔符
                 </p>
               </div>
 
               {validationError && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3">
-                  <p className="text-sm text-red-800 dark:text-red-200">{validationError}</p>
+                <div className="bg-error/10 border border-error/20 rounded p-3">
+                  <p className="text-sm text-error">{validationError}</p>
                 </div>
               )}
 
@@ -346,12 +346,12 @@ export const AuthErrorModal: React.FC = () => {
                 }
               </Button>
 
-              <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+              <div className="text-xs text-text-tertiary space-y-1">
                 <p>• 授权码格式: 8组字符，每组5位</p>
                 <p>• 只能包含字母和数字</p>
                 <p>• 请联系管理员获取授权码</p>
                 {isLicenseValid && (
-                  <p className="text-yellow-600 dark:text-yellow-400 font-medium">
+                  <p className="text-warning font-medium">
                     • 更新授权码将替换当前授权
                   </p>
                 )}
@@ -361,7 +361,7 @@ export const AuthErrorModal: React.FC = () => {
         </div>
 
         {/* 操作按钮 */}
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-end space-x-3 pt-4 border-t">
           {data.allowClose !== false && (
             <Button
               variant="outline"
