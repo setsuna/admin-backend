@@ -1,0 +1,109 @@
+name: Build and Release Frontend
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:  # 允许手动触发
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Verify build output
+        run: |
+          echo "检查构建产物..."
+          ls -lah dist/
+          echo "构建产物大小:"
+          du -sh dist/
+
+      - name: Create tarball
+        run: |
+          cd dist
+          tar -czf ../frontend-dist.tar.gz .
+          cd ..
+          echo "压缩包大小:"
+          ls -lh frontend-dist.tar.gz
+
+      - name: Upload artifact (for workflow download)
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend-dist.tar.gz
+          retention-days: 90
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: frontend-dist.tar.gz
+          name: Frontend Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          body: |
+            ## Admin Backend Frontend ${{ github.ref_name }}
+            
+            自动构建的前端静态资源包
+            
+            ### 📦 文件说明
+            
+            - `frontend-dist.tar.gz` - 前端构建产物压缩包
+            
+            ### 🚀 使用方法
+            
+            ```bash
+            # 下载并解压
+            wget https://github.com/setsuna/admin-backend/releases/latest/download/frontend-dist.tar.gz
+            tar -xzf frontend-dist.tar.gz -C /path/to/static/
+            ```
+            
+            ### 📝 构建信息
+            
+            - Node.js 版本: ${{ env.NODE_VERSION }}
+            - 构建时间: ${{ github.event.head_commit.timestamp }}
+            - 提交: ${{ github.sha }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create latest Release (always update)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          files: frontend-dist.tar.gz
+          name: Latest Frontend Build
+          draft: false
+          prerelease: false
+          body: |
+            ## 最新前端构建
+            
+            这是最新的前端构建版本，每次 tag 发布时自动更新。
+            
+            **实际版本**: ${{ github.ref_name }}
+            **构建时间**: ${{ github.event.head_commit.timestamp }}
+            
+            ### 下载
+            
+            ```bash
+            wget https://github.com/setsuna/admin-backend/releases/latest/download/frontend-dist.tar.gz
+            ```
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
