@@ -131,7 +131,7 @@ const LoginPage = () => {
   }
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex flex-col">
+    <div className="min-h-screen bg-bg-page flex flex-col">
       {/* 主内容区域 */}
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <Card className="w-full max-w-md shadow-lg border-0">
@@ -144,7 +144,7 @@ const LoginPage = () => {
           <CardContent className="px-6 pb-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   用户名
                 </label>
                 <Input
@@ -161,7 +161,7 @@ const LoginPage = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   密码
                 </label>
                 <div className="relative">
@@ -179,7 +179,7 @@ const LoginPage = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-regular transition-colors"
                     disabled={loading}
                     tabIndex={-1}
                   >
@@ -193,7 +193,7 @@ const LoginPage = () => {
               </div>
               
               {errors.submit && (
-                <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-md border border-red-200 dark:border-red-800">
+                <div className="text-sm text-error bg-error/10 p-3 rounded-md border border-error/30">
                   {errors.submit}
                 </div>
               )}
@@ -215,7 +215,7 @@ const LoginPage = () => {
       
       {/* 底部信息 */}
       <footer className="py-6 text-center">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-text-tertiary">
           {import.meta.env.VITE_COMPANY_NAME} | v{import.meta.env.VITE_APP_VERSION}
         </p>
       </footer>
