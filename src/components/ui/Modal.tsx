@@ -72,7 +72,7 @@ export const Modal: React.FC<ModalProps> = ({
     >
       <div
         className={cn(
-          'relative w-full max-h-[90vh] mx-4 bg-white dark:bg-gray-900 rounded-lg shadow-xl',
+          'relative w-full max-h-[90vh] mx-4 bg-bg-elevated rounded-lg shadow-xl',
           'animate-in fade-in-0 zoom-in-95 duration-200',
           sizeClasses[size],
           className
@@ -80,16 +80,16 @@ export const Modal: React.FC<ModalProps> = ({
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between p-4 border-b border-border">
             {title && (
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              <h2 className="text-lg font-semibold text-text-primary">
                 {title}
               </h2>
             )}
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-800 transition-colors"
+                className="p-1 rounded-lg text-text-tertiary hover:text-text-secondary hover:bg-bg-container transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -138,11 +138,12 @@ export const AlertModal: React.FC<AlertModalProps> = ({
     success: CheckCircle
   }
 
+  // 使用语义化颜色（固定不变的功能色）
   const iconColors = {
-    info: 'text-blue-500',
-    warning: 'text-yellow-500',
-    error: 'text-red-500',
-    success: 'text-green-500'
+    info: 'text-info',
+    warning: 'text-warning',
+    error: 'text-error',
+    success: 'text-success'
   }
 
   const Icon = icons[type]
@@ -169,11 +170,11 @@ export const AlertModal: React.FC<AlertModalProps> = ({
             <Icon className="h-6 w-6" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            <h3 className="text-lg font-medium text-text-primary mb-2">
               {title}
             </h3>
             {message && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              <p className="text-sm text-text-regular leading-relaxed">
                 {message}
               </p>
             )}

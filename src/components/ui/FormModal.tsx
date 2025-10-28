@@ -75,8 +75,8 @@ export const FormModal: React.FC<FormModalProps> = ({
       case 'number':
         return (
           <div key={name} className="space-y-1">
-            <label className="text-sm font-medium">
-              {label} {required && <span className="text-red-500">*</span>}
+            <label className="text-sm font-medium text-text-primary">
+              {label} {required && <span className="text-error">*</span>}
             </label>
             <input
               type={type}
@@ -84,15 +84,15 @@ export const FormModal: React.FC<FormModalProps> = ({
               onChange={(e) => handleFieldChange(name, type === 'number' ? Number(e.target.value) : e.target.value)}
               placeholder={placeholder}
               required={required}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-background border border-input rounded-md text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
             />
           </div>
         )
       case 'textarea':
         return (
           <div key={name} className="space-y-1">
-            <label className="text-sm font-medium">
-              {label} {required && <span className="text-red-500">*</span>}
+            <label className="text-sm font-medium text-text-primary">
+              {label} {required && <span className="text-error">*</span>}
             </label>
             <textarea
               value={formData[name] || ''}
@@ -100,21 +100,21 @@ export const FormModal: React.FC<FormModalProps> = ({
               placeholder={placeholder}
               required={required}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-background border border-input rounded-md text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors resize-none"
             />
           </div>
         )
       case 'select':
         return (
           <div key={name} className="space-y-1">
-            <label className="text-sm font-medium">
-              {label} {required && <span className="text-red-500">*</span>}
+            <label className="text-sm font-medium text-text-primary">
+              {label} {required && <span className="text-error">*</span>}
             </label>
             <select
               value={formData[name] || ''}
               onChange={(e) => handleFieldChange(name, e.target.value)}
               required={required}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-background border border-input rounded-md text-text-primary focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
             >
               {options?.map((option: any) => (
                 <option key={option.value} value={option.value}>
@@ -130,7 +130,7 @@ export const FormModal: React.FC<FormModalProps> = ({
   }
 
   const defaultFooter = (
-    <div className="flex gap-2 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+    <div className="flex gap-2 justify-end pt-4 border-t border-border">
       <Button 
         type="button" 
         variant="outline" 
