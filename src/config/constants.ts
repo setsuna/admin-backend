@@ -44,6 +44,16 @@ export const API_PATHS = {
   POLICY_VALIDATE: '/policy/validate',
   POLICY_DEFAULT: '/policy/default',
   POLICY_EXPORT: '/policy/export',
+  
+  // 授权管理
+  LICENSE_STATUS: '/license/status',
+  LICENSE_APPLICATION_CODE: '/license/application-code',
+  LICENSE_IMPORT: '/license/import',
+  LICENSE_VALIDATE: '/license/validate',
+  LICENSE_REFRESH: '/license/refresh',
+  LICENSE_DETAILS: '/license/details',
+  LICENSE_EXPORT: '/license/export',
+  LICENSE_RESET: '/license/reset',
 } as const
 
 // HTTP状态码配置

@@ -22,6 +22,7 @@ export { userApiService, permissionApiService, userApi, permissionApi } from './
 export { policyApi } from './api/policy.api'
 export { departmentApiService } from './api/department.api'
 export { participantApi } from './api/participant.api'
+export { licenseApi } from './api/license.api'
 
 // 简写导出
 export { departmentApiService as departmentApi } from './api/department.api'
