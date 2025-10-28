@@ -246,8 +246,8 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-background/50 flex items-center justify-center z-50">
-      <div className="bg-bg-card rounded-lg w-[1100px] h-[700px] flex flex-col">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+      <div className="bg-bg-elevated rounded-lg shadow-2xl w-[1100px] h-[700px] flex flex-col">
         {/* 头部 */}
         <div className="p-4 border-b border-border">
           <div className="flex items-center justify-between">
