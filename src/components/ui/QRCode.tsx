@@ -41,11 +41,11 @@ export const SimpleQRCode: React.FC<QRCodeProps> = ({ value, size = 150, classNa
     // 如果qrcode库不可用，显示文本备用方案
     return (
       <div 
-        className={`flex items-center justify-center border-2 border-dashed border-gray-300 rounded ${className}`}
+        className={`flex items-center justify-center border-2 border-dashed border-border rounded ${className}`}
         style={{ width: size, height: size }}
       >
         <div className="text-center p-2">
-          <div className="text-sm text-gray-500 mb-2">二维码</div>
+          <div className="text-sm text-text-tertiary mb-2">二维码</div>
           <div className="text-xs font-mono break-all">{value}</div>
         </div>
       </div>
@@ -55,10 +55,10 @@ export const SimpleQRCode: React.FC<QRCodeProps> = ({ value, size = 150, classNa
   if (!qrCodeUrl) {
     return (
       <div 
-        className={`flex items-center justify-center bg-gray-100 rounded ${className}`}
+        className={`flex items-center justify-center bg-bg-container rounded ${className}`}
         style={{ width: size, height: size }}
       >
-        <div className="text-sm text-gray-500">生成中...</div>
+        <div className="text-sm text-text-tertiary">生成中...</div>
       </div>
     )
   }

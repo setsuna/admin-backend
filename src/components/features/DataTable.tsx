@@ -100,7 +100,7 @@ export function DataTable<T = any>({
                 <TableHead style={{ width: 50 }} className="text-center">
                   <input
                     type="checkbox"
-                    className="rounded border-gray-300 cursor-pointer"
+                    className="rounded border-border cursor-pointer"
                     checked={isAllSelected}
                     ref={(input) => {
                       if (input) {
@@ -150,7 +150,7 @@ export function DataTable<T = any>({
                       <TableCell className="text-center">
                         <input
                           type="checkbox"
-                          className="rounded border-gray-300 cursor-pointer"
+                          className="rounded border-border cursor-pointer"
                           checked={isSelected}
                           onChange={(e) => handleSelectRow(key, e.target.checked)}
                         />

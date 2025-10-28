@@ -123,8 +123,8 @@ const DictEditModal: React.FC<DictEditModalProps> = ({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50">
+      <div className="bg-card rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-lg font-semibold">
             {dict ? '编辑数据字典' : '新建数据字典'}
@@ -218,7 +218,7 @@ const DictEditModal: React.FC<DictEditModalProps> = ({
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRemoveItem(index)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-destructive hover:text-destructive"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -286,7 +286,7 @@ const DictEditModal: React.FC<DictEditModalProps> = ({
           </Card>
         </div>
 
-        <div className="flex items-center justify-end gap-2 p-6 border-t bg-gray-50">
+        <div className="flex items-center justify-end gap-2 p-6 border-t bg-muted">
           <Button variant="outline" onClick={onClose}>
             取消
           </Button>

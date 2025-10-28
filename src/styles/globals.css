@@ -228,19 +228,19 @@
   
   /* 状态指示器 */
   .status-online {
-    @apply inline-flex h-2 w-2 rounded-full bg-green-500;
+    @apply inline-flex h-2 w-2 rounded-full bg-success;
   }
   
   .status-offline {
-    @apply inline-flex h-2 w-2 rounded-full bg-gray-400;
+    @apply inline-flex h-2 w-2 rounded-full bg-muted-foreground;
   }
   
   .status-warning {
-    @apply inline-flex h-2 w-2 rounded-full bg-yellow-500;
+    @apply inline-flex h-2 w-2 rounded-full bg-warning;
   }
   
   .status-error {
-    @apply inline-flex h-2 w-2 rounded-full bg-red-500;
+    @apply inline-flex h-2 w-2 rounded-full bg-error;
   }
   
   /* 卡片样式 */

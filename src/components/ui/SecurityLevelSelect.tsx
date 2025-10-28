@@ -120,22 +120,22 @@ const SecurityLevelSelect = forwardRef<SecurityLevelSelectRef, SecurityLevelSele
           onKeyDown={handleKeyDown}
           disabled={disabled}
           className={`
-            w-full px-3 py-2 text-left bg-white border rounded-md
+            w-full px-3 py-2 text-left bg-background border rounded-md
             flex items-center justify-between
-            ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-gray-400 cursor-pointer'}
-            ${isOpen ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300'}
+            ${disabled ? 'bg-muted cursor-not-allowed' : 'hover:border-input cursor-pointer'}
+            ${isOpen ? 'border-primary ring-2 ring-primary/20' : 'border-border'}
           `}
         >
-          <span className={selectedOption ? 'text-gray-900' : 'text-gray-400'}>
+          <span className={selectedOption ? 'text-text-primary' : 'text-text-tertiary'}>
             {selectedOption ? selectedOption.name : '请选择密级'}
           </span>
-          <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} />
+          <ChevronDown className={`h-4 w-4 text-text-tertiary transition-transform ${isOpen ? 'transform rotate-180' : ''}`} />
         </button>
 
         {isOpen && (
           <div
             ref={dropdownRef}
-            className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+            className="absolute z-50 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-auto"
           >
             {options.map((option, index) => (
               <button
@@ -145,13 +145,13 @@ const SecurityLevelSelect = forwardRef<SecurityLevelSelectRef, SecurityLevelSele
                 onMouseEnter={() => setHighlightedIndex(index)}
                 className={`
                   w-full px-3 py-2 text-left flex items-center justify-between
-                  ${highlightedIndex === index ? 'bg-blue-50 text-blue-700' : 'text-gray-900'}
-                  ${value === option.value ? 'bg-blue-100 text-blue-700 font-medium' : ''}
-                  hover:bg-blue-50 hover:text-blue-700
+                  ${highlightedIndex === index ? 'bg-primary/10 text-primary' : 'text-text-primary'}
+                  ${value === option.value ? 'bg-primary/20 text-primary font-medium' : ''}
+                  hover:bg-primary/10 hover:text-primary
                 `}
               >
                 <span>{option.name}</span>
-                <span className="text-xs text-gray-400 ml-2">{index + 1}</span>
+                <span className="text-xs text-text-tertiary ml-2">{index + 1}</span>
               </button>
             ))}
           </div>
