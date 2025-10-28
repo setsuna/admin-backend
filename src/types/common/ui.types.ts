@@ -118,6 +118,12 @@ export interface AuthErrorDialogData {
   mode: 'error' | 'warning' | 'info'
   allowClose: boolean
   showCurrentStatus: boolean
+  // 🆕 新增：授权错误相关字段
+  code?: number  // 错误码
+  errorDetails?: string  // 错误详情
+  applicationCode?: string  // 系统授权码
+  errorMessage?: string  // 后端返回的错误消息
+  needLicense?: boolean  // 是否需要授权
 }
 
 // ========== WebSocket 相关 ==========

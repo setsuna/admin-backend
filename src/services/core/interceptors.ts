@@ -91,7 +91,7 @@ export const errorInterceptor = async (error: AxiosError<ApiResponse>): Promise<
     
     if (data && typeof data === 'object' && data.code && data.message) {
       // 使用后端返回的具体错误信息和错误码
-      await handleApiError(data.code, data.message, data.errors, requestId)
+      await handleApiError(data.code, data.message, data.errors, requestId, data.data)  // 🆕 传递完整的 data.data
       
       // 抛出包含完整业务信息的错误
       const businessError = new Error(data.message)
@@ -149,7 +149,8 @@ async function handleApiError(
   code: number, 
   message: string, 
   errors?: ValidationError[], 
-  requestId?: string
+  requestId?: string,
+  fullData?: any  // 🆕 添加完整的响应数据
 ) {
   const category = getErrorCategory(code)
   const userMessage = getErrorMessage(code, message)
@@ -165,7 +166,7 @@ async function handleApiError(
       handleGeneralError(code, message, userMessage, errors)
       break
     case 'authorization':
-      handleAuthorizationError(code, message, userMessage)
+      handleAuthorizationError(code, message, userMessage, fullData)  // 🆕 传递完整数据
       break
     case 'system':
       handleSystemError(code, message, userMessage)
@@ -233,10 +234,38 @@ function handleGeneralError(code: number, backendMessage: string, _userMessage: 
 }
 
 /**
- * 🔧 修复：授权错误处理 - 使用后端原始消息
+ * 🔧 修复：授权错误处理 - 使用后端原始消息 + 自动显示授权对话框
  */
-function handleAuthorizationError(_code: number, backendMessage: string, _userMessage?: string) {
-  // 直接使用后端返回的错误信息
+function handleAuthorizationError(code: number, backendMessage: string, _userMessage?: string, fullData?: any) {
+  // 🆕 检测授权验证失败且需要授权码 (code: 6001, need_license: true)
+  if (code === ERROR_CODES.AUTHORIZATION_CODE_INVALID) {
+    // 异步导入store并触发授权对话框
+    import('@/store').then(({ useStore }) => {
+      const { showAuthError } = useStore.getState()
+      
+      // 显示授权错误对话框，附带后端返回的完整授权信息
+      showAuthError({
+        message: backendMessage || '系统授权验证失败',
+        code: code,
+        mode: 'error',
+        allowClose: false, // 授权失败不允许关闭
+        showCurrentStatus: false,
+        errorDetails: backendMessage,
+        // 🆕 传递后端返回的授权相关数据
+        applicationCode: fullData?.applicationCode,
+        errorCode: fullData?.error_code,
+        errorMessage: fullData?.error_message,
+        needLicense: fullData?.need_license
+      })
+    }).catch(err => {
+      console.error('Failed to show auth error dialog:', err)
+      // 降级处理：显示普通错误提示
+      errorHandler.handleError(new Error(backendMessage + '，请联系系统管理员'), 'PERMISSION_DENIED')
+    })
+    return
+  }
+  
+  // 其他授权错误使用原有处理
   errorHandler.handleError(new Error(backendMessage + '，请联系系统管理员'), 'PERMISSION_DENIED')
 }
 
