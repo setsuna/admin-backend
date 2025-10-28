@@ -157,17 +157,6 @@ class DefaultErrorHandler implements ErrorHandler {
    * 🔄 更新：显示错误信息给用户
    */
   showError(message: string, type: ErrorType = 'API_ERROR', errorInfo?: ErrorInfo): void {
-    // 这里可以集成具体的通知组件
-    const config = getConfig()
-    if (config.env.isDevelopment) {
-      console.error(`[${type}] ${message}`)
-      if (errorInfo) {
-        console.error('错误详情:', errorInfo)
-      }
-    }
-
-    console.log(`[错误处理器] 触发全局错误事件 - 消息: ${message}, 类型: ${type}`)
-
     // 🆕 触发增强的全局错误事件
     window.dispatchEvent(new CustomEvent('app:error', {
       detail: { 
@@ -182,7 +171,6 @@ class DefaultErrorHandler implements ErrorHandler {
       }
     }))
     
-    console.log(`[错误处理器] 全局错误事件已触发`)
   }
 
   /**
@@ -191,16 +179,6 @@ class DefaultErrorHandler implements ErrorHandler {
   logError(errorInfo: ErrorInfo): void {
     // 开发环境控制台输出
     const config = getConfig()
-    if (config.env.isDevelopment) {
-      console.group(`🔴 Error [${errorInfo.type}]`)
-      console.error('Message:', errorInfo.message)
-      console.error('Code:', errorInfo.code)
-      console.error('Details:', errorInfo.details)
-      console.error('Request ID:', errorInfo.requestId)
-      console.error('Timestamp:', new Date(errorInfo.timestamp).toISOString())
-      console.groupEnd()
-    }
-
     // 生产环境发送到日志服务
     if (config.env.isProduction) {
       this.sendToLogService(errorInfo)
