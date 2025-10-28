@@ -6,19 +6,19 @@ import type { NotificationType } from '@/types'
 const notificationConfig = {
   success: {
     icon: CheckCircle,
-    className: 'border-success/20 bg-success/10 text-success',
+    className: 'border-success/30 bg-success/20 text-success',
   },
   error: {
     icon: AlertCircle,
-    className: 'border-error/20 bg-error/10 text-error',
+    className: 'border-error/30 bg-error/20 text-error',
   },
   warning: {
     icon: AlertTriangle,
-    className: 'border-warning/20 bg-warning/10 text-warning',
+    className: 'border-warning/30 bg-warning/20 text-warning',
   },
   info: {
     icon: Info,
-    className: 'border-info/20 bg-info/10 text-info',
+    className: 'border-info/30 bg-info/20 text-info',
   },
 }
 
@@ -62,7 +62,7 @@ export function NotificationContainer() {
   if (notifications.length === 0) return null
   
   return (
-    <div className="fixed top-4 right-4 z-50 w-96 max-w-sm">
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-96 max-w-sm">
       {notifications.map((notification) => (
         <NotificationItem
           key={notification.id!}
