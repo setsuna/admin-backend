@@ -146,7 +146,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
             onClick={() => setSelectedDeptId(dept.id)}
             className={`
               flex items-center gap-2 px-3 py-2 cursor-pointer rounded
-              ${isSelected ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'}
+              ${isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-muted'}
             `}
             style={{ paddingLeft: `${level * 16 + 12}px` }}
           >
@@ -177,16 +177,16 @@ const UserSelector: React.FC<UserSelectorProps> = ({
   return (
     <div className="flex h-full">
       {/* 左侧：部门树 */}
-      <div className="w-56 border-r flex flex-col bg-gray-50">
-        <div className="p-3 border-b bg-white">
-          <div className="text-sm font-medium text-gray-700">部门</div>
+      <div className="w-56 border-r flex flex-col bg-bg-container">
+        <div className="p-3 border-b bg-bg-card">
+          <div className="text-sm font-medium text-text-secondary">部门</div>
         </div>
         <div className="flex-1 overflow-y-auto p-2">
           <div
             onClick={() => setSelectedDeptId('')}
             className={`
               px-3 py-2 mb-1 cursor-pointer rounded text-sm
-              ${selectedDeptId === '' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}
+              ${selectedDeptId === '' ? 'bg-primary/10 text-primary' : 'hover:bg-muted'}
             `}
           >
             全部部门
@@ -200,13 +200,13 @@ const UserSelector: React.FC<UserSelectorProps> = ({
         {enableSearch && (
           <div className="p-4 border-b">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary" />
               <input
                 type="text"
                 placeholder="搜索人员..."
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
           </div>
@@ -214,9 +214,9 @@ const UserSelector: React.FC<UserSelectorProps> = ({
 
         <div className="flex-1 overflow-y-auto p-4">
           {isLoading ? (
-            <div className="text-center py-8 text-gray-500">加载中...</div>
+            <div className="text-center py-8 text-text-regular">加载中...</div>
           ) : users.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">暂无数据</div>
+            <div className="text-center py-8 text-text-regular">暂无数据</div>
           ) : (
             <div className="space-y-2">
               {users.map(user => {
@@ -229,7 +229,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                     onClick={() => handleToggleUser(user)}
                     className={`
                       p-3 rounded-lg border cursor-pointer transition-colors
-                      ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}
+                      ${isSelected ? 'border-primary bg-primary/10' : 'border-border hover:bg-muted'}
                     `}
                   >
                     <div className="flex items-center gap-3">
@@ -241,9 +241,9 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                       />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-gray-900">{user.name || user.realName || user.username}</span>
+                          <span className="font-medium text-text-primary">{user.name || user.realName || user.username}</span>
                           {showSecurityLevel && securityLevel && (
-                            <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 flex-shrink-0">
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-info/10 text-info flex-shrink-0">
                               {securityLevel.name}
                             </span>
                           )}
@@ -259,16 +259,16 @@ const UserSelector: React.FC<UserSelectorProps> = ({
 
         {/* 分页 */}
         {!isLoading && total > 0 && (
-          <div className="p-4 border-t bg-white">
+          <div className="p-4 border-t bg-bg-card">
             <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-text-secondary">
                 共 {total} 人，第 {page}/{totalPages} 页
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 border rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
@@ -290,7 +290,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                         onClick={() => setPage(pageNum)}
                         className={`
                           px-3 py-1 border rounded min-w-[36px]
-                          ${page === pageNum ? 'bg-blue-500 text-white border-blue-500' : 'hover:bg-gray-50'}
+                          ${page === pageNum ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted'}
                         `}
                       >
                         {pageNum}
@@ -301,7 +301,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                 <button
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 border rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -311,8 +311,8 @@ const UserSelector: React.FC<UserSelectorProps> = ({
         )}
 
         {selectedUsers.length > 0 && (
-          <div className="p-4 border-t bg-gray-50">
-            <div className="text-sm font-medium text-gray-700 mb-2">
+          <div className="p-4 border-t bg-bg-container">
+            <div className="text-sm font-medium text-text-secondary mb-2">
               已选择 {selectedUsers.length} 人
             </div>
             <div className="flex flex-wrap gap-2">
@@ -322,19 +322,19 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                 return (
                   <div
                     key={user.id}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border rounded-md"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-bg-card border rounded-md"
                   >
                     <span className="text-sm">
                       {user.name || user.realName || user.username}
                     </span>
                     {showSecurityLevel && securityLevel && (
-                      <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
+                      <span className="text-xs bg-info/10 text-info px-1.5 py-0.5 rounded">
                         {securityLevel.name}
                       </span>
                     )}
                     <button
                       onClick={() => handleRemoveUser(user.id)}
-                      className="text-gray-400 hover:text-gray-600"
+                      className="text-text-tertiary hover:text-text-secondary"
                     >
                       <X className="h-3 w-3" />
                     </button>

@@ -203,12 +203,12 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
                 value={defaultPassword}
                 onChange={(e) => handlePasswordChange(e.target.value)}
                 placeholder="统一密码"
-                className="w-full px-3 py-1.5 pr-10 text-sm border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-white"
+                className="w-full px-3 py-1.5 pr-10 text-sm border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-bg-card"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-secondary"
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4" />
@@ -255,7 +255,7 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
                       onChange={handleSelectAll}
                       className="w-4 h-4 text-info focus:ring-info rounded"
                     />
-                    <span className="text-sm text-gray-700">
+                    <span className="text-sm text-text-secondary">
                       全选 ({selectedIndices.size}/{parseResult.success.length})
                     </span>
                   </label>
@@ -263,8 +263,8 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
                   {selectedIndices.size > 0 && (
                     <>
                       <div className="flex-1 flex items-center gap-2">
-                        <Edit2 className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">批量修改密级：</span>
+                        <Edit2 className="h-4 w-4 text-text-regular" />
+                        <span className="text-sm text-text-secondary">批量修改密级：</span>
                         <select
                           value={batchSecurityLevel}
                           onChange={(e) => setBatchSecurityLevel(e.target.value)}
@@ -308,7 +308,7 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
                           key={i}
                           className={`
                             flex items-center gap-3 px-3 py-2 border-b border-success/10 last:border-b-0
-                            ${isSelected ? 'bg-info/5' : 'bg-white hover:bg-muted'}
+                            ${isSelected ? 'bg-info/5' : 'bg-bg-card hover:bg-muted'}
                             transition-colors cursor-pointer
                           `}
                           onClick={() => handleToggleSelect(i)}
@@ -319,15 +319,15 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
                             onChange={() => {}}
                             className="w-4 h-4 text-info focus:ring-info rounded"
                           />
-                          <span className="font-medium text-gray-900 min-w-[80px]">{p.name}</span>
-                          <span className="text-gray-400">·</span>
+                          <span className="font-medium text-text-primary min-w-[80px]">{p.name}</span>
+                          <span className="text-text-tertiary">·</span>
                           <span className="text-xs px-2 py-0.5 rounded bg-info/10 text-info">
                             {securityOption?.name || p.securityLevel}
                           </span>
                           {p.password && (
                             <>
-                              <span className="text-gray-400">·</span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-text-tertiary">·</span>
+                              <span className="text-xs text-text-regular">
                                 密码: {p.password.substring(0, 3)}***
                               </span>
                             </>
