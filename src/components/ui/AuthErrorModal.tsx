@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Modal } from './Modal'
 import { Button } from './Button'
@@ -14,12 +14,8 @@ export const AuthErrorModal: React.FC = () => {
   const { authError, hideAuthError } = useGlobalStore()
   const { showSuccess, showApiError, showError } = useNotifications()
   
-  // 8 组授权码，每组 5 个字符
-  const [licenseParts, setLicenseParts] = useState<string[]>(Array(8).fill(''))
+  const [licenseKey, setLicenseKey] = useState('')
   const [validationError, setValidationError] = useState('')
-  
-  // 为每个输入框创建 ref
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   // 查询授权状态（仅在 info 模式下）
   const { data: licenseStatus } = useQuery({
@@ -53,17 +49,12 @@ export const AuthErrorModal: React.FC = () => {
     }
   }, [licenseStatus?.status?.expire_date])
 
-  // 合并授权码
-  const licenseKey = useMemo(() => {
-    return licenseParts.join('-')
-  }, [licenseParts])
-
   // 导入授权码 mutation
   const importMutation = useMutation({
     mutationFn: (key: string) => licenseApi.import({ license_key: key }),
     onSuccess: (result) => {
       showSuccess('授权激活成功', result.message)
-      setLicenseParts(Array(8).fill(''))
+      setLicenseKey('')
       setValidationError('')
       
       // 刷新授权状态
@@ -87,79 +78,41 @@ export const AuthErrorModal: React.FC = () => {
     },
   })
 
-  // 处理单个输入框的变化
-  const handlePartChange = (index: number, value: string) => {
-    // 只允许字母和数字，转换为大写
+  // 格式化授权码输入（自动添加分隔符）
+  const formatLicenseKey = (value: string): string => {
+    // 移除所有非字母数字字符
     const cleaned = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase()
     
-    // 限制每组最多 5 个字符
-    const limited = cleaned.slice(0, 5)
+    // 每5个字符添加一个分隔符，最多40个字符（8组*5）
+    const formatted = cleaned
+      .slice(0, 40)
+      .match(/.{1,5}/g)
+      ?.join('-') || ''
     
-    // 更新状态
-    const newParts = [...licenseParts]
-    newParts[index] = limited
-    setLicenseParts(newParts)
+    return formatted
+  }
+
+  // 处理授权码输入
+  const handleLicenseKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatLicenseKey(e.target.value)
+    setLicenseKey(formatted)
     setValidationError('')
-    
-    // 如果输入满 5 个字符，自动跳到下一个输入框
-    if (limited.length === 5 && index < 7) {
-      inputRefs.current[index + 1]?.focus()
-    }
   }
 
-  // 处理键盘事件
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    // 删除键：如果当前输入框为空，跳到上一个输入框
-    if (e.key === 'Backspace' && licenseParts[index] === '' && index > 0) {
-      inputRefs.current[index - 1]?.focus()
+  // 验证授权码格式
+  const validateLicenseKey = (key: string): boolean => {
+    // 移除分隔符
+    const cleaned = key.replace(/-/g, '')
+    
+    // 检查长度（应该是40个字符，8组*5）
+    if (cleaned.length !== 40) {
+      setValidationError('授权码应为40个字符（8组，每组5个字符）')
+      return false
     }
     
-    // 左箭头：跳到上一个输入框
-    if (e.key === 'ArrowLeft' && index > 0) {
-      e.preventDefault()
-      inputRefs.current[index - 1]?.focus()
-    }
-    
-    // 右箭头：跳到下一个输入框
-    if (e.key === 'ArrowRight' && index < 7) {
-      e.preventDefault()
-      inputRefs.current[index + 1]?.focus()
-    }
-  }
-
-  // 处理粘贴事件
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault()
-    const pastedText = e.clipboardData.getData('text')
-    
-    // 清理粘贴的文本（移除分隔符和空格）
-    const cleaned = pastedText.replace(/[^A-Za-z0-9]/g, '').toUpperCase()
-    
-    // 分割成 8 组，每组 5 个字符
-    const newParts = Array(8).fill('')
-    for (let i = 0; i < 8; i++) {
-      newParts[i] = cleaned.slice(i * 5, (i + 1) * 5)
-    }
-    
-    setLicenseParts(newParts)
-    setValidationError('')
-    
-    // 聚焦到第一个未填满的输入框
-    const firstEmptyIndex = newParts.findIndex(part => part.length < 5)
-    if (firstEmptyIndex !== -1) {
-      inputRefs.current[firstEmptyIndex]?.focus()
-    } else {
-      inputRefs.current[7]?.focus()
-    }
-  }
-
-  // 验证授权码
-  const validateLicenseKey = (): boolean => {
-    // 检查是否所有组都填写完整
-    const allFilled = licenseParts.every(part => part.length === 5)
-    
-    if (!allFilled) {
-      setValidationError('请填写完整的授权码（8组，每组5个字符）')
+    // 检查是否只包含字母和数字
+    if (!/^[A-Za-z0-9]+$/.test(cleaned)) {
+      setValidationError('授权码只能包含字母和数字')
       return false
     }
     
@@ -168,7 +121,12 @@ export const AuthErrorModal: React.FC = () => {
 
   // 激活/更新授权
   const handleActivate = () => {
-    if (!validateLicenseKey()) {
+    if (!licenseKey.trim()) {
+      setValidationError('请输入授权码')
+      return
+    }
+
+    if (!validateLicenseKey(licenseKey)) {
       return
     }
 
@@ -179,7 +137,7 @@ export const AuthErrorModal: React.FC = () => {
   const handleClose = () => {
     if (authError.data?.allowClose !== false) {
       hideAuthError()
-      setLicenseParts(Array(8).fill(''))
+      setLicenseKey('')
       setValidationError('')
     }
   }
@@ -194,9 +152,6 @@ export const AuthErrorModal: React.FC = () => {
   
   // 判断授权是否有效，用于决定按钮文本
   const isLicenseValid = licenseStatus?.status?.valid || false
-  
-  // 判断是否所有输入框都已填写
-  const allFilled = licenseParts.every(part => part.length === 5)
 
   return (
     <Modal
@@ -208,7 +163,7 @@ export const AuthErrorModal: React.FC = () => {
       showCloseButton={data.allowClose !== false}
       className="max-w-6xl"
     >
-      <div className="p-6 space-y-6">
+      <div className="p-4 space-y-4">
         {/* 错误消息或状态信息 */}
         <div className={`p-4 rounded-lg ${
           isInfoMode 
@@ -359,30 +314,18 @@ export const AuthErrorModal: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   输入授权码:
                 </label>
-                
-                {/* 授权码输入框组 */}
-                <div className="grid grid-cols-4 gap-2">
-                  {licenseParts.map((part, index) => (
-                    <Input
-                      key={index}
-                      ref={(el) => (inputRefs.current[index] = el)}
-                      value={part}
-                      onChange={(e) => handlePartChange(index, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(index, e)}
-                      onPaste={index === 0 ? handlePaste : undefined}
-                      placeholder="XXXXX"
-                      className="font-mono text-center text-sm tracking-wider"
-                      maxLength={5}
-                      disabled={isLoading}
-                    />
-                  ))}
-                </div>
-                
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  输入8组授权码，每组5个字符。支持粘贴完整授权码。
+                <Input
+                  value={licenseKey}
+                  onChange={handleLicenseKeyChange}
+                  placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+                  className="font-mono text-sm"
+                  disabled={isLoading}
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  请输入40位授权码（8组，每组5个字符），系统会自动添加分隔符
                 </p>
               </div>
 
@@ -394,7 +337,7 @@ export const AuthErrorModal: React.FC = () => {
 
               <Button
                 onClick={handleActivate}
-                disabled={isLoading || !allFilled}
+                disabled={isLoading || !licenseKey.trim()}
                 className="w-full"
               >
                 {isLoading 
@@ -406,7 +349,6 @@ export const AuthErrorModal: React.FC = () => {
               <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
                 <p>• 授权码格式: 8组字符，每组5位</p>
                 <p>• 只能包含字母和数字</p>
-                <p>• 支持粘贴完整授权码到第一个输入框</p>
                 <p>• 请联系管理员获取授权码</p>
                 {isLicenseValid && (
                   <p className="text-yellow-600 dark:text-yellow-400 font-medium">
