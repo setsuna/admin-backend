@@ -47,10 +47,10 @@ const MeetingSettings: React.FC<MeetingSettingsProps> = ({
             disabled={readOnly}
             className={`px-2 py-1 text-xs rounded-lg border transition-colors ${
               password 
-                ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                ? 'border-primary bg-primary/10 text-primary' 
                 : signInType === 'password' 
-                  ? 'border-red-300 bg-red-50 text-red-600' 
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-error/30 bg-error/10 text-error' 
+                  : 'border-border hover:border-muted-foreground/20'
             }`}
           >
             🔐 {password ? '密码: ***' : '会议密码'}
@@ -60,8 +60,8 @@ const MeetingSettings: React.FC<MeetingSettingsProps> = ({
             disabled={readOnly}
             className={`px-2 py-1 text-xs rounded-lg border transition-colors ${
               expiryType !== 'none' 
-                ? 'border-blue-500 bg-blue-50 text-blue-700' 
-                : 'border-gray-200 hover:border-gray-300'
+                ? 'border-primary bg-primary/10 text-primary' 
+                : 'border-border hover:border-muted-foreground/20'
             }`}
           >
             ⏰ {expiryType === 'none' ? '有效期' : 
@@ -69,7 +69,7 @@ const MeetingSettings: React.FC<MeetingSettingsProps> = ({
           </button>
         </div>
         {signInType === 'password' && !password && (
-          <p className="text-xs text-red-500">
+          <p className="text-xs text-error">
             💡 选择密码签到时，需要设置会议密码
           </p>
         )}
@@ -77,8 +77,8 @@ const MeetingSettings: React.FC<MeetingSettingsProps> = ({
 
       {/* 密码设置弹窗 */}
       {showPasswordModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-bg-elevated rounded-lg p-6 w-96">
             <h3 className="text-lg font-semibold mb-4">设置会议密码</h3>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2">会议密码</label>
@@ -95,7 +95,7 @@ const MeetingSettings: React.FC<MeetingSettingsProps> = ({
                 placeholder="请输入6位数字密码"
                 maxLength={6}
               />
-              <p className="text-xs text-gray-500 mt-1">只能输入6位数字，设置后需要密码才能进入会议</p>
+              <p className="text-xs text-text-regular mt-1">只能输入6位数字，设置后需要密码才能进入会议</p>
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowPasswordModal(false)}>
@@ -111,8 +111,8 @@ const MeetingSettings: React.FC<MeetingSettingsProps> = ({
 
       {/* 有效期设置弹窗 */}
       {showExpiryModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-bg-elevated rounded-lg p-6 w-96">
             <h3 className="text-lg font-semibold mb-4">设置会议有效期</h3>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2">有效期选择</label>
@@ -160,7 +160,7 @@ const MeetingSettings: React.FC<MeetingSettingsProps> = ({
                   />
                 </div>
               )}
-              <p className="text-xs text-gray-500 mt-2">设置后会议会在指定日期后自动销毁</p>
+              <p className="text-xs text-text-regular mt-2">设置后会议会在指定日期后自动销毁</p>
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowExpiryModal(false)}>

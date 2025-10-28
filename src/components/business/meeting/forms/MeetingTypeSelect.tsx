@@ -75,7 +75,7 @@ const MeetingTypeSelect: React.FC<MeetingTypeSelectProps> = ({
       {/* 会议类型 */}
       <div>
         <label className="block text-sm font-medium mb-1">
-          会议类型 <span className="text-red-500">*</span>
+          会议类型 <span className="text-error">*</span>
         </label>
         <div className="space-y-1">
           <div className="flex gap-2">
@@ -86,19 +86,19 @@ const MeetingTypeSelect: React.FC<MeetingTypeSelectProps> = ({
                 disabled={readOnly || updateTypeMutation.isPending}
                 className={`flex items-center gap-1.5 px-2 py-1 text-xs rounded-lg border transition-colors ${
                   value === type
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border hover:border-muted-foreground/20'
                 } ${readOnly || updateTypeMutation.isPending ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
                 <span>{config.icon}</span>
                 {config.label}
                 {updateTypeMutation.isPending && value !== type && (
-                  <span className="ml-1 text-xs text-gray-400">切换中...</span>
+                  <span className="ml-1 text-xs text-text-tertiary">切换中...</span>
                 )}
               </button>
             ))}
           </div>
-          <p className="text-xs text-gray-500 leading-tight">
+          <p className="text-xs text-text-regular leading-tight">
             {value === 'standard' 
               ? '需要指定与会人员，材料按人员权限分发'
               : '所有平板显示相同材料，无需指定与会人员'
@@ -115,10 +115,10 @@ const MeetingTypeSelect: React.FC<MeetingTypeSelectProps> = ({
           disabled={readOnly}
           className={`px-2 py-1 text-xs rounded-lg border transition-colors ${
             signInType === 'none'
-              ? 'border-green-500 bg-green-50 text-green-700'
+              ? 'border-success bg-success/10 text-success'
               : signInType === 'manual'
-              ? 'border-blue-500 bg-blue-50 text-blue-700'
-              : 'border-orange-500 bg-orange-50 text-orange-700'
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'border-warning bg-warning/10 text-warning'
           } ${readOnly ? 'opacity-60 cursor-not-allowed' : ''}`}
         >
           {signInType === 'none' && '免签'}
