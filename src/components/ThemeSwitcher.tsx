@@ -82,16 +82,6 @@ export function ThemeSwitcher({ className }: ThemeSwitcherProps) {
             )
           })}
         </div>
-        
-        {/* 政务红主题特别说明 */}
-        {theme === 'gov-red' && (
-          <div className="mt-3 pt-2 border-t text-xs text-muted-foreground px-2">
-            <div className="flex items-center gap-1 mb-1">
-              <Building className="h-3 w-3" />
-              <span className="font-medium">政务红主题</span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )
