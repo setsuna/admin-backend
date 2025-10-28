@@ -65,9 +65,9 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         { name: '全体会议', value: 'all' }
       ]
       const securityData: SecurityLevel[] = [
-        { value: 'internal', label: '内部', color: 'bg-green-600' },
-        { value: 'confidential', label: '秘密', color: 'bg-yellow-600' },
-        { value: 'secret', label: '机密', color: 'bg-red-600' }
+        { value: 'internal', label: '内部', color: 'bg-success' },
+        { value: 'confidential', label: '秘密', color: 'bg-warning' },
+        { value: 'secret', label: '机密', color: 'bg-error' }
       ]
       setCategories(categoriesData)
       setSecurityLevels(securityData)
@@ -85,7 +85,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="text-sm text-gray-500">加载配置中...</div>
+        <div className="text-sm text-text-regular">加载配置中...</div>
       </div>
     )
   }
@@ -95,7 +95,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
       {/* 会议名称 */}
       <div>
         <label className="block text-sm font-medium mb-1">
-          会议名称 <span className="text-red-500">*</span>
+          会议名称 <span className="text-error">*</span>
         </label>
         <Input
           value={formData.name}
@@ -107,15 +107,15 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
 
       {/* 会议密级 */}
       <div>
-        <label className="block text-sm font-medium mb-1">会议密级 <span className="text-red-500">*</span></label>
+        <label className="block text-sm font-medium mb-1">会议密级 <span className="text-error">*</span></label>
         <div className="flex gap-2">
           {securityLevels.map((level) => (
             <button
               key={level.value}
               onClick={() => !readOnly && handleSecurityLevelChange(level.value as MeetingSecurityLevel)}
               disabled={readOnly}
-              className={`px-2 py-1 text-xs rounded-md text-white transition-colors ${level.color} ${
-                formData.securityLevel === level.value ? 'ring-2 ring-offset-2 ring-gray-400' : ''
+              className={`px-2 py-1 text-xs rounded-md text-text-inverse transition-colors ${level.color} ${
+                formData.securityLevel === level.value ? 'ring-2 ring-offset-2 ring-border' : ''
               } ${readOnly ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               {level.label}
@@ -129,7 +129,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         <div className="grid grid-cols-2 gap-3">
           {/* 开始时间 */}
           <div>
-            <div className="text-xs text-gray-500 mb-1">开始时间</div>
+            <div className="text-xs text-text-regular mb-1">开始时间</div>
             <div className="flex gap-1">
               <Input
                 type="date"
@@ -158,7 +158,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           
           {/* 结束时间 */}
           <div>
-            <div className="text-xs text-gray-500 mb-1">结束时间</div>
+            <div className="text-xs text-text-regular mb-1">结束时间</div>
             <div className="flex gap-1">
               <Input
                 type="date"
@@ -287,7 +287,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           onChange={(e) => onFormDataChange('description', e.target.value)}
           placeholder="请输入会议介绍..."
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           disabled={readOnly}
         />
       </div>

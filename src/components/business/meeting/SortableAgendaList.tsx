@@ -120,24 +120,24 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
         onDragOver(index)
       }}
       onDragEnd={onDragEnd}
-      className={`border border-gray-200 rounded-lg overflow-hidden transition-all ${
+      className={`border border-border rounded-lg overflow-hidden transition-all ${
         isCurrentDragging 
           ? 'opacity-50 scale-95' 
           : isDropTarget 
-          ? 'border-blue-300 border-dashed bg-blue-50' 
+          ? 'border-primary/30 border-dashed bg-primary/5' 
           : ''
       }`}
     >
       {/* 议题标题栏 */}
-      <div className="bg-blue-50 border-b border-gray-200 p-3">
+      <div className="bg-primary/5 border-b border-border p-3">
         <div className="flex items-center gap-3">
           {/* 拖拽手柄 */}
-          <div className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
+          <div className="cursor-grab active:cursor-grabbing text-text-tertiary hover:text-text-secondary">
             <GripVertical className="h-4 w-4" />
           </div>
           
           <div className="flex items-center gap-2 flex-1">
-            <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
+            <div className="w-6 h-6 bg-primary text-text-inverse rounded-full flex items-center justify-center text-sm font-medium">
               {index + 1}
             </div>
             {editingAgenda === agenda.id ? (
@@ -156,14 +156,14 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
               />
             ) : (
               <div 
-                className="flex-1 cursor-pointer hover:bg-blue-100 rounded px-2 py-1 transition-colors"
+                className="flex-1 cursor-pointer hover:bg-primary/10 rounded px-2 py-1 transition-colors"
                 onClick={() => onStartEdit(agenda.id)}
               >
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm font-medium text-text-primary">
                   {agenda.title || `议题 ${index + 1}`}
                 </span>
                 {!agenda.title && (
-                  <span className="text-xs text-gray-500 ml-2">点击编辑</span>
+                  <span className="text-xs text-text-regular ml-2">点击编辑</span>
                 )}
               </div>
             )}
@@ -175,14 +175,14 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
               variant="ghost" 
               size="sm"
               onClick={() => setShowPresenterModal(true)}
-              className="h-8 w-8 p-0 text-gray-500 hover:text-blue-600"
+              className="h-8 w-8 p-0 text-text-regular hover:text-primary"
               title="编辑主讲人"
             >
               <User className="h-4 w-4" />
             </Button>
             {/* 🎯 问题1修复：主讲人显示在按钮后面，不显示图标避免重复 */}
             {agenda.presenter && (
-              <span className="text-xs text-gray-600 bg-blue-50 px-2 py-0.5 rounded">
+              <span className="text-xs text-text-secondary bg-primary/5 px-2 py-0.5 rounded">
                 {agenda.presenter}
               </span>
             )}
@@ -191,7 +191,7 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
                 variant="ghost" 
                 size="sm"
                 onClick={() => onRemove(agenda.id)}
-                className="h-8 w-8 p-0 text-gray-500 hover:text-red-600"
+                className="h-8 w-8 p-0 text-text-regular hover:text-error"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -223,8 +223,8 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
       
       {/* 🎯 问题3修复：主讲人编辑弹窗 */}
       {showPresenterModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96">
+        <div className="fixed inset-0 bg-background/50 flex items-center justify-center z-50">
+          <div className="bg-bg-card rounded-lg p-6 w-96">
             <h3 className="text-lg font-semibold mb-4">设置主讲人</h3>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2">
@@ -237,7 +237,7 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
                 placeholder="请输入主讲人姓名"
                 maxLength={20}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-text-regular mt-1">
                 留空表示不设置主讲人
               </p>
             </div>

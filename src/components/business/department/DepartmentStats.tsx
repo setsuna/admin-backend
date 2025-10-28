@@ -45,29 +45,29 @@ export const DepartmentStats: React.FC<DepartmentStatsProps> = ({ className }) =
       title: '部门总数',
       value: total,
       icon: Building2,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100'
+      color: 'text-info',
+      bgColor: 'bg-info/10'
     },
     {
       title: '顶级部门',
       value: topLevel,
       icon: BarChart,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100'
+      color: 'text-primary',
+      bgColor: 'bg-primary/10'
     },
     {
       title: '启用部门',
       value: enabled,
       icon: CheckCircle,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100'
+      color: 'text-success',
+      bgColor: 'bg-success/10'
     },
     {
       title: '禁用部门',
       value: disabled,
       icon: XCircle,
-      color: 'text-red-600',
-      bgColor: 'bg-red-100'
+      color: 'text-error',
+      bgColor: 'bg-error/10'
     }
   ]
   

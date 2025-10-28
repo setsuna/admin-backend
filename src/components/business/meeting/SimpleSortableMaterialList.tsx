@@ -31,24 +31,24 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
   // ✅ 密级配置：颜色圆点 + 标签
   const securityLevelConfig: Record<MeetingSecurityLevel, { color: string; label: string; textColor: string }> = {
     public: {
-      color: 'bg-gray-500 hover:bg-gray-600',  // ⚪ 灰色 = 公开
+      color: 'bg-muted-foreground hover:bg-muted-foreground/80',  // ⚪ 灰色 = 公开
       label: '[公开]',
-      textColor: 'text-gray-600'
+      textColor: 'text-text-secondary'
     },
     internal: { 
-      color: 'bg-green-500 hover:bg-green-600',  // 🟢 绿色 = 内部
+      color: 'bg-success hover:bg-success/80',  // 🟢 绿色 = 内部
       label: '[内部]',
-      textColor: 'text-green-600'
+      textColor: 'text-success'
     },
     confidential: { 
-      color: 'bg-yellow-500 hover:bg-yellow-600',  // 🟡 黄色 = 秘密
+      color: 'bg-warning hover:bg-warning/80',  // 🟡 黄色 = 秘密
       label: '[秘密]',
-      textColor: 'text-yellow-600'
+      textColor: 'text-warning'
     },
     secret: { 
-      color: 'bg-red-500 hover:bg-red-600',  // 🔴 红色 = 机密
+      color: 'bg-error hover:bg-error/80',  // 🔴 红色 = 机密
       label: '[机密]',
-      textColor: 'text-red-600'
+      textColor: 'text-error'
     },
     top_secret: {
       color: 'bg-purple-500 hover:bg-purple-600',  // 🟣 紫色 = 绝密
@@ -73,19 +73,19 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
         isCurrentDragging 
           ? 'opacity-50 scale-95' 
           : isDropTarget 
-          ? 'bg-blue-50 border-2 border-blue-300 border-dashed' 
-          : 'hover:bg-gray-50 border-2 border-transparent'
+          ? 'bg-primary/5 border-2 border-primary/30 border-dashed' 
+          : 'hover:bg-muted border-2 border-transparent'
       }`}
     >
       {/* 拖拽手柄 */}
-      <div className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
+      <div className="cursor-grab active:cursor-grabbing text-text-tertiary hover:text-text-secondary">
         <GripVertical className="h-4 w-4" />
       </div>
 
       {/* 文件信息 */}
       <div className="flex items-center gap-2 flex-1 min-w-0">
         {getFileIcon(material.name || material.originalName || 'unknown')}
-        <span className="text-sm text-gray-900 truncate" title={material.name || material.originalName}>
+        <span className="text-sm text-text-primary truncate" title={material.name || material.originalName}>
           {material.name || material.originalName || '未命名文件'}
         </span>
         {/* ✅ 显示密级标签 */}
@@ -107,7 +107,7 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
               onClick={() => onUpdateSecurity(material.id, level as MeetingSecurityLevel)}
               className={`w-3 h-3 rounded-full transition-all ${
                 isSelected 
-                  ? `${config.color} ring-2 ring-offset-1 ring-gray-400` 
+                  ? `${config.color} ring-2 ring-offset-1 ring-border` 
                   : `${config.color} opacity-40 hover:opacity-70`
               }`}
               title={config.label}
@@ -121,7 +121,7 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
         variant="ghost"
         size="sm"
         onClick={() => onRemove(material.id)}
-        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-600"
+        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-text-tertiary hover:text-error"
       >
         <X className="h-3 w-3" />
       </Button>

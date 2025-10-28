@@ -175,7 +175,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => onEdit?.(node)}
-            className="h-7 w-7 p-0 hover:bg-blue-100"
+            className="h-7 w-7 p-0 hover:bg-info/10"
             title="编辑部门"
           >
             <Edit className="h-3 w-3" />
@@ -185,7 +185,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => onDelete?.(node.id)}
-            className="h-7 w-7 p-0 hover:bg-red-100 text-destructive"
+            className="h-7 w-7 p-0 hover:bg-error/10 text-destructive"
             title="删除部门"
           >
             <Trash2 className="h-3 w-3" />

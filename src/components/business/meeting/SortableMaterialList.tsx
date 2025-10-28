@@ -1,1 +1,184 @@
-// 拖拽排序组件，需要安装 @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities\n// npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities\n\nimport React from 'react'\nimport {\n  DndContext,\n  closestCenter,\n  KeyboardSensor,\n  PointerSensor,\n  useSensor,\n  useSensors,\n  DragEndEvent,\n} from '@dnd-kit/core'\nimport {\n  arrayMove,\n  SortableContext,\n  sortableKeyboardCoordinates,\n  verticalListSortingStrategy,\n} from '@dnd-kit/sortable'\nimport {\n  useSortable,\n} from '@dnd-kit/sortable'\nimport { CSS } from '@dnd-kit/utilities'\nimport { GripVertical, X } from 'lucide-react'\nimport { Button } from '@/components/ui/Button'\nimport type { MeetingMaterial, MeetingSecurityLevel } from '@/types'\n\ninterface SortableItemProps {\n  id: string\n  material: MeetingMaterial\n  onRemove: (id: string) => void\n  onUpdateSecurity: (id: string, level: MeetingSecurityLevel) => void\n  getFileIcon: (fileName: string) => React.ReactNode\n}\n\nconst SortableItem: React.FC<SortableItemProps> = ({\n  id,\n  material,\n  onRemove,\n  onUpdateSecurity,\n  getFileIcon\n}) => {\n  const {\n    attributes,\n    listeners,\n    setNodeRef,\n    transform,\n    transition,\n    isDragging,\n  } = useSortable({ id })\n\n  const style = {\n    transform: CSS.Transform.toString(transform),\n    transition,\n    opacity: isDragging ? 0.5 : 1,\n  }\n\n  const securityLevelOptions = [\n    { value: 'internal', label: '内部' },\n    { value: 'confidential', label: '秘密' },\n    { value: 'secret', label: '机密' }\n  ]\n\n  return (\n    <div\n      ref={setNodeRef}\n      style={style}\n      className={`flex items-center gap-3 p-2 rounded-md group ${\n        isDragging ? 'bg-blue-50 shadow-lg' : 'hover:bg-gray-50'\n      }`}\n    >\n      {/* 拖拽手柄 */}\n      <div\n        {...attributes}\n        {...listeners}\n        className=\"cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600\"\n      >\n        <GripVertical className=\"h-4 w-4\" />\n      </div>\n\n      {/* 文件信息 */}\n      <div className=\"flex items-center gap-2 flex-1 min-w-0\">\n        {getFileIcon(material.name)}\n        <span className=\"text-sm text-gray-900 truncate\" title={material.name}>\n          {material.name}\n        </span>\n      </div>\n\n      {/* 安全级别选择 */}\n      <select\n        value={material.securityLevel}\n        onChange={(e) => onUpdateSecurity(material.id, e.target.value as MeetingSecurityLevel)}\n        className=\"text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500\"\n      >\n        {securityLevelOptions.map(option => (\n          <option key={option.value} value={option.value}>\n            {option.label}\n          </option>\n        ))}\n      </select>\n\n      {/* 删除按钮 */}\n      <Button\n        variant=\"ghost\"\n        size=\"sm\"\n        onClick={() => onRemove(material.id)}\n        className=\"h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-600\"\n      >\n        <X className=\"h-3 w-3\" />\n      </Button>\n    </div>\n  )\n}\n\ninterface SortableMaterialListProps {\n  materials: MeetingMaterial[]\n  onReorder: (newOrder: MeetingMaterial[]) => void\n  onRemoveMaterial: (materialId: string) => void\n  onUpdateMaterialSecurity: (materialId: string, securityLevel: MeetingSecurityLevel) => void\n  getFileIcon: (fileName: string) => React.ReactNode\n}\n\nconst SortableMaterialList: React.FC<SortableMaterialListProps> = ({\n  materials,\n  onReorder,\n  onRemoveMaterial,\n  onUpdateMaterialSecurity,\n  getFileIcon\n}) => {\n  const sensors = useSensors(\n    useSensor(PointerSensor),\n    useSensor(KeyboardSensor, {\n      coordinateGetter: sortableKeyboardCoordinates,\n    })\n  )\n\n  const handleDragEnd = (event: DragEndEvent) => {\n    const { active, over } = event\n\n    if (over && active.id !== over.id) {\n      const oldIndex = materials.findIndex(item => item.id === active.id)\n      const newIndex = materials.findIndex(item => item.id === over.id)\n      \n      const newOrder = arrayMove(materials, oldIndex, newIndex)\n      onReorder(newOrder)\n    }\n  }\n\n  if (materials.length === 0) {\n    return null\n  }\n\n  return (\n    <div className=\"space-y-2\">\n      <div className=\"flex items-center gap-2\">\n        <GripVertical className=\"h-4 w-4 text-gray-400\" />\n        <span className=\"text-sm font-medium text-gray-700\">排序材料</span>\n      </div>\n      \n      <DndContext\n        sensors={sensors}\n        collisionDetection={closestCenter}\n        onDragEnd={handleDragEnd}\n      >\n        <SortableContext items={materials.map(m => m.id)} strategy={verticalListSortingStrategy}>\n          <div className=\"space-y-1\">\n            {materials.map((material) => (\n              <SortableItem\n                key={material.id}\n                id={material.id}\n                material={material}\n                onRemove={onRemoveMaterial}\n                onUpdateSecurity={onUpdateMaterialSecurity}\n                getFileIcon={getFileIcon}\n              />\n            ))}\n          </div>\n        </SortableContext>\n      </DndContext>\n    </div>\n  )\n}\n\nexport default SortableMaterialList\n"
+// 拖拽排序组件,需要安装 @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
+// npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
+
+import React from 'react'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import {
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { GripVertical, X } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import type { MeetingMaterial, MeetingSecurityLevel } from '@/types'
+
+interface SortableItemProps {
+  id: string
+  material: MeetingMaterial
+  onRemove: (id: string) => void
+  onUpdateSecurity: (id: string, level: MeetingSecurityLevel) => void
+  getFileIcon: (fileName: string) => React.ReactNode
+}
+
+const SortableItem: React.FC<SortableItemProps> = ({
+  id,
+  material,
+  onRemove,
+  onUpdateSecurity,
+  getFileIcon
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  const securityLevelOptions = [
+    { value: 'internal', label: '内部' },
+    { value: 'confidential', label: '秘密' },
+    { value: 'secret', label: '机密' }
+  ]
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-3 p-2 rounded-md group ${
+        isDragging ? 'bg-primary/5 shadow-lg' : 'hover:bg-muted'
+      }`}
+    >
+      {/* 拖拽手柄 */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing text-text-tertiary hover:text-text-secondary"
+      >
+        <GripVertical className="h-4 w-4" />
+      </div>
+
+      {/* 文件信息 */}
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        {getFileIcon(material.name)}
+        <span className="text-sm text-text-primary truncate" title={material.name}>
+          {material.name}
+        </span>
+      </div>
+
+      {/* 安全级别选择 */}
+      <select
+        value={material.securityLevel}
+        onChange={(e) => onUpdateSecurity(material.id, e.target.value as MeetingSecurityLevel)}
+        className="text-xs px-2 py-1 border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary"
+      >
+        {securityLevelOptions.map(option => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+
+      {/* 删除按钮 */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onRemove(material.id)}
+        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-text-tertiary hover:text-error"
+      >
+        <X className="h-3 w-3" />
+      </Button>
+    </div>
+  )
+}
+
+interface SortableMaterialListProps {
+  materials: MeetingMaterial[]
+  onReorder: (newOrder: MeetingMaterial[]) => void
+  onRemoveMaterial: (materialId: string) => void
+  onUpdateMaterialSecurity: (materialId: string, securityLevel: MeetingSecurityLevel) => void
+  getFileIcon: (fileName: string) => React.ReactNode
+}
+
+const SortableMaterialList: React.FC<SortableMaterialListProps> = ({
+  materials,
+  onReorder,
+  onRemoveMaterial,
+  onUpdateMaterialSecurity,
+  getFileIcon
+}) => {
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (over && active.id !== over.id) {
+      const oldIndex = materials.findIndex(item => item.id === active.id)
+      const newIndex = materials.findIndex(item => item.id === over.id)
+      
+      const newOrder = arrayMove(materials, oldIndex, newIndex)
+      onReorder(newOrder)
+    }
+  }
+
+  if (materials.length === 0) {
+    return null
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <GripVertical className="h-4 w-4 text-text-tertiary" />
+        <span className="text-sm font-medium text-text-secondary">排序材料</span>
+      </div>
+      
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={materials.map(m => m.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-1">
+            {materials.map((material) => (
+              <SortableItem
+                key={material.id}
+                id={material.id}
+                material={material}
+                onRemove={onRemoveMaterial}
+                onUpdateSecurity={onUpdateMaterialSecurity}
+                getFileIcon={getFileIcon}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+    </div>
+  )
+}
+
+export default SortableMaterialList

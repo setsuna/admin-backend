@@ -145,16 +145,16 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
   return (
     <div className="flex h-full">
       {/* 左侧：配置区 */}
-      <div className="w-80 border-r bg-blue-50 p-4 space-y-4 overflow-y-auto">
+      <div className="w-80 border-r bg-bg-container p-4 space-y-4 overflow-y-auto">
         {/* 格式说明 */}
         <div>
           <div className="flex items-start gap-2 mb-3">
-            <FileText className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <FileText className="h-5 w-5 text-info flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <div className="font-medium text-blue-900 mb-1">格式说明</div>
-              <div className="text-sm text-blue-700 space-y-1">
+              <div className="font-medium text-text-primary mb-1">格式说明</div>
+              <div className="text-sm text-text-secondary space-y-1">
                 <div>• 每行一个姓名</div>
-                <div className="text-xs text-blue-600 pl-4">
+                <div className="text-xs text-text-tertiary pl-4">
                   示例：张三
                 </div>
               </div>
@@ -162,20 +162,20 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
           </div>
         </div>
 
-        <div className="border-t border-blue-200 pt-4">
+        <div className="border-t border-border pt-4">
           {/* 默认密级 */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-blue-900 mb-2">
+            <label className="block text-sm font-medium text-text-primary mb-2">
               默认密级
             </label>
             {isLoading ? (
-              <div className="text-xs text-blue-600">加载中...</div>
+              <div className="text-xs text-text-tertiary">加载中...</div>
             ) : (
               <div className="space-y-2">
                 {securityLevels.map((level) => (
                   <label
                     key={level.value}
-                    className="flex items-center gap-2 cursor-pointer hover:bg-blue-100 px-2.5 py-1.5 rounded transition-colors"
+                    className="flex items-center gap-2 cursor-pointer hover:bg-muted px-2.5 py-1.5 rounded transition-colors"
                   >
                     <input
                       type="radio"
@@ -183,9 +183,9 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
                       value={level.value}
                       checked={selectedSecurityLevel === level.value}
                       onChange={(e) => handleSecurityLevelChange(e.target.value)}
-                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                      className="w-4 h-4 text-info focus:ring-info"
                     />
-                    <span className="text-sm text-blue-900">{level.name}</span>
+                    <span className="text-sm text-text-primary">{level.name}</span>
                   </label>
                 ))}
               </div>
@@ -194,7 +194,7 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
 
           {/* 默认密码 */}
           <div>
-            <label className="block text-sm font-medium text-blue-900 mb-2">
+            <label className="block text-sm font-medium text-text-primary mb-2">
               默认密码
             </label>
             <div className="relative">
@@ -203,7 +203,7 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
                 value={defaultPassword}
                 onChange={(e) => handlePasswordChange(e.target.value)}
                 placeholder="统一密码"
-                className="w-full px-3 py-1.5 pr-10 text-sm border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full px-3 py-1.5 pr-10 text-sm border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-white"
               />
               <button
                 type="button"
@@ -222,7 +222,7 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
 
         {/* 密码修改提示 */}
         {showPasswordChangeAlert && (
-          <div className="p-2 bg-amber-100 border border-amber-300 rounded-md flex items-start gap-2 text-sm text-amber-800">
+          <div className="p-2 bg-warning/10 border border-warning/30 rounded-md flex items-start gap-2 text-sm text-warning">
             <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
             <span>已应用到所有人员</span>
           </div>
@@ -237,7 +237,7 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
             value={inputText}
             onChange={(e) => handleParse(e.target.value)}
             placeholder="在此粘贴人员名单...&#10;&#10;每行一个姓名"
-            className="w-full h-32 p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm resize-none"
+            className="w-full h-32 p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm resize-none"
           />
         </div>
 
@@ -247,13 +247,13 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
             <div className="p-4 space-y-3">
               {/* 批量操作栏 */}
               {parseResult.success.length > 0 && (
-                <div className="flex items-center gap-3 p-3 bg-gray-50 border rounded-md">
+                <div className="flex items-center gap-3 p-3 bg-bg-container border rounded-md">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={selectedIndices.size === parseResult.success.length && parseResult.success.length > 0}
                       onChange={handleSelectAll}
-                      className="w-4 h-4 text-blue-600 focus:ring-blue-500 rounded"
+                      className="w-4 h-4 text-info focus:ring-info rounded"
                     />
                     <span className="text-sm text-gray-700">
                       全选 ({selectedIndices.size}/{parseResult.success.length})
@@ -268,7 +268,7 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
                         <select
                           value={batchSecurityLevel}
                           onChange={(e) => setBatchSecurityLevel(e.target.value)}
-                          className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="px-2 py-1 text-sm border border-input rounded focus:outline-none focus:ring-2 focus:ring-ring"
                         >
                           {securityLevels.map(level => (
                             <option key={level.value} value={level.value}>
@@ -278,7 +278,7 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
                         </select>
                         <button
                           onClick={handleBatchUpdateSecurityLevel}
-                          className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                          className="px-3 py-1 text-sm bg-info text-white rounded hover:bg-info/90 transition-colors"
                         >
                           应用
                         </button>
@@ -290,11 +290,11 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
 
               {/* 成功列表 */}
               {parseResult.success.length > 0 && (
-                <div className="border border-green-200 rounded-md">
-                  <div className="p-3 bg-green-50 border-b border-green-200">
+                <div className="border border-success/20 rounded-md">
+                  <div className="p-3 bg-success/5 border-b border-success/20">
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm font-medium text-green-900">
+                      <CheckCircle className="h-4 w-4 text-success" />
+                      <span className="text-sm font-medium text-text-primary">
                         成功解析 {parseResult.success.length} 人
                       </span>
                     </div>
@@ -307,8 +307,8 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
                         <div
                           key={i}
                           className={`
-                            flex items-center gap-3 px-3 py-2 border-b border-green-100 last:border-b-0
-                            ${isSelected ? 'bg-blue-50' : 'bg-white hover:bg-gray-50'}
+                            flex items-center gap-3 px-3 py-2 border-b border-success/10 last:border-b-0
+                            ${isSelected ? 'bg-info/5' : 'bg-white hover:bg-muted'}
                             transition-colors cursor-pointer
                           `}
                           onClick={() => handleToggleSelect(i)}
@@ -317,11 +317,11 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => {}}
-                            className="w-4 h-4 text-blue-600 focus:ring-blue-500 rounded"
+                            className="w-4 h-4 text-info focus:ring-info rounded"
                           />
                           <span className="font-medium text-gray-900 min-w-[80px]">{p.name}</span>
                           <span className="text-gray-400">·</span>
-                          <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-800">
+                          <span className="text-xs px-2 py-0.5 rounded bg-info/10 text-info">
                             {securityOption?.name || p.securityLevel}
                           </span>
                           {p.password && (
@@ -341,16 +341,16 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
 
               {/* 错误列表 */}
               {parseResult.errors.length > 0 && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                <div className="p-3 bg-error/5 border border-error/20 rounded-md">
                   <div className="flex items-center gap-2 mb-2">
-                    <AlertCircle className="h-4 w-4 text-red-600" />
-                    <span className="text-sm font-medium text-red-900">
+                    <AlertCircle className="h-4 w-4 text-error" />
+                    <span className="text-sm font-medium text-text-primary">
                       {parseResult.errors.length} 行格式错误
                     </span>
                   </div>
                   <div className="space-y-1 max-h-32 overflow-y-auto">
                     {parseResult.errors.map((err, i) => (
-                      <div key={i} className="text-sm text-red-700">
+                      <div key={i} className="text-sm text-error">
                         第 {err.line} 行：{err.message}
                       </div>
                     ))}
@@ -363,10 +363,10 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
 
         {/* 底部按钮 */}
         {parseResult && parseResult.success.length > 0 && (
-          <div className="p-4 border-t bg-gray-50">
+          <div className="p-4 border-t bg-bg-container">
             <button
               onClick={handleConfirm}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
+              className="w-full px-4 py-2 bg-info text-white rounded-md hover:bg-info/90 transition-colors font-medium"
             >
               确认导入 {parseResult.success.length} 人
             </button>

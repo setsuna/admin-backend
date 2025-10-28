@@ -35,29 +35,29 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
   const getFileIcon = (fileName: string) => {
     // ✅ 防御性编程：检查 fileName 是否存在
     if (!fileName) {
-      return <File className="h-4 w-4 text-gray-500" />
+      return <File className="h-4 w-4 text-text-regular" />
     }
     
     const ext = fileName.split('.').pop()?.toLowerCase()
     switch (ext) {
       case 'pdf':
-        return <FileText className="h-4 w-4 text-red-500" />
+        return <FileText className="h-4 w-4 text-error" />
       case 'doc':
       case 'docx':
-        return <FileText className="h-4 w-4 text-blue-500" />
+        return <FileText className="h-4 w-4 text-primary" />
       case 'xls':
       case 'xlsx':
-        return <FileText className="h-4 w-4 text-green-500" />
+        return <FileText className="h-4 w-4 text-success" />
       case 'ppt':
       case 'pptx':
-        return <FileText className="h-4 w-4 text-orange-500" />
+        return <FileText className="h-4 w-4 text-warning" />
       case 'jpg':
       case 'jpeg':
       case 'png':
       case 'gif':
         return <Image className="h-4 w-4 text-purple-500" />
       default:
-        return <File className="h-4 w-4 text-gray-500" />
+        return <File className="h-4 w-4 text-text-regular" />
     }
   }
 
@@ -96,23 +96,23 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
           className={`border-2 border-dashed rounded-md p-4 text-center cursor-pointer transition-colors ${
             isDragActive
               ? isDragReject
-                ? 'border-red-400 bg-red-50'
-                : 'border-blue-400 bg-blue-50'
-              : 'border-gray-300 hover:border-gray-400'
+                ? 'border-error/40 bg-error/5'
+                : 'border-primary/40 bg-primary/5'
+              : 'border-border hover:border-border'
           }`}
         >
           <input {...getInputProps()} />
           <div className="flex flex-col items-center">
-            <Upload className="h-6 w-6 mb-2 text-gray-400" />
+            <Upload className="h-6 w-6 mb-2 text-text-tertiary" />
             {isDragActive ? (
               isDragReject ? (
-                <p className="text-sm text-red-600">不支持的文件类型</p>
+                <p className="text-sm text-error">不支持的文件类型</p>
               ) : (
-                <p className="text-sm text-blue-600">松开鼠标上传文件</p>
+                <p className="text-sm text-primary">松开鼠标上传文件</p>
               )
             ) : (
               <div>
-                <p className="text-sm text-gray-600 mb-1">点击上传</p>
+                <p className="text-sm text-text-secondary mb-1">点击上传</p>
               </div>
             )}
           </div>
@@ -120,7 +120,7 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
 
         {/* 显示被拒绝的文件 */}
         {fileRejections && fileRejections.length > 0 && (
-          <div className="mt-2 p-2 bg-red-50 rounded text-sm text-red-600">
+          <div className="mt-2 p-2 bg-error/5 rounded text-sm text-error">
             {fileRejections.map(({ file, errors }) => (
               <div key={file.name}>
                 {file.name} - {errors.map((e: any) => e.message).join(', ')}

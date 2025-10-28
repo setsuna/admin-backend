@@ -246,15 +246,15 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-[1100px] h-[700px] flex flex-col">
+    <div className="fixed inset-0 bg-background/50 flex items-center justify-center z-50">
+      <div className="bg-bg-card rounded-lg w-[1100px] h-[700px] flex flex-col">
         {/* 头部 */}
-        <div className="p-4 border-b">
+        <div className="p-4 border-b border-border">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">添加参会人员</h3>
             <button
               onClick={handleCancel}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-text-tertiary hover:text-text-secondary"
             >
               <X className="h-5 w-5" />
             </button>
@@ -262,15 +262,15 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
         </div>
 
         {/* Tab切换 */}
-        <div className="border-b">
+        <div className="border-b border-border">
           <div className="flex">
             <button
               onClick={() => setActiveTab('org')}
               className={`
                 flex-1 px-4 py-3 text-sm font-medium transition-colors
                 ${activeTab === 'org'
-                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  ? 'text-primary border-b-2 border-primary bg-primary/10'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-muted'
                 }
               `}
             >
@@ -281,8 +281,8 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
               className={`
                 flex-1 px-4 py-3 text-sm font-medium transition-colors
                 ${activeTab === 'temp'
-                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  ? 'text-primary border-b-2 border-primary bg-primary/10'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-muted'
                 }
               `}
             >
@@ -294,7 +294,7 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
         {/* 左右分栏内容区 */}
         <div className="flex-1 flex overflow-hidden">
           {/* 左侧：选择器 */}
-          <div className="flex-1 border-r overflow-hidden">
+          <div className="flex-1 border-r border-border overflow-hidden">
             {activeTab === 'org' && (
               <UserSelector
                 mode="multiple"
@@ -313,16 +313,16 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
           </div>
 
           {/* 右侧：待添加人员列表 */}
-          <div className="w-80 flex flex-col bg-gray-50">
-            <div className="p-4 border-b bg-white">
-              <div className="text-sm font-medium text-gray-700">
+          <div className="w-80 flex flex-col bg-bg-container">
+            <div className="p-4 border-b border-border bg-bg-card">
+              <div className="text-sm font-medium text-text-secondary">
                 待添加人员 ({totalSelected}人)
               </div>
             </div>
             
             <div className="flex-1 overflow-y-auto p-4">
               {totalSelected === 0 ? (
-                <div className="text-center py-8 text-gray-400 text-sm">
+                <div className="text-center py-8 text-text-tertiary text-sm">
                   暂无待添加人员
                 </div>
               ) : (
@@ -331,12 +331,12 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                   {newlySelectedUsers.map(user => {
                     const securityLevel = securityLevels.find(s => s.value === user.securityLevel)
                     return (
-                      <div key={user.id} className="flex items-center justify-between p-3 bg-white rounded border">
+                      <div key={user.id} className="flex items-center justify-between p-3 bg-bg-card rounded border-border border">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium truncate">{user.name}</span>
                             {securityLevel && (
-                              <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 flex-shrink-0">
+                              <span className="text-xs px-1.5 py-0.5 rounded bg-info/10 text-info flex-shrink-0">
                                 {securityLevel.name}
                               </span>
                             )}
@@ -344,7 +344,7 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                         </div>
                         <button
                           onClick={() => handleRemoveTempUser(user.id)}
-                          className="ml-2 text-gray-400 hover:text-red-600 flex-shrink-0"
+                          className="ml-2 text-text-tertiary hover:text-error flex-shrink-0"
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -356,12 +356,12 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                   {tempImportedParticipants.map((participant, index) => {
                     const securityLevel = securityLevels.find(s => s.value === participant.securityLevel)
                     return (
-                      <div key={index} className="flex items-center justify-between p-3 bg-white rounded border border-amber-200">
+                      <div key={index} className="flex items-center justify-between p-3 bg-bg-card rounded border border-warning/30">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium truncate">{participant.name}</span>
                             {securityLevel && (
-                              <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 flex-shrink-0">
+                              <span className="text-xs px-1.5 py-0.5 rounded bg-warning/10 text-warning flex-shrink-0">
                                 {securityLevel.name}
                               </span>
                             )}
@@ -369,7 +369,7 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                         </div>
                         <button
                           onClick={() => handleRemoveTempParticipant(index)}
-                          className="ml-2 text-gray-400 hover:text-red-600 flex-shrink-0"
+                          className="ml-2 text-text-tertiary hover:text-error flex-shrink-0"
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -383,7 +383,7 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
         </div>
 
         {/* 底部按钮 */}
-        <div className="p-4 border-t">
+        <div className="p-4 border-t border-border">
           <div className="flex items-center justify-end gap-2">
             <Button variant="outline" onClick={handleCancel} disabled={isSubmitting}>
               取消
