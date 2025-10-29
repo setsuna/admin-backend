@@ -109,6 +109,6 @@ temp/
 *.swo
 
 # Package manager lock files (uncomment if you want to ignore them)
-# package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
