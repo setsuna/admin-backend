@@ -46,11 +46,16 @@ function App() {
     // 页面加载时检查
     checkUrlParams()
     
-    // 监听URL变化
+    // 监听URL变化（popstate 事件处理前进/后退）
+    const handlePopState = () => checkUrlParams()
+    window.addEventListener('popstate', handlePopState)
+    
+    // 监听 hash 变化
     const handleHashChange = () => checkUrlParams()
     window.addEventListener('hashchange', handleHashChange)
     
     return () => {
+      window.removeEventListener('popstate', handlePopState)
       window.removeEventListener('hashchange', handleHashChange)
     }
   }, [showAuthManagement])
