@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
+import { Card, CardHeader, CardContent } from '@/components/ui/Card'
 import { Allotment } from "allotment"
 import { Plus } from 'lucide-react'
 import { getFormattedExtensions } from '@/utils'
@@ -138,89 +139,101 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
         className="h-[calc(100vh-200px)]"
         separator={true}
       >
-        <Allotment.Pane minSize={350} className="bg-bg-card rounded-lg border border-r-0 flex flex-col">
-          <div className="p-4 border-b bg-bg-container flex-shrink-0 h-[72px]">
-            <div className="flex items-center justify-between h-full">
-              <h2 className="text-lg font-semibold text-text-primary">基本信息</h2>
-            </div>
-          </div>
-          <div className="flex-1 p-4 overflow-y-auto">
-            <BasicInfoForm
-              formData={formData}
-              onFormDataChange={handleFormDataChange}
-              onOpenOrgSelector={() => setShowOrgModal(true)}
-              onRemoveParticipant={removeParticipant}
-              meetingId={currentMeetingId}
-              mode={mode}
-              readOnly={mode === 'view'}
-            />
-          </div>
+        <Allotment.Pane minSize={350}>
+          <Card 
+            animate="fadeIn" 
+            className="h-full flex flex-col border-r-0 rounded-r-none shadow-none"
+          >
+            <CardHeader className="p-4 border-b bg-bg-container flex-shrink-0 h-[72px]">
+              <div className="flex items-center justify-between h-full">
+                <h2 className="text-lg font-semibold text-text-primary">基本信息</h2>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 p-4 overflow-y-auto">
+              <BasicInfoForm
+                formData={formData}
+                onFormDataChange={handleFormDataChange}
+                onOpenOrgSelector={() => setShowOrgModal(true)}
+                onRemoveParticipant={removeParticipant}
+                meetingId={currentMeetingId}
+                mode={mode}
+                readOnly={mode === 'view'}
+              />
+            </CardContent>
+          </Card>
         </Allotment.Pane>
 
-        <Allotment.Pane minSize={400} className="bg-bg-card rounded-lg border border-l-0 flex flex-col">
-          <div className="p-4 border-b bg-bg-container flex-shrink-0 h-[72px]">
-            <div className="flex items-center justify-between h-full">
-              <h2 className="text-lg font-semibold text-text-primary">会议议题</h2>
-              <Button variant="outline" size="sm" onClick={addAgenda}>
-                <Plus className="h-4 w-4 mr-2" />
-                添加议题
-              </Button>
-            </div>
-          </div>
-          <div className="flex-1 p-4 overflow-y-auto">
-            <div className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-md">
-              <p className="text-sm text-warning">
-                议题材料支持格式：{getFormattedExtensions()}
-              </p>
-            </div>
-            
-            <AgendaForm
-              agendas={agendas}
-              onRemoveAgenda={removeAgenda}
-              onUpdateAgendaName={updateAgendaName}
-              onUpdateAgendaPresenter={updateAgendaPresenter}
-              onFileUpload={handleFileUpload}
-              onRemoveMaterial={removeMaterial}
-              onUpdateMaterialSecurity={updateMaterialSecurity}
-              onReorderMaterials={reorderMaterials}
-              onReorderAgendas={reorderAgendas}
-              readOnly={mode === 'view'}
-            />
-          </div>
+        <Allotment.Pane minSize={400}>
+          <Card 
+            animate="fadeIn" 
+            className="h-full flex flex-col border-l-0 rounded-l-none shadow-none"
+          >
+            <CardHeader className="p-4 border-b bg-bg-container flex-shrink-0 h-[72px]">
+              <div className="flex items-center justify-between h-full">
+                <h2 className="text-lg font-semibold text-text-primary">会议议题</h2>
+                <Button variant="outline" size="sm" onClick={addAgenda}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  添加议题
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 p-4 overflow-y-auto">
+              <Card className="mb-4 p-3 bg-warning/10 border-warning/30">
+                <p className="text-sm text-warning">
+                  议题材料支持格式：{getFormattedExtensions()}
+                </p>
+              </Card>
+              
+              <AgendaForm
+                agendas={agendas}
+                onRemoveAgenda={removeAgenda}
+                onUpdateAgendaName={updateAgendaName}
+                onUpdateAgendaPresenter={updateAgendaPresenter}
+                onFileUpload={handleFileUpload}
+                onRemoveMaterial={removeMaterial}
+                onUpdateMaterialSecurity={updateMaterialSecurity}
+                onReorderMaterials={reorderMaterials}
+                onReorderAgendas={reorderAgendas}
+                readOnly={mode === 'view'}
+              />
+            </CardContent>
+          </Card>
         </Allotment.Pane>
       </Allotment>
 
-      <div className="mt-4 p-4 bg-bg-card rounded-lg border">
-        <div className="flex justify-end gap-3">
-          {mode === 'view' ? (
-            <Button onClick={() => navigate('/meetings')}>
-              返回
-            </Button>
-          ) : (
-            <>
-              <Button variant="outline" onClick={onCancel}>
-                取消
+      <Card animate="slideUp" className="mt-4">
+        <CardContent className="p-4">
+          <div className="flex justify-end gap-3">
+            {mode === 'view' ? (
+              <Button onClick={() => navigate('/meetings')}>
+                返回
               </Button>
-              {mode === 'create' && (
-                <Button 
-                  variant="secondary" 
-                  onClick={() => onSubmit(true)}
-                  loading={submitPending}
-                >
-                  保存草稿
+            ) : (
+              <>
+                <Button variant="outline" onClick={onCancel}>
+                  取消
                 </Button>
-              )}
-              <Button 
-                onClick={() => onSubmit(false)}
-                loading={submitPending}
-                disabled={submitPending}
-              >
-                {submitPending ? (mode === 'create' ? '创建中...' : '保存中...') : (mode === 'create' ? '创建会议' : '保存修改')}
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
+                {mode === 'create' && (
+                  <Button 
+                    variant="secondary" 
+                    onClick={() => onSubmit(true)}
+                    loading={submitPending}
+                  >
+                    保存草稿
+                  </Button>
+                )}
+                <Button 
+                  onClick={() => onSubmit(false)}
+                  loading={submitPending}
+                  disabled={submitPending}
+                >
+                  {submitPending ? (mode === 'create' ? '创建中...' : '保存中...') : (mode === 'create' ? '创建会议' : '保存修改')}
+                </Button>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {mode !== 'view' && (
         <AddParticipantModal
