@@ -101,7 +101,7 @@ function AppLogo() {
       <SidebarMenuItem>
         <div className="flex items-center gap-2 px-2 py-2">
           <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <span className="text-sm font-bold">文</span>
+            <img src="/logo.svg" alt="Logo" className="size-5" />
           </div>
           {state === 'expanded' && (
             <div className="grid flex-1 text-left text-sm leading-tight">
@@ -109,7 +109,7 @@ function AppLogo() {
                 文档综合管控系统
               </span>
               {getSecurityLevelBadge() && (
-                <span className="truncate text-xs text-muted-foreground">
+                <span className="truncate text-xs text-sidebar-foreground/70">
                   {getSecurityLevelBadge()}
                 </span>
               )}
