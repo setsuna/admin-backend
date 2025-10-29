@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Lock, Clock, Info } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 
@@ -45,7 +46,7 @@ const MeetingSettings: React.FC<MeetingSettingsProps> = ({
           <button
             onClick={() => !readOnly && setShowPasswordModal(true)}
             disabled={readOnly}
-            className={`px-2 py-1 text-xs rounded-lg border transition-colors ${
+            className={`flex items-center gap-1.5 px-2 py-1 text-xs rounded-lg border transition-colors ${
               password 
                 ? 'border-primary bg-primary/10 text-primary' 
                 : signInType === 'password' 
@@ -53,25 +54,30 @@ const MeetingSettings: React.FC<MeetingSettingsProps> = ({
                   : 'border-border hover:border-muted-foreground/20'
             }`}
           >
-            🔐 {password ? '密码: ***' : '会议密码'}
+            <Lock className="h-3.5 w-3.5" />
+            {password ? '密码: ***' : '会议密码'}
           </button>
           <button
             onClick={() => !readOnly && setShowExpiryModal(true)}
             disabled={readOnly}
-            className={`px-2 py-1 text-xs rounded-lg border transition-colors ${
+            className={`flex items-center gap-1.5 px-2 py-1 text-xs rounded-lg border transition-colors ${
               expiryType !== 'none' 
                 ? 'border-primary bg-primary/10 text-primary' 
                 : 'border-border hover:border-muted-foreground/20'
             }`}
           >
-            ⏰ {expiryType === 'none' ? '有效期' : 
+            <Clock className="h-3.5 w-3.5" />
+            {expiryType === 'none' ? '有效期' : 
                  expiryType === 'today' ? '当天过期' : `过期时间 ${formatExpiryDate(expiryDate)}`}
           </button>
         </div>
         {signInType === 'password' && !password && (
-          <p className="text-xs text-error">
-            💡 选择密码签到时，需要设置会议密码
-          </p>
+          <div className="flex items-start gap-1.5">
+            <Info className="h-3.5 w-3.5 text-error flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-error">
+              选择密码签到时，需要设置会议密码
+            </p>
+          </div>
         )}
       </div>
 

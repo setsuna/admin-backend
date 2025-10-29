@@ -1,12 +1,13 @@
 import React from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Users, Tablet } from 'lucide-react'
 import { meetingApi } from '@/services/api/meeting.api'
 import { useNotifications } from '@/hooks/useNotifications'
 import type { MeetingType } from '@/types'
 
 const typeConfig = {
-  standard: { label: '标准会议', icon: '👥' },
-  tablet: { label: '平板会议', icon: '📱' }
+  standard: { label: '标准会议', icon: Users },
+  tablet: { label: '平板会议', icon: Tablet }
 }
 
 interface MeetingTypeSelectProps {
@@ -79,24 +80,27 @@ const MeetingTypeSelect: React.FC<MeetingTypeSelectProps> = ({
         </label>
         <div className="space-y-1">
           <div className="flex gap-2">
-            {(Object.entries(typeConfig) as [MeetingType, typeof typeConfig.standard][]).map(([type, config]) => (
-              <button
-                key={type}
-                onClick={() => handleTypeChange(type)}
-                disabled={readOnly || updateTypeMutation.isPending}
-                className={`flex items-center gap-1.5 px-2 py-1 text-xs rounded-lg border transition-colors ${
-                  value === type
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-border hover:border-muted-foreground/20'
-                } ${readOnly || updateTypeMutation.isPending ? 'opacity-60 cursor-not-allowed' : ''}`}
-              >
-                <span>{config.icon}</span>
-                {config.label}
-                {updateTypeMutation.isPending && value !== type && (
-                  <span className="ml-1 text-xs text-text-tertiary">切换中...</span>
-                )}
-              </button>
-            ))}
+            {(Object.entries(typeConfig) as [MeetingType, typeof typeConfig.standard][]).map(([type, config]) => {
+              const Icon = config.icon
+              return (
+                <button
+                  key={type}
+                  onClick={() => handleTypeChange(type)}
+                  disabled={readOnly || updateTypeMutation.isPending}
+                  className={`flex items-center gap-1.5 px-2 py-1 text-xs rounded-lg border transition-colors ${
+                    value === type
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border hover:border-muted-foreground/20'
+                  } ${readOnly || updateTypeMutation.isPending ? 'opacity-60 cursor-not-allowed' : ''}`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {config.label}
+                  {updateTypeMutation.isPending && value !== type && (
+                    <span className="ml-1 text-xs text-text-tertiary">切换中...</span>
+                  )}
+                </button>
+              )
+            })}
           </div>
           <p className="text-xs text-text-regular leading-tight">
             {value === 'standard' 
