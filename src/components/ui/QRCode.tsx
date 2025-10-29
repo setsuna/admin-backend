@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import QRCode from 'qrcode' // ✅ 改用静态导入
+import React, { useEffect, useRef, useState } from 'react'
+import QRCode from 'qrcode'
 
 interface QRCodeProps {
   value: string
@@ -7,24 +7,26 @@ interface QRCodeProps {
   className?: string
 }
 
+// ✅ 使用 Canvas 渲染，避免 CSP 问题
 export const SimpleQRCode: React.FC<QRCodeProps> = ({ value, size = 150, className = '' }) => {
-  const [qrCodeUrl, setQrCodeUrl] = useState('')
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [error, setError] = useState(false)
 
   useEffect(() => {
     const generateQRCode = async () => {
+      if (!canvasRef.current) return
+
       try {
-        // ✅ 直接使用已导入的 QRCode
-        const url = await QRCode.toDataURL(value, {
+        // ✅ 直接渲染到 Canvas，不需要 data URI
+        await QRCode.toCanvas(canvasRef.current, value, {
           width: size,
           margin: 2,
           color: {
             dark: '#000000',
             light: '#FFFFFF'
           },
-          errorCorrectionLevel: 'M' // 添加容错级别
+          errorCorrectionLevel: 'M'
         })
-        setQrCodeUrl(url)
         setError(false)
       } catch (err) {
         console.error('Failed to generate QR code:', err)
@@ -38,7 +40,6 @@ export const SimpleQRCode: React.FC<QRCodeProps> = ({ value, size = 150, classNa
   }, [value, size])
 
   if (error) {
-    // 错误备用方案
     return (
       <div 
         className={`flex items-center justify-center border-2 border-dashed border-border rounded ${className}`}
@@ -46,31 +47,23 @@ export const SimpleQRCode: React.FC<QRCodeProps> = ({ value, size = 150, classNa
       >
         <div className="text-center p-2">
           <div className="text-sm text-text-tertiary mb-2">二维码生成失败</div>
-          <div className="text-xs font-mono break-all max-w-full overflow-hidden">{value.substring(0, 20)}...</div>
+          <div className="text-xs font-mono break-all max-w-full overflow-hidden">
+            {value.substring(0, 20)}...
+          </div>
         </div>
       </div>
     )
   }
 
-  if (!qrCodeUrl) {
-    return (
-      <div 
-        className={`flex items-center justify-center bg-bg-container rounded ${className}`}
-        style={{ width: size, height: size }}
-      >
-        <div className="text-sm text-text-tertiary">生成中...</div>
-      </div>
-    )
-  }
-
   return (
-    <img 
-      src={qrCodeUrl} 
-      alt="QR Code"
+    <canvas 
+      ref={canvasRef}
       className={`border rounded ${className}`}
-      width={size}
-      height={size}
-      style={{ imageRendering: 'pixelated' }} // ✅ 确保二维码清晰不模糊
+      style={{ 
+        width: size, 
+        height: size,
+        imageRendering: 'pixelated' // 确保二维码清晰
+      }}
     />
   )
 }
