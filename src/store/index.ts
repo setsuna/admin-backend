@@ -21,7 +21,6 @@ export const useStore = create<GlobalStore>()(
         },
         ui: {
           theme: state.theme,
-          sidebarCollapsed: state.sidebarCollapsed,
         },
       }),
       merge: (persistedState, currentState) => {
@@ -32,7 +31,6 @@ export const useStore = create<GlobalStore>()(
           user: persisted.auth?.user || currentState.user,
           // 恢复UI状态
           theme: persisted.ui?.theme || currentState.theme,
-          sidebarCollapsed: persisted.ui?.sidebarCollapsed || currentState.sidebarCollapsed,
         }
       },
     }
@@ -58,11 +56,9 @@ export const useAuth = () => useStore((state) => ({
 
 export const useUI = () => useStore((state) => ({
   theme: state.theme,
-  sidebarCollapsed: state.sidebarCollapsed,
   notifications: state.notifications,
   globalLoading: state.globalLoading,
   setTheme: state.setTheme,
-  setSidebarCollapsed: state.setSidebarCollapsed,
   addNotification: state.addNotification,
   removeNotification: state.removeNotification,
   clearNotifications: state.clearNotifications,

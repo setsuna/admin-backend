@@ -31,10 +31,6 @@ export interface UISlice {
   theme: Theme
   setTheme: (theme: Theme) => void
   
-  // 侧边栏状态
-  sidebarCollapsed: boolean
-  setSidebarCollapsed: (collapsed: boolean) => void
-  
   // 通知系统
   notifications: Notification[]
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void
@@ -74,6 +70,5 @@ export interface PersistedState {
   }
   ui: {
     theme: Theme
-    sidebarCollapsed: boolean
   }
 }

@@ -23,10 +23,6 @@ export const createUISlice: StateCreator<
   theme: 'system',
   setTheme: (theme) => set({ theme }),
   
-  // 侧边栏状态
-  sidebarCollapsed: false,
-  setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
-  
   // 🔄 更新：增强的通知系统
   notifications: [],
   addNotification: (notification) => {
