@@ -26,13 +26,13 @@
 请运行以下命令安装必需的依赖包：
 
 ```bash
-npm install @radix-ui/react-slot @radix-ui/react-separator @radix-ui/react-dialog @radix-ui/react-tooltip @radix-ui/react-collapsible @radix-ui/react-visually-hidden class-variance-authority
+npm install @radix-ui/react-slot @radix-ui/react-separator @radix-ui/react-dialog @radix-ui/react-tooltip @radix-ui/react-collapsible @radix-ui/react-visually-hidden class-variance-authority tailwindcss-animate
 ```
 
 或者使用 pnpm：
 
 ```bash
-pnpm add @radix-ui/react-slot @radix-ui/react-separator @radix-ui/react-dialog @radix-ui/react-tooltip @radix-ui/react-collapsible @radix-ui/react-visually-hidden class-variance-authority
+pnpm add @radix-ui/react-slot @radix-ui/react-separator @radix-ui/react-dialog @radix-ui/react-tooltip @radix-ui/react-collapsible @radix-ui/react-visually-hidden class-variance-authority tailwindcss-animate
 ```
 
 ## 新功能特性
