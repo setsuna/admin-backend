@@ -139,7 +139,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                   const time = formData.startTime.split('T')[1] || '09:00'
                   onFormDataChange('startTime', `${date}T${time}`)
                 }}
-                className="flex-1 text-xs"
+                className="w-32 text-xs"
                 disabled={readOnly}
               />
               <Input
@@ -150,7 +150,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                   const time = e.target.value
                   onFormDataChange('startTime', `${date}T${time}`)
                 }}
-                className="w-20 text-xs"
+                className="w-24 text-xs"
                 disabled={readOnly}
               />
             </div>
@@ -168,7 +168,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                   const time = formData.endTime.split('T')[1] || '10:00'
                   onFormDataChange('endTime', `${date}T${time}`)
                 }}
-                className="flex-1 text-xs"
+                className="w-32 text-xs"
                 disabled={readOnly}
               />
               <Input
@@ -179,7 +179,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                   const time = e.target.value
                   onFormDataChange('endTime', `${date}T${time}`)
                 }}
-                className="w-20 text-xs"
+                className="w-24 text-xs"
                 disabled={readOnly}
               />
             </div>
