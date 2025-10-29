@@ -106,6 +106,18 @@ export default {
         warning: "hsl(var(--warning))",  /* #faad14 警告-黄色 */
         info: "hsl(var(--info))",        /* #1B8CF6 信息-蓝色 */
         error: "hsl(var(--error))",      /* #FF2600 错误-红色 */
+        
+        /* ========== Sidebar 相关颜色 ========== */
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar-background))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          primary: "hsl(var(--sidebar-primary))",
+          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
+          accent: "hsl(var(--sidebar-accent))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          border: "hsl(var(--sidebar-border))",
+          ring: "hsl(var(--sidebar-ring))",
+        },
       },
       
       /* ========== 圆角系统 ========== */
