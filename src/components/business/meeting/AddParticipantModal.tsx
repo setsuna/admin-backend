@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { Card, CardHeader, CardFooter } from '@/components/ui/Card'
 import UserSelector from '@/components/business/common/UserSelector'
 import TemporaryParticipantImporter from '@/components/business/common/TemporaryParticipantImporter'
 import { participantApi } from '@/services/api/participant.api'
@@ -247,19 +248,22 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-bg-elevated rounded-lg shadow-2xl w-[1100px] h-[700px] flex flex-col">
+      <Card 
+        animate="scaleIn" 
+        className="w-[1100px] h-[700px] flex flex-col shadow-2xl"
+      >
         {/* 头部 */}
-        <div className="p-4 border-b border-border">
+        <CardHeader className="p-4 border-b">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">添加参会人员</h3>
             <button
               onClick={handleCancel}
-              className="text-text-tertiary hover:text-text-secondary"
+              className="text-text-tertiary hover:text-text-secondary transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
-        </div>
+        </CardHeader>
 
         {/* Tab切换 */}
         <div className="border-b border-border">
@@ -314,11 +318,11 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
 
           {/* 右侧：待添加人员列表 */}
           <div className="w-80 flex flex-col bg-bg-container">
-            <div className="p-4 border-b border-border bg-bg-card">
+            <CardHeader className="p-4 border-b bg-bg-card">
               <div className="text-sm font-medium text-text-secondary">
                 待添加人员 ({totalSelected}人)
               </div>
-            </div>
+            </CardHeader>
             
             <div className="flex-1 overflow-y-auto p-4">
               {totalSelected === 0 ? (
@@ -331,24 +335,30 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                   {newlySelectedUsers.map(user => {
                     const securityLevel = securityLevels.find(s => s.value === user.securityLevel)
                     return (
-                      <div key={user.id} className="flex items-center justify-between p-3 bg-bg-card rounded border-border border">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium truncate">{user.name}</span>
-                            {securityLevel && (
-                              <span className="text-xs px-1.5 py-0.5 rounded bg-info/10 text-info flex-shrink-0">
-                                {securityLevel.name}
-                              </span>
-                            )}
+                      <Card 
+                        key={user.id} 
+                        hover="lift" 
+                        className="p-3"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium truncate">{user.name}</span>
+                              {securityLevel && (
+                                <span className="text-xs px-1.5 py-0.5 rounded bg-info/10 text-info flex-shrink-0">
+                                  {securityLevel.name}
+                                </span>
+                              )}
+                            </div>
                           </div>
+                          <button
+                            onClick={() => handleRemoveTempUser(user.id)}
+                            className="ml-2 text-text-tertiary hover:text-error transition-colors flex-shrink-0"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
                         </div>
-                        <button
-                          onClick={() => handleRemoveTempUser(user.id)}
-                          className="ml-2 text-text-tertiary hover:text-error flex-shrink-0"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
+                      </Card>
                     )
                   })}
                   
@@ -356,24 +366,30 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                   {tempImportedParticipants.map((participant, index) => {
                     const securityLevel = securityLevels.find(s => s.value === participant.securityLevel)
                     return (
-                      <div key={index} className="flex items-center justify-between p-3 bg-bg-card rounded border border-warning/30">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium truncate">{participant.name}</span>
-                            {securityLevel && (
-                              <span className="text-xs px-1.5 py-0.5 rounded bg-warning/10 text-warning flex-shrink-0">
-                                {securityLevel.name}
-                              </span>
-                            )}
+                      <Card 
+                        key={index} 
+                        hover="lift" 
+                        className="p-3 border-warning/30"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium truncate">{participant.name}</span>
+                              {securityLevel && (
+                                <span className="text-xs px-1.5 py-0.5 rounded bg-warning/10 text-warning flex-shrink-0">
+                                  {securityLevel.name}
+                                </span>
+                              )}
+                            </div>
                           </div>
+                          <button
+                            onClick={() => handleRemoveTempParticipant(index)}
+                            className="ml-2 text-text-tertiary hover:text-error transition-colors flex-shrink-0"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
                         </div>
-                        <button
-                          onClick={() => handleRemoveTempParticipant(index)}
-                          className="ml-2 text-text-tertiary hover:text-error flex-shrink-0"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
+                      </Card>
                     )
                   })}
                 </div>
@@ -383,8 +399,8 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
         </div>
 
         {/* 底部按钮 */}
-        <div className="p-4 border-t border-border">
-          <div className="flex items-center justify-end gap-2">
+        <CardFooter className="p-4 border-t">
+          <div className="flex items-center justify-end gap-2 w-full">
             <Button variant="outline" onClick={handleCancel} disabled={isSubmitting}>
               取消
             </Button>
@@ -396,8 +412,8 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
               {isSubmitting ? '添加中...' : `确定添加 (${totalSelected}人)`}
             </Button>
           </div>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
     </div>
   )
 }
