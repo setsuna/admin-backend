@@ -93,20 +93,18 @@ function AppLogo() {
   const getSecurityLevelBadge = () => {
     if (!policy?.systemSecurityLevel) return null
     const levelText = securityLevelText[policy.systemSecurityLevel]
-    return levelText ? `（${levelText}）` : null
+    return levelText ? `${levelText}` : null
   }
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <div className="flex items-center gap-2 px-2 py-2">
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <img src="/logo.svg" alt="Logo" className="size-5" />
-          </div>
+        <div className="flex items-center gap-1 px-2 py-2">
+          <img src="/logo.svg" alt="Logo" className="size-8" />
           {state === 'expanded' && (
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-semibold">
-                文档综合管控系统
+                会议文档综合管控系统
               </span>
               {getSecurityLevelBadge() && (
                 <span className="truncate text-xs text-sidebar-foreground/70">

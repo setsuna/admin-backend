@@ -62,9 +62,9 @@ export function MainLayout() {
     <SidebarProvider defaultOpen>
       <AppSidebar />
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b border-l bg-background px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="h-4" />
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-3 bg-background p-4 sm:gap-4">
+          <SidebarTrigger variant="outline" className="scale-125 sm:scale-100" />
+          <Separator orientation="vertical" className="h-6" />
           
           {/* 面包屑导航 */}
           <div className="flex flex-1 items-center justify-between">
