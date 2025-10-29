@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { Search, X, ChevronRight, ChevronDown, ChevronLeft } from 'lucide-react'
+import { Search, X, ChevronRight, ChevronDown, ChevronLeft, Check } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { Card } from '@/components/ui/Card'
 import { userApi } from '@/services/api/user.api'
 import { departmentApiService } from '@/services/api/department.api'
 import { useSecurityLevels } from '@/hooks/useSecurityLevels'
@@ -145,8 +146,8 @@ const UserSelector: React.FC<UserSelectorProps> = ({
           <div
             onClick={() => setSelectedDeptId(dept.id)}
             className={`
-              flex items-center gap-2 px-3 py-2 cursor-pointer rounded
-              ${isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-muted'}
+              flex items-center gap-2 px-3 py-2 cursor-pointer rounded transition-all duration-200
+              ${isSelected ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted hover:translate-x-0.5'}
             `}
             style={{ paddingLeft: `${level * 16 + 12}px` }}
           >
@@ -156,7 +157,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                   e.stopPropagation()
                   toggleDeptExpand(dept.id)
                 }}
-                className="flex-shrink-0"
+                className="flex-shrink-0 hover:bg-primary/10 rounded p-0.5 transition-colors duration-200"
               >
                 {isExpanded ? (
                   <ChevronDown className="h-4 w-4" />
@@ -185,8 +186,8 @@ const UserSelector: React.FC<UserSelectorProps> = ({
           <div
             onClick={() => setSelectedDeptId('')}
             className={`
-              px-3 py-2 mb-1 cursor-pointer rounded text-sm
-              ${selectedDeptId === '' ? 'bg-primary/10 text-primary' : 'hover:bg-muted'}
+              px-3 py-2 mb-1 cursor-pointer rounded text-sm transition-all duration-200
+              ${selectedDeptId === '' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted hover:translate-x-0.5'}
             `}
           >
             全部部门
@@ -206,7 +207,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                 placeholder="搜索人员..."
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full pl-10 pr-4 py-2 border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring shadow-sm transition-shadow"
               />
             </div>
           </div>
@@ -214,9 +215,15 @@ const UserSelector: React.FC<UserSelectorProps> = ({
 
         <div className="flex-1 overflow-y-auto p-4">
           {isLoading ? (
-            <div className="text-center py-8 text-text-regular">加载中...</div>
+            <Card animate="fadeIn" className="text-center py-12">
+              <div className="text-text-regular mb-2">加载中...</div>
+              <div className="text-sm text-text-tertiary">正在获取人员列表</div>
+            </Card>
           ) : users.length === 0 ? (
-            <div className="text-center py-8 text-text-regular">暂无数据</div>
+            <Card animate="fadeIn" className="text-center py-12">
+              <div className="text-text-regular mb-2">暂无数据</div>
+              <div className="text-sm text-text-tertiary">请尝试调整筛选条件</div>
+            </Card>
           ) : (
             <div className="space-y-2">
               {users.map(user => {
@@ -224,24 +231,42 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                 const securityLevel = securityLevels.find(s => s.value === user.securityLevel)
                 
                 return (
-                  <div
+                  <Card
                     key={user.id}
                     onClick={() => handleToggleUser(user)}
+                    hover="lift"
+                    interactive
                     className={`
-                      p-3 rounded-lg border cursor-pointer transition-colors
-                      ${isSelected ? 'border-primary bg-primary/10' : 'border-border hover:bg-muted'}
+                      p-3 cursor-pointer transition-all duration-200
+                      ${isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : ''}
                     `}
                   >
                     <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => {}}
-                        className="h-4 w-4"
-                      />
+                      {/* 自定义 checkbox 样式 */}
+                      <div className="relative flex items-center justify-center">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => {}}
+                          className="peer sr-only"
+                        />
+                        <div className={`
+                          h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-200
+                          ${isSelected 
+                            ? 'bg-primary border-primary' 
+                            : 'border-input hover:border-primary/50'
+                          }
+                        `}>
+                          {isSelected && <Check className="h-3 w-3 text-primary-foreground" strokeWidth={3} />}
+                        </div>
+                      </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-text-primary">{user.name || user.realName || user.username}</span>
+                          <span className={`font-medium transition-colors ${
+                            isSelected ? 'text-primary' : 'text-text-primary'
+                          }`}>
+                            {user.name || user.realName || user.username}
+                          </span>
                           {showSecurityLevel && securityLevel && (
                             <span className="text-xs px-1.5 py-0.5 rounded bg-info/10 text-info flex-shrink-0">
                               {securityLevel.name}
@@ -250,7 +275,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </Card>
                 )
               })}
             </div>
@@ -268,7 +293,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-3 py-1 border rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 border rounded hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
@@ -289,8 +314,11 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                         key={i}
                         onClick={() => setPage(pageNum)}
                         className={`
-                          px-3 py-1 border rounded min-w-[36px]
-                          ${page === pageNum ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted'}
+                          px-3 py-1 border rounded min-w-[36px] transition-all duration-200 shadow-sm
+                          ${page === pageNum 
+                            ? 'bg-primary text-primary-foreground border-primary shadow-md' 
+                            : 'hover:bg-accent hover:text-accent-foreground'
+                          }
                         `}
                       >
                         {pageNum}
@@ -301,7 +329,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                 <button
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  className="px-3 py-1 border rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 border rounded hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -320,11 +348,13 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                 const securityLevel = securityLevels.find(s => s.value === user.securityLevel)
                 
                 return (
-                  <div
+                  <Card
                     key={user.id}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-bg-card border rounded-md"
+                    hover="scale"
+                    animate="fadeIn"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 shadow-sm"
                   >
-                    <span className="text-sm">
+                    <span className="text-sm font-medium">
                       {user.name || user.realName || user.username}
                     </span>
                     {showSecurityLevel && securityLevel && (
@@ -334,11 +364,11 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                     )}
                     <button
                       onClick={() => handleRemoveUser(user.id)}
-                      className="text-text-tertiary hover:text-text-secondary"
+                      className="text-text-tertiary hover:text-error transition-colors duration-200"
                     >
                       <X className="h-3 w-3" />
                     </button>
-                  </div>
+                  </Card>
                 )
               })}
             </div>
