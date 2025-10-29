@@ -97,27 +97,27 @@ function AppLogo() {
   }
 
   return (
-    <div className="flex items-center gap-2 px-2">
-      {state === 'expanded' ? (
-        <div className="flex items-center gap-0.5">
-          <span
-            className="text-base font-semibold leading-tight tracking-tighter"
-            style={{ fontStretch: 'condensed' }}
-          >
-            文档综合管控系统
-          </span>
-          {getSecurityLevelBadge() && (
-            <span className="text-xs font-normal text-muted-foreground leading-tight">
-              {getSecurityLevelBadge()}
-            </span>
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <div className="flex items-center gap-2 px-2 py-2">
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+            <span className="text-sm font-bold">文</span>
+          </div>
+          {state === 'expanded' && (
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-semibold">
+                文档综合管控系统
+              </span>
+              {getSecurityLevelBadge() && (
+                <span className="truncate text-xs text-muted-foreground">
+                  {getSecurityLevelBadge()}
+                </span>
+              )}
+            </div>
           )}
         </div>
-      ) : (
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-          <span className="text-sm font-bold">文</span>
-        </div>
-      )}
-    </div>
+      </SidebarMenuItem>
+    </SidebarMenu>
   )
 }
 
@@ -185,7 +185,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   )
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" variant="floating" {...props}>
       <SidebarHeader>
         <AppLogo />
       </SidebarHeader>
