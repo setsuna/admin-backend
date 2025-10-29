@@ -43,7 +43,9 @@ export default defineConfig({
           // 表格和数据查询
           'table-libs': ['@tanstack/react-table', '@tanstack/react-query'],
           // 工具库
-          'utils': ['axios', 'clsx', 'js-yaml', 'tailwind-merge', 'react-dropzone']
+          'utils': ['axios', 'clsx', 'js-yaml', 'tailwind-merge', 'react-dropzone'],
+          // 二维码库（单独分包，避免打包问题）
+          'qrcode-lib': ['qrcode']
         }
       }
     },
