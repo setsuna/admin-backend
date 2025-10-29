@@ -130,7 +130,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           {/* 开始时间 */}
           <div>
             <div className="text-xs text-text-regular mb-1">开始时间</div>
-            <div className="flex gap-1">
+            <div className="flex gap-0">
               <Input
                 type="date"
                 value={formData.startTime.split('T')[0]}
@@ -139,7 +139,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                   const time = formData.startTime.split('T')[1] || '09:00'
                   onFormDataChange('startTime', `${date}T${time}`)
                 }}
-                className="w-32 text-xs"
+                className="w-32 text-xs rounded-r-none"
                 disabled={readOnly}
               />
               <Input
@@ -150,7 +150,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                   const time = e.target.value
                   onFormDataChange('startTime', `${date}T${time}`)
                 }}
-                className="w-24 text-xs"
+                className="w-24 text-xs rounded-l-none border-l-0"
                 disabled={readOnly}
               />
             </div>
@@ -159,7 +159,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           {/* 结束时间 */}
           <div>
             <div className="text-xs text-text-regular mb-1">结束时间</div>
-            <div className="flex gap-1">
+            <div className="flex gap-0">
               <Input
                 type="date"
                 value={formData.endTime.split('T')[0]}
@@ -168,7 +168,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                   const time = formData.endTime.split('T')[1] || '10:00'
                   onFormDataChange('endTime', `${date}T${time}`)
                 }}
-                className="w-32 text-xs"
+                className="w-32 text-xs rounded-r-none"
                 disabled={readOnly}
               />
               <Input
@@ -179,7 +179,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                   const time = e.target.value
                   onFormDataChange('endTime', `${date}T${time}`)
                 }}
-                className="w-24 text-xs"
+                className="w-24 text-xs rounded-l-none border-l-0"
                 disabled={readOnly}
               />
             </div>
