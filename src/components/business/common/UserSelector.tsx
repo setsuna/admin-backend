@@ -179,9 +179,6 @@ const UserSelector: React.FC<UserSelectorProps> = ({
     <div className="flex h-full">
       {/* 左侧：部门树 */}
       <div className="w-56 border-r flex flex-col bg-bg-container">
-        <div className="p-3 border-b bg-bg-card">
-          <div className="text-sm font-medium text-text-secondary">部门</div>
-        </div>
         <div className="flex-1 overflow-y-auto p-2">
           <div
             onClick={() => setSelectedDeptId('')}
