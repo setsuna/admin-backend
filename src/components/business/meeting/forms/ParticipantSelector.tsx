@@ -52,18 +52,24 @@ const ParticipantSelector: React.FC<ParticipantSelectorProps> = ({
                 const isTemp = isTemporary(participant)
                 const securityLevel = securityLevels.find(s => s.value === participant.securityLevel)
 
+                // 密级配色映射
+                const securityColorMap: Record<string, string> = {
+                  'internal': 'bg-green-500',
+                  'confidential': 'bg-yellow-500',
+                  'secret': 'bg-red-500'
+                }
+                const securityColor = securityColorMap[participant.securityLevel] || 'bg-gray-500'
+
                 return (
                   <span
                     key={participant.id}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm ${
-                      isTemp ? 'bg-warning/20 text-warning border border-warning/30' : 'bg-primary/20 text-primary'
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm bg-white text-gray-700 border ${
+                      isTemp ? 'border-dashed border-gray-400' : 'border-gray-300'
                     }`}
                   >
                     <span>{displayName}</span>
                     {securityLevel && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        isTemp ? 'bg-warning/30 text-warning' : 'bg-primary/30 text-primary'
-                      }`}>
+                      <span className={`text-xs px-1.5 py-0.5 rounded text-white ${securityColor}`}>
                         {securityLevel.name}
                       </span>
                     )}
@@ -73,7 +79,7 @@ const ParticipantSelector: React.FC<ParticipantSelectorProps> = ({
                           e.stopPropagation()
                           onRemoveParticipant(participant.id)
                         }}
-                        className={isTemp ? 'hover:text-warning' : 'hover:text-primary-hover'}
+                        className="hover:text-gray-900 transition-colors"
                       >
                         <X className="h-3 w-3" />
                       </button>
