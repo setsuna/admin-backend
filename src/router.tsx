@@ -30,8 +30,8 @@ const SyncStatusPage = lazy(() =>
   Promise.resolve({
     default: () => (
       <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">同步状态</h1>
-        <p className="text-muted-foreground">同步状态页面待开发</p>
+        <h1 className="text-2xl font-bold mb-4">会议同步</h1>
+        <p className="text-muted-foreground">会议同步页面待开发</p>
       </div>
     )
   })
