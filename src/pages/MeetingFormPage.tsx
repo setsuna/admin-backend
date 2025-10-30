@@ -9,6 +9,7 @@ import { useDialog } from '@/hooks/useModal'
 import { DialogComponents } from '@/components/ui/DialogComponents'
 import { useMeetingForm } from '@/hooks/useMeetingForm'
 import { useNotifications } from '@/hooks/useNotifications'
+import { usePolicy } from '@/hooks/usePolicy'
 
 import BasicInfoForm from '@/components/business/meeting/BasicInfoForm'
 import AgendaForm from '@/components/business/meeting/AgendaForm'
@@ -24,6 +25,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
   const dialog = useDialog()
   const { confirm } = dialog
   const { showError } = useNotifications()
+  const { policy } = usePolicy()
   
   const [showOrgModal, setShowOrgModal] = useState(false)
   
@@ -158,6 +160,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
                 meetingId={currentMeetingId}
                 mode={mode}
                 readOnly={mode === 'view'}
+                systemSecurityLevel={policy?.systemSecurityLevel}
               />
             </CardContent>
           </Card>
@@ -195,6 +198,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
                 onReorderMaterials={reorderMaterials}
                 onReorderAgendas={reorderAgendas}
                 readOnly={mode === 'view'}
+                systemSecurityLevel={policy?.systemSecurityLevel}
               />
             </CardContent>
           </Card>
@@ -242,6 +246,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
           meetingId={currentMeetingId}
           selectedParticipants={formData.participants}
           onParticipantsChange={handleParticipantsChange}
+          systemSecurityLevel={policy?.systemSecurityLevel}
         />
       )}
       

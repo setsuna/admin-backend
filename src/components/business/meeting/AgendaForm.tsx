@@ -17,6 +17,7 @@ interface AgendaFormProps {
   onReorderMaterials?: (agendaId: string, materials: MeetingMaterial[]) => void
   onReorderAgendas?: (agendas: MeetingAgenda[]) => void
   readOnly?: boolean
+  systemSecurityLevel?: 'confidential' | 'secret'  // 系统密级
 }
 
 const AgendaForm: React.FC<AgendaFormProps> = ({
@@ -29,7 +30,8 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
   onUpdateMaterialSecurity,
   onReorderMaterials,
   onReorderAgendas,
-  readOnly = false
+  readOnly = false,
+  systemSecurityLevel
 }) => {
   const [editingAgenda, setEditingAgenda] = useState<string | null>(null)
   
@@ -153,6 +155,7 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
       FileDropzone={FileDropzone}
       securityLevelOptions={securityLevels}
       readOnly={readOnly}
+      systemSecurityLevel={systemSecurityLevel}
     />
   )
 }

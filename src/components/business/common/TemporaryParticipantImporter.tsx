@@ -5,6 +5,7 @@ import type { TemporaryParticipant } from '@/types'
 
 interface TemporaryParticipantImporterProps {
   onImport: (participants: TemporaryParticipant[]) => void
+  systemSecurityLevel?: 'confidential' | 'secret'  // 系统密级
 }
 
 interface ParseResult {
@@ -48,7 +49,8 @@ const parseTemporaryParticipants = (
 }
 
 const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> = ({
-  onImport
+  onImport,
+  systemSecurityLevel
 }) => {
   const [inputText, setInputText] = useState('')
   const [parseResult, setParseResult] = useState<ParseResult | null>(null)
@@ -60,15 +62,30 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
   const [batchSecurityLevel, setBatchSecurityLevel] = useState('')
   const [customSecurityLevels, setCustomSecurityLevels] = useState<Map<string, string>>(new Map())
   const { securityLevels, isLoading } = useSecurityLevels()
+  
+  // 判断密级是否可选
+  const isSecurityLevelDisabled = (level: string) => {
+    if (!systemSecurityLevel) return false
+    
+    // 如果系统密级是"秘密"，则不能选择"机密"和"绝密"
+    if (systemSecurityLevel === 'confidential') {
+      return level === 'secret' || level === 'top_secret'
+    }
+    
+    return false
+  }
+  
+  // 获取可用的密级选项（过滤掉被禁用的）
+  const availableSecurityLevels = securityLevels.filter(level => !isSecurityLevelDisabled(level.value))
 
   // 设置默认密级
   useEffect(() => {
-    if (!selectedSecurityLevel && securityLevels.length > 0) {
-      const defaultValue = String(securityLevels[0].value)
+    if (!selectedSecurityLevel && availableSecurityLevels.length > 0) {
+      const defaultValue = String(availableSecurityLevels[0].value)
       setSelectedSecurityLevel(defaultValue)
       setBatchSecurityLevel(defaultValue)
     }
-  }, [securityLevels, selectedSecurityLevel])
+  }, [availableSecurityLevels, selectedSecurityLevel])
 
   const handleParse = (text: string) => {
     setInputText(text)
@@ -191,27 +208,39 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
           <div className="mb-4">
             <label className="block text-sm font-medium text-text-primary mb-2">
               默认密级
+              {systemSecurityLevel === 'confidential' && (
+                <span className="ml-2 text-xs text-text-tertiary">(系统为秘密级，限制机密及以上密级)</span>
+              )}
             </label>
             {isLoading ? (
               <div className="text-xs text-text-tertiary">加载中...</div>
             ) : (
               <div className="space-y-2">
-                {securityLevels.map((level) => (
-                  <label
-                    key={level.value}
-                    className="flex items-center gap-2 cursor-pointer hover:bg-muted px-2.5 py-1.5 rounded transition-colors"
-                  >
-                    <input
-                      type="radio"
-                      name="securityLevel"
-                      value={level.value}
-                      checked={selectedSecurityLevel === level.value}
-                      onChange={(e) => handleSecurityLevelChange(e.target.value)}
-                      className="w-4 h-4 text-info focus:ring-info"
-                    />
-                    <span className="text-sm text-text-primary">{level.name}</span>
-                  </label>
-                ))}
+                {securityLevels.map((level) => {
+                  const disabled = isSecurityLevelDisabled(level.value)
+                  return (
+                    <label
+                      key={level.value}
+                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded transition-colors ${
+                        disabled 
+                          ? 'opacity-40 cursor-not-allowed' 
+                          : 'cursor-pointer hover:bg-muted'
+                      }`}
+                      title={disabled ? '超出系统密级限制' : ''}
+                    >
+                      <input
+                        type="radio"
+                        name="securityLevel"
+                        value={level.value}
+                        checked={selectedSecurityLevel === level.value}
+                        onChange={(e) => handleSecurityLevelChange(e.target.value)}
+                        disabled={disabled}
+                        className="w-4 h-4 text-info focus:ring-info"
+                      />
+                      <span className="text-sm text-text-primary">{level.name}</span>
+                    </label>
+                  )
+                })}
               </div>
             )}
           </div>
@@ -294,7 +323,7 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
                           onChange={(e) => setBatchSecurityLevel(e.target.value)}
                           className="px-2 py-1 text-sm border border-input rounded focus:outline-none focus:ring-2 focus:ring-ring"
                         >
-                          {securityLevels.map(level => (
+                          {availableSecurityLevels.map(level => (
                             <option key={level.value} value={level.value}>
                               {level.name}
                             </option>

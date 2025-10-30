@@ -36,6 +36,7 @@ interface BasicInfoFormProps {
   meetingId?: string  // 会议ID
   mode?: 'create' | 'edit' | 'view'  // 模式
   readOnly?: boolean
+  systemSecurityLevel?: 'confidential' | 'secret'  // 系统密级
 }
 
 const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
@@ -45,7 +46,8 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   onRemoveParticipant,
   meetingId,
   mode,
-  readOnly = false
+  readOnly = false,
+  systemSecurityLevel
 }) => {
   const [categories, setCategories] = useState<MeetingCategory[]>([])
   const [securityLevels, setSecurityLevels] = useState<SecurityLevel[]>([])
@@ -81,6 +83,18 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   const handleSecurityLevelChange = (level: MeetingSecurityLevel) => {
     onFormDataChange('securityLevel', level)
   }
+  
+  // 判断密级是否可选
+  const isSecurityLevelDisabled = (level: string) => {
+    if (!systemSecurityLevel) return false
+    
+    // 如果系统密级是"秘密"，则不能选择"机密"和"绝密"
+    if (systemSecurityLevel === 'confidential') {
+      return level === 'secret' || level === 'top_secret'
+    }
+    
+    return false
+  }
 
   if (loading) {
     return (
@@ -107,20 +121,29 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
 
       {/* 会议密级 */}
       <div>
-        <label className="block text-sm font-medium mb-1">会议密级 <span className="text-error">*</span></label>
+        <label className="block text-sm font-medium mb-1">
+          会议密级 <span className="text-error">*</span>
+          {systemSecurityLevel === 'confidential' && (
+            <span className="ml-2 text-xs text-text-tertiary">（系统为秘密级，限制机密及以上密级）</span>
+          )}
+        </label>
         <div className="flex gap-2">
-          {securityLevels.map((level) => (
-            <button
-              key={level.value}
-              onClick={() => !readOnly && handleSecurityLevelChange(level.value as MeetingSecurityLevel)}
-              disabled={readOnly}
-              className={`px-2 py-1 text-xs rounded-md text-text-inverse transition-colors ${level.color} ${
-                formData.securityLevel === level.value ? 'ring-2 ring-offset-2 ring-border' : ''
-              } ${readOnly ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
-            >
-              {level.label}
-            </button>
-          ))}
+          {securityLevels.map((level) => {
+            const disabled = readOnly || isSecurityLevelDisabled(level.value)
+            return (
+              <button
+                key={level.value}
+                onClick={() => !disabled && handleSecurityLevelChange(level.value as MeetingSecurityLevel)}
+                disabled={disabled}
+                className={`px-2 py-1 text-xs rounded-md text-text-inverse transition-colors ${level.color} ${
+                  formData.securityLevel === level.value ? 'ring-2 ring-offset-2 ring-border' : ''
+                } ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:opacity-90'}`}
+                title={disabled && !readOnly ? '超出系统密级限制' : ''}
+              >
+                {level.label}
+              </button>
+            )
+          })}
         </div>
       </div>
 

@@ -58,7 +58,7 @@ const ParticipantSelector: React.FC<ParticipantSelectorProps> = ({
                   'confidential': 'bg-yellow-500',
                   'secret': 'bg-red-500'
                 }
-                const securityColor = securityColorMap[participant.securityLevel] || 'bg-gray-500'
+                const securityColor = participant.securityLevel ? securityColorMap[participant.securityLevel] || 'bg-gray-500' : 'bg-gray-500'
 
                 return (
                   <span

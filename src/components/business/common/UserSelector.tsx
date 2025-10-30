@@ -18,6 +18,7 @@ interface UserSelectorProps {
   }
   showSecurityLevel?: boolean
   enableSearch?: boolean
+  systemSecurityLevel?: 'confidential' | 'secret'  // 系统密级
 }
 
 const UserSelector: React.FC<UserSelectorProps> = ({
@@ -26,7 +27,8 @@ const UserSelector: React.FC<UserSelectorProps> = ({
   onChange,
   filters = {},
   showSecurityLevel = true,
-  enableSearch = true
+  enableSearch = true,
+  systemSecurityLevel
 }) => {
   const [keyword, setKeyword] = useState('')
   const [selectedDeptId, setSelectedDeptId] = useState<string>('')
@@ -86,7 +88,25 @@ const UserSelector: React.FC<UserSelectorProps> = ({
     setPage(1)
   }, [keyword, selectedDeptId])
 
+  // 判断用户密级是否超出系统限制
+  const isUserSecurityExceeded = (userSecurityLevel: string) => {
+    if (!systemSecurityLevel) return false
+    
+    // 如果系统密级是"秘密"，则不能选择"机密"和"绝密"的用户
+    if (systemSecurityLevel === 'confidential') {
+      return userSecurityLevel === 'secret' || userSecurityLevel === 'top_secret'
+    }
+    
+    return false
+  }
+
   const handleToggleUser = (user: User) => {
+    // 检查用户密级是否超出限制
+    if (isUserSecurityExceeded(user.securityLevel)) {
+      // 不允许选择
+      return
+    }
+    
     const newIds = new Set(selectedIds)
     
     if (mode === 'single') {
@@ -225,6 +245,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
             <div className="space-y-2">
               {users.map(user => {
                 const isSelected = selectedIds.has(user.id)
+                const isExceeded = isUserSecurityExceeded(user.securityLevel)
                 const securityLevel = securityLevels.find(s => s.value === user.securityLevel)
                 const securityColorMap: Record<string, string> = {
                   'internal': 'bg-green-500',
@@ -237,12 +258,14 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                   <Card
                     key={user.id}
                     onClick={() => handleToggleUser(user)}
-                    hover="lift"
-                    interactive
+                    hover={isExceeded ? undefined : "lift"}
+                    interactive={!isExceeded}
                     className={`
-                      p-3 cursor-pointer transition-all duration-200
+                      p-3 transition-all duration-200
+                      ${isExceeded ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
                       ${isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : ''}
                     `}
+                    title={isExceeded ? '超出系统密级限制，不可选择' : ''}
                   >
                     <div className="flex items-center gap-3">
                       {/* 自定义 checkbox 样式 */}
@@ -251,12 +274,15 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => {}}
+                          disabled={isExceeded}
                           className="peer sr-only"
                         />
                         <div className={`
                           h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-200
                           ${isSelected 
                             ? 'bg-primary border-primary' 
+                            : isExceeded
+                            ? 'border-input/30'
                             : 'border-input hover:border-primary/50'
                           }
                         `}>

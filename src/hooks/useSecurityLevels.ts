@@ -20,7 +20,7 @@ export const useSecurityLevels = () => {
         .map(item => ({
           code: item.code,
           name: item.name,
-          value: item.value
+          value: String(item.value) // 确保 value 是 string 类型
         }))
     },
     staleTime: 5 * 60 * 1000, // 5分钟缓存

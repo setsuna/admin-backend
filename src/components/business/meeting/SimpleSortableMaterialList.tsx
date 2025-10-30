@@ -16,6 +16,7 @@ interface SimpleSortableItemProps {
   isDragging: boolean
   dragOverIndex: number | null
   securityLevelOptions: SecurityLevelOption[]
+  systemSecurityLevel?: 'confidential' | 'secret'
 }
 
 const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
@@ -29,7 +30,8 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
   getFileIcon,
   isDragging,
   dragOverIndex,
-  securityLevelOptions
+  securityLevelOptions,
+  systemSecurityLevel
 }) => {
   // ✅ 密级配置：颜色圆点 + 标签
   const securityLevelConfig: Record<MeetingSecurityLevel, { color: string; label: string; textColor: string }> = {
@@ -62,6 +64,18 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
 
   const isCurrentDragging = isDragging
   const isDropTarget = dragOverIndex === index
+  
+  // 判断密级是否可选
+  const isSecurityLevelDisabled = (level: string) => {
+    if (!systemSecurityLevel) return false
+    
+    // 如果系统密级是"秘密"，则不能选择"机密"和"绝密"
+    if (systemSecurityLevel === 'confidential') {
+      return level === 'secret' || level === 'top_secret'
+    }
+    
+    return false
+  }
 
   return (
     <div
@@ -105,16 +119,20 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
           const config = securityLevelConfig[option.value as keyof typeof securityLevelConfig]
           if (!config) return null
           const isSelected = material.securityLevel === option.value
+          const disabled = isSecurityLevelDisabled(option.value)
           return (
             <button
               key={option.value}
-              onClick={() => onUpdateSecurity(material.id, option.value as MeetingSecurityLevel)}
+              onClick={() => !disabled && onUpdateSecurity(material.id, option.value as MeetingSecurityLevel)}
+              disabled={disabled}
               className={`w-3 h-3 rounded-full transition-all ${
                 isSelected 
                   ? `${config.color} ring-2 ring-offset-1 ring-border` 
+                  : disabled
+                  ? `${config.color} opacity-20 cursor-not-allowed`
                   : `${config.color} opacity-40 hover:opacity-70`
               }`}
-              title={config.label}
+              title={disabled ? `超出系统密级限制 ${config.label}` : config.label}
             />
           )
         })}
@@ -140,6 +158,7 @@ interface SimpleSortableMaterialListProps {
   onUpdateMaterialSecurity: (materialId: string, securityLevel: MeetingSecurityLevel) => void
   getFileIcon: (fileName: string) => React.ReactNode
   securityLevelOptions: SecurityLevelOption[]
+  systemSecurityLevel?: 'confidential' | 'secret'
 }
 
 const SimpleSortableMaterialList: React.FC<SimpleSortableMaterialListProps> = ({
@@ -148,7 +167,8 @@ const SimpleSortableMaterialList: React.FC<SimpleSortableMaterialListProps> = ({
   onRemoveMaterial,
   onUpdateMaterialSecurity,
   getFileIcon,
-  securityLevelOptions
+  securityLevelOptions,
+  systemSecurityLevel
 }) => {
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
@@ -204,6 +224,7 @@ const SimpleSortableMaterialList: React.FC<SimpleSortableMaterialListProps> = ({
             isDragging={dragIndex === index}
             dragOverIndex={dragOverIndex}
             securityLevelOptions={securityLevelOptions}
+            systemSecurityLevel={systemSecurityLevel}
           />
         ))}
       </div>

@@ -15,6 +15,7 @@ interface AddParticipantModalProps {
   meetingId?: string  // 新增：会议ID
   selectedParticipants: MeetingParticipant[]
   onParticipantsChange: (participants: MeetingParticipant[]) => void
+  systemSecurityLevel?: 'confidential' | 'secret'  // 系统密级
 }
 
 type TabType = 'org' | 'temp'
@@ -24,7 +25,8 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
   onClose,
   meetingId,
   selectedParticipants,
-  onParticipantsChange
+  onParticipantsChange,
+  systemSecurityLevel
 }) => {
   const { showSuccess, showError } = useNotifications()
   const { securityLevels } = useSecurityLevels()
@@ -306,12 +308,14 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                 onChange={handleOrgUsersChange}
                 showSecurityLevel={true}
                 enableSearch={true}
+                systemSecurityLevel={systemSecurityLevel}
               />
             )}
             
             {activeTab === 'temp' && (
               <TemporaryParticipantImporter
                 onImport={handleTempImport}
+                systemSecurityLevel={systemSecurityLevel}
               />
             )}
           </div>

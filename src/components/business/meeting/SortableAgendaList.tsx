@@ -27,6 +27,7 @@ interface SortableAgendaItemProps {
   isDragging: boolean
   dragOverIndex: number | null
   canRemove: boolean
+  systemSecurityLevel?: 'confidential' | 'secret'
 }
 
 const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
@@ -49,7 +50,8 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
   securityLevelOptions,
   isDragging,
   dragOverIndex,
-  canRemove
+  canRemove,
+  systemSecurityLevel
 }) => {
   const isCurrentDragging = isDragging
   const isDropTarget = dragOverIndex === index
@@ -221,6 +223,7 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
             }
             getFileIcon={getFileIcon}
             securityLevelOptions={securityLevelOptions}
+            systemSecurityLevel={systemSecurityLevel}
           />
         )}
       </div>
@@ -282,6 +285,7 @@ interface SortableAgendaListProps {
   FileDropzone: React.ComponentType<{ agendaId: string }>
   securityLevelOptions: SecurityLevelOption[]
   readOnly?: boolean
+  systemSecurityLevel?: 'confidential' | 'secret'
 }
 
 const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
@@ -298,7 +302,8 @@ const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
   onReorderMaterials,
   getFileIcon,
   FileDropzone,
-  securityLevelOptions
+  securityLevelOptions,
+  systemSecurityLevel
 }) => {
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
@@ -358,6 +363,7 @@ const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
           isDragging={dragIndex === index}
           dragOverIndex={dragOverIndex}
           canRemove={agendas.length > 1}
+          systemSecurityLevel={systemSecurityLevel}
         />
       ))}
     </div>
