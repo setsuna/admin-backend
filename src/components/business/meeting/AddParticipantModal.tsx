@@ -334,18 +334,24 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                   {/* 组织架构人员 - 只显示新增的 */}
                   {newlySelectedUsers.map(user => {
                     const securityLevel = securityLevels.find(s => s.value === user.securityLevel)
+                    const securityColorMap: Record<string, string> = {
+                      'internal': 'bg-green-500',
+                      'confidential': 'bg-yellow-500',
+                      'secret': 'bg-red-500'
+                    }
+                    const securityColor = securityColorMap[user.securityLevel] || 'bg-gray-500'
                     return (
                       <Card 
                         key={user.id} 
                         hover="lift" 
-                        className="p-3"
+                        className="p-3 border border-gray-300"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-medium truncate">{user.name}</span>
                               {securityLevel && (
-                                <span className="text-xs px-1.5 py-0.5 rounded bg-info/10 text-info flex-shrink-0">
+                                <span className={`text-xs px-1.5 py-0.5 rounded text-white flex-shrink-0 ${securityColor}`}>
                                   {securityLevel.name}
                                 </span>
                               )}
@@ -365,18 +371,24 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                   {/* 临时人员 */}
                   {tempImportedParticipants.map((participant, index) => {
                     const securityLevel = securityLevels.find(s => s.value === participant.securityLevel)
+                    const securityColorMap: Record<string, string> = {
+                      'internal': 'bg-green-500',
+                      'confidential': 'bg-yellow-500',
+                      'secret': 'bg-red-500'
+                    }
+                    const securityColor = securityColorMap[participant.securityLevel || ''] || 'bg-gray-500'
                     return (
                       <Card 
                         key={index} 
                         hover="lift" 
-                        className="p-3 border-warning/30"
+                        className="p-3 border border-dashed border-gray-400"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-medium truncate">{participant.name}</span>
                               {securityLevel && (
-                                <span className="text-xs px-1.5 py-0.5 rounded bg-warning/10 text-warning flex-shrink-0">
+                                <span className={`text-xs px-1.5 py-0.5 rounded text-white flex-shrink-0 ${securityColor}`}>
                                   {securityLevel.name}
                                 </span>
                               )}

@@ -302,6 +302,12 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
                   <div className="max-h-96 overflow-y-auto">
                     {parseResult.success.map((p, i) => {
                       const securityOption = securityLevels.find(s => s.value === p.securityLevel)
+                      const securityColorMap: Record<string, string> = {
+                        'internal': 'bg-green-500',
+                        'confidential': 'bg-yellow-500',
+                        'secret': 'bg-red-500'
+                      }
+                      const securityColor = securityColorMap[p.securityLevel || ''] || 'bg-gray-500'
                       const isSelected = selectedIndices.has(i)
                       return (
                         <div
@@ -321,7 +327,7 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
                           />
                           <span className="font-medium text-text-primary min-w-[80px]">{p.name}</span>
                           <span className="text-text-tertiary">·</span>
-                          <span className="text-xs px-2 py-0.5 rounded bg-info/10 text-info">
+                          <span className={`text-xs px-2 py-0.5 rounded text-white ${securityColor}`}>
                             {securityOption?.name || p.securityLevel}
                           </span>
                           {p.password && (

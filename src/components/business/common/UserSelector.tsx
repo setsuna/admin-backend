@@ -226,6 +226,12 @@ const UserSelector: React.FC<UserSelectorProps> = ({
               {users.map(user => {
                 const isSelected = selectedIds.has(user.id)
                 const securityLevel = securityLevels.find(s => s.value === user.securityLevel)
+                const securityColorMap: Record<string, string> = {
+                  'internal': 'bg-green-500',
+                  'confidential': 'bg-yellow-500',
+                  'secret': 'bg-red-500'
+                }
+                const securityColor = securityColorMap[user.securityLevel] || 'bg-gray-500'
                 
                 return (
                   <Card
@@ -265,7 +271,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                             {user.name || user.realName || user.username}
                           </span>
                           {showSecurityLevel && securityLevel && (
-                            <span className="text-xs px-1.5 py-0.5 rounded bg-info/10 text-info flex-shrink-0">
+                            <span className={`text-xs px-1.5 py-0.5 rounded text-white flex-shrink-0 ${securityColor}`}>
                               {securityLevel.name}
                             </span>
                           )}
@@ -343,6 +349,12 @@ const UserSelector: React.FC<UserSelectorProps> = ({
             <div className="flex flex-wrap gap-2">
               {selectedUsers.map(user => {
                 const securityLevel = securityLevels.find(s => s.value === user.securityLevel)
+                const securityColorMap: Record<string, string> = {
+                  'internal': 'bg-green-500',
+                  'confidential': 'bg-yellow-500',
+                  'secret': 'bg-red-500'
+                }
+                const securityColor = securityColorMap[user.securityLevel] || 'bg-gray-500'
                 
                 return (
                   <Card
@@ -355,7 +367,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                       {user.name || user.realName || user.username}
                     </span>
                     {showSecurityLevel && securityLevel && (
-                      <span className="text-xs bg-info/10 text-info px-1.5 py-0.5 rounded">
+                      <span className={`text-xs px-1.5 py-0.5 rounded text-white ${securityColor}`}>
                         {securityLevel.name}
                       </span>
                     )}
