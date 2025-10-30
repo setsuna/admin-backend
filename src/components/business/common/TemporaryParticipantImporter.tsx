@@ -15,7 +15,8 @@ interface ParseResult {
 const parseTemporaryParticipants = (
   text: string, 
   defaultSecurityLevel: string,
-  defaultPassword: string
+  defaultPassword: string,
+  customLevels: Map<string, string> = new Map()
 ): ParseResult => {
   const lines = text.trim().split('\n').filter(line => line.trim())
   const success: TemporaryParticipant[] = []
@@ -38,7 +39,7 @@ const parseTemporaryParticipants = (
       name,
       department: '外部',
       email: '',
-      securityLevel: defaultSecurityLevel,
+      securityLevel: customLevels.get(name) || defaultSecurityLevel,
       password: defaultPassword
     })
   })
@@ -57,6 +58,7 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
   const [showPasswordChangeAlert, setShowPasswordChangeAlert] = useState(false)
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set())
   const [batchSecurityLevel, setBatchSecurityLevel] = useState('')
+  const [customSecurityLevels, setCustomSecurityLevels] = useState<Map<string, string>>(new Map())
   const { securityLevels, isLoading } = useSecurityLevels()
 
   // 设置默认密级
@@ -73,13 +75,25 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
     setSelectedIndices(new Set())
     if (!text.trim()) {
       setParseResult(null)
+      setCustomSecurityLevels(new Map()) // 清空输入时清空自定义密级
       return
     }
-    const result = parseTemporaryParticipants(text, selectedSecurityLevel, defaultPassword)
+    const result = parseTemporaryParticipants(text, selectedSecurityLevel, defaultPassword, customSecurityLevels)
     setParseResult(result)
   }
 
   const handleSecurityLevelChange = (newLevel: string) => {
+    // 在修改默认密级时，将当前已解析的人员密级记录下来，防止被覆盖
+    if (parseResult && parseResult.success.length > 0) {
+      const newCustomLevels = new Map(customSecurityLevels)
+      parseResult.success.forEach(p => {
+        if (!newCustomLevels.has(p.name)) {
+          newCustomLevels.set(p.name, p.securityLevel || selectedSecurityLevel)
+        }
+      })
+      setCustomSecurityLevels(newCustomLevels)
+    }
+    
     setSelectedSecurityLevel(newLevel)
   }
 
@@ -123,6 +137,15 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
   const handleBatchUpdateSecurityLevel = () => {
     if (!parseResult || selectedIndices.size === 0) return
 
+    // 记录用户自定义的密级
+    const newCustomLevels = new Map(customSecurityLevels)
+    parseResult.success.forEach((p, i) => {
+      if (selectedIndices.has(i)) {
+        newCustomLevels.set(p.name, batchSecurityLevel)
+      }
+    })
+    setCustomSecurityLevels(newCustomLevels)
+
     const updated = {
       ...parseResult,
       success: parseResult.success.map((p, i) => 
@@ -139,6 +162,7 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
       setInputText('')
       setParseResult(null)
       setSelectedIndices(new Set())
+      setCustomSecurityLevels(new Map())
     }
   }
 

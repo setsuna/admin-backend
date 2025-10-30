@@ -330,7 +330,7 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                   暂无待添加人员
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
                   {/* 组织架构人员 - 只显示新增的 */}
                   {newlySelectedUsers.map(user => {
                     const securityLevel = securityLevels.find(s => s.value === user.securityLevel)
@@ -341,30 +341,23 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                     }
                     const securityColor = securityColorMap[user.securityLevel] || 'bg-gray-500'
                     return (
-                      <Card 
-                        key={user.id} 
-                        hover="lift" 
-                        className="p-3 border border-gray-300"
+                      <span
+                        key={user.id}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm bg-white text-gray-700 border border-gray-300"
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium truncate">{user.name}</span>
-                              {securityLevel && (
-                                <span className={`text-xs px-1.5 py-0.5 rounded text-white flex-shrink-0 ${securityColor}`}>
-                                  {securityLevel.name}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => handleRemoveTempUser(user.id)}
-                            className="ml-2 text-text-tertiary hover:text-error transition-colors flex-shrink-0"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </Card>
+                        <span>{user.name}</span>
+                        {securityLevel && (
+                          <span className={`text-xs px-1.5 py-0.5 rounded text-white ${securityColor}`}>
+                            {securityLevel.name}
+                          </span>
+                        )}
+                        <button
+                          onClick={() => handleRemoveTempUser(user.id)}
+                          className="hover:text-gray-900 transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
                     )
                   })}
                   
@@ -378,30 +371,23 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                     }
                     const securityColor = securityColorMap[participant.securityLevel || ''] || 'bg-gray-500'
                     return (
-                      <Card 
-                        key={index} 
-                        hover="lift" 
-                        className="p-3 border border-dashed border-gray-400"
+                      <span
+                        key={index}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm bg-white text-gray-700 border border-dashed border-gray-400"
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium truncate">{participant.name}</span>
-                              {securityLevel && (
-                                <span className={`text-xs px-1.5 py-0.5 rounded text-white flex-shrink-0 ${securityColor}`}>
-                                  {securityLevel.name}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => handleRemoveTempParticipant(index)}
-                            className="ml-2 text-text-tertiary hover:text-error transition-colors flex-shrink-0"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </Card>
+                        <span>{participant.name}</span>
+                        {securityLevel && (
+                          <span className={`text-xs px-1.5 py-0.5 rounded text-white ${securityColor}`}>
+                            {securityLevel.name}
+                          </span>
+                        )}
+                        <button
+                          onClick={() => handleRemoveTempParticipant(index)}
+                          className="hover:text-gray-900 transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
                     )
                   })}
                 </div>
