@@ -144,7 +144,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
             animate="fadeIn" 
             className="h-full flex flex-col border-r-0 rounded-r-none shadow-none"
           >
-            <CardHeader className="p-4 border-b bg-bg-container flex-shrink-0 h-[72px]">
+            <CardHeader className="p-4 border-b bg-bg-container flex-shrink-0 h-[72px] rounded-tl-xl">
               <div className="flex items-center justify-between h-full">
                 <h2 className="text-lg font-semibold text-text-primary">基本信息</h2>
               </div>
@@ -168,7 +168,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
             animate="fadeIn" 
             className="h-full flex flex-col border-l-0 rounded-l-none shadow-none"
           >
-            <CardHeader className="p-4 border-b bg-bg-container flex-shrink-0 h-[72px]">
+            <CardHeader className="p-4 border-b bg-bg-container flex-shrink-0 h-[72px] rounded-tr-xl">
               <div className="flex items-center justify-between h-full">
                 <h2 className="text-lg font-semibold text-text-primary">会议议题</h2>
                 <Button variant="outline" size="sm" onClick={addAgenda}>
