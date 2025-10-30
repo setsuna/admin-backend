@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react'
 import { FileText, File, Image, Upload } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { getDropzoneAccept, isFileSupported } from '@/utils'
+import { useSecurityLevels } from '@/hooks/useSecurityLevels'
 import SortableAgendaList from './SortableAgendaList'
 import type { MeetingAgenda, MeetingMaterial, MeetingSecurityLevel } from '@/types'
 
@@ -31,6 +32,9 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
   readOnly = false
 }) => {
   const [editingAgenda, setEditingAgenda] = useState<string | null>(null)
+  
+  // ✅ 获取安全级别选项（按数据字典排序）
+  const { securityLevels } = useSecurityLevels()
   
   const getFileIcon = (fileName: string) => {
     // ✅ 防御性编程：检查 fileName 是否存在
@@ -147,6 +151,7 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
       onReorderMaterials={onReorderMaterials || (() => {})}
       getFileIcon={getFileIcon}
       FileDropzone={FileDropzone}
+      securityLevelOptions={securityLevels}
       readOnly={readOnly}
     />
   )

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { GripVertical, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import type { MeetingMaterial, MeetingSecurityLevel } from '@/types'
+import type { SecurityLevelOption } from '@/hooks/useSecurityLevels'
 
 interface SimpleSortableItemProps {
   material: MeetingMaterial
@@ -14,6 +15,7 @@ interface SimpleSortableItemProps {
   getFileIcon: (fileName: string) => React.ReactNode
   isDragging: boolean
   dragOverIndex: number | null
+  securityLevelOptions: SecurityLevelOption[]
 }
 
 const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
@@ -26,7 +28,8 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
   onUpdateSecurity,
   getFileIcon,
   isDragging,
-  dragOverIndex
+  dragOverIndex,
+  securityLevelOptions
 }) => {
   // ✅ 密级配置：颜色圆点 + 标签
   const securityLevelConfig: Record<MeetingSecurityLevel, { color: string; label: string; textColor: string }> = {
@@ -96,15 +99,16 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
         )}
       </div>
 
-      {/* ✅ 密级选择：3个颜色圆点（绿黄红顺序） */}
+      {/* ✅ 密级选择：动态渲染按数据字典排序 */}
       <div className="flex items-center gap-1.5">
-        {['internal', 'secret', 'confidential'].map((level) => {
-          const config = securityLevelConfig[level as keyof typeof securityLevelConfig]
-          const isSelected = material.securityLevel === level
+        {securityLevelOptions.map((option) => {
+          const config = securityLevelConfig[option.value as keyof typeof securityLevelConfig]
+          if (!config) return null
+          const isSelected = material.securityLevel === option.value
           return (
             <button
-              key={level}
-              onClick={() => onUpdateSecurity(material.id, level as MeetingSecurityLevel)}
+              key={option.value}
+              onClick={() => onUpdateSecurity(material.id, option.value as MeetingSecurityLevel)}
               className={`w-3 h-3 rounded-full transition-all ${
                 isSelected 
                   ? `${config.color} ring-2 ring-offset-1 ring-border` 
@@ -135,6 +139,7 @@ interface SimpleSortableMaterialListProps {
   onRemoveMaterial: (materialId: string) => void
   onUpdateMaterialSecurity: (materialId: string, securityLevel: MeetingSecurityLevel) => void
   getFileIcon: (fileName: string) => React.ReactNode
+  securityLevelOptions: SecurityLevelOption[]
 }
 
 const SimpleSortableMaterialList: React.FC<SimpleSortableMaterialListProps> = ({
@@ -142,7 +147,8 @@ const SimpleSortableMaterialList: React.FC<SimpleSortableMaterialListProps> = ({
   onReorder,
   onRemoveMaterial,
   onUpdateMaterialSecurity,
-  getFileIcon
+  getFileIcon,
+  securityLevelOptions
 }) => {
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
@@ -197,6 +203,7 @@ const SimpleSortableMaterialList: React.FC<SimpleSortableMaterialListProps> = ({
             getFileIcon={getFileIcon}
             isDragging={dragIndex === index}
             dragOverIndex={dragOverIndex}
+            securityLevelOptions={securityLevelOptions}
           />
         ))}
       </div>

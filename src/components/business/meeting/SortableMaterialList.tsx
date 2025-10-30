@@ -24,6 +24,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import type { MeetingMaterial, MeetingSecurityLevel } from '@/types'
+import type { SecurityLevelOption } from '@/hooks/useSecurityLevels'
 
 interface SortableItemProps {
   id: string
@@ -31,6 +32,7 @@ interface SortableItemProps {
   onRemove: (id: string) => void
   onUpdateSecurity: (id: string, level: MeetingSecurityLevel) => void
   getFileIcon: (fileName: string) => React.ReactNode
+  securityLevelOptions: SecurityLevelOption[]
 }
 
 const SortableItem: React.FC<SortableItemProps> = ({
@@ -38,7 +40,8 @@ const SortableItem: React.FC<SortableItemProps> = ({
   material,
   onRemove,
   onUpdateSecurity,
-  getFileIcon
+  getFileIcon,
+  securityLevelOptions
 }) => {
   const {
     attributes,
@@ -54,12 +57,6 @@ const SortableItem: React.FC<SortableItemProps> = ({
     transition,
     opacity: isDragging ? 0.5 : 1,
   }
-
-  const securityLevelOptions = [
-    { value: 'internal', label: '内部' },
-    { value: 'confidential', label: '秘密' },
-    { value: 'secret', label: '机密' }
-  ]
 
   return (
     <div
@@ -94,7 +91,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
       >
         {securityLevelOptions.map(option => (
           <option key={option.value} value={option.value}>
-            {option.label}
+            {option.name}
           </option>
         ))}
       </select>
@@ -118,6 +115,7 @@ interface SortableMaterialListProps {
   onRemoveMaterial: (materialId: string) => void
   onUpdateMaterialSecurity: (materialId: string, securityLevel: MeetingSecurityLevel) => void
   getFileIcon: (fileName: string) => React.ReactNode
+  securityLevelOptions: SecurityLevelOption[]
 }
 
 const SortableMaterialList: React.FC<SortableMaterialListProps> = ({
@@ -125,7 +123,8 @@ const SortableMaterialList: React.FC<SortableMaterialListProps> = ({
   onReorder,
   onRemoveMaterial,
   onUpdateMaterialSecurity,
-  getFileIcon
+  getFileIcon,
+  securityLevelOptions
 }) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -172,6 +171,7 @@ const SortableMaterialList: React.FC<SortableMaterialListProps> = ({
                 onRemove={onRemoveMaterial}
                 onUpdateSecurity={onUpdateMaterialSecurity}
                 getFileIcon={getFileIcon}
+                securityLevelOptions={securityLevelOptions}
               />
             ))}
           </div>

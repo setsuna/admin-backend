@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import SimpleSortableMaterialList from './SimpleSortableMaterialList'
 import type { MeetingAgenda, MeetingMaterial, MeetingSecurityLevel } from '@/types'
+import type { SecurityLevelOption } from '@/hooks/useSecurityLevels'
 
 interface SortableAgendaItemProps {
   agenda: MeetingAgenda
@@ -22,6 +23,7 @@ interface SortableAgendaItemProps {
   onReorderMaterials: (agendaId: string, materials: MeetingMaterial[]) => void
   getFileIcon: (fileName: string) => React.ReactNode
   FileDropzone: React.ComponentType<{ agendaId: string }>
+  securityLevelOptions: SecurityLevelOption[]
   isDragging: boolean
   dragOverIndex: number | null
   canRemove: boolean
@@ -44,6 +46,7 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
   onReorderMaterials,
   getFileIcon,
   FileDropzone,
+  securityLevelOptions,
   isDragging,
   dragOverIndex,
   canRemove
@@ -217,6 +220,7 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
               onUpdateMaterialSecurity(agenda.id, materialId, securityLevel)
             }
             getFileIcon={getFileIcon}
+            securityLevelOptions={securityLevelOptions}
           />
         )}
       </div>
@@ -276,6 +280,7 @@ interface SortableAgendaListProps {
   onReorderMaterials: (agendaId: string, materials: MeetingMaterial[]) => void
   getFileIcon: (fileName: string) => React.ReactNode
   FileDropzone: React.ComponentType<{ agendaId: string }>
+  securityLevelOptions: SecurityLevelOption[]
   readOnly?: boolean
 }
 
@@ -292,7 +297,8 @@ const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
   onUpdateMaterialSecurity,
   onReorderMaterials,
   getFileIcon,
-  FileDropzone
+  FileDropzone,
+  securityLevelOptions
 }) => {
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
@@ -348,6 +354,7 @@ const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
           onReorderMaterials={onReorderMaterials}
           getFileIcon={getFileIcon}
           FileDropzone={FileDropzone}
+          securityLevelOptions={securityLevelOptions}
           isDragging={dragIndex === index}
           dragOverIndex={dragOverIndex}
           canRemove={agendas.length > 1}
