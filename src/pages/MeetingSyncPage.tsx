@@ -1,10 +1,16 @@
 import { useState } from 'react'
 import { Search, RefreshCw, Download } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Card } from '@/components/ui/Card'
+import { useNotifications } from '@/hooks/useNotifications'
 import type { MeetingSyncInfo, SyncDevice, SyncedMeeting, SyncOptions, SyncTask } from '@/types'
 import { DeviceDetailModal } from '@/components/business/sync/DeviceDetailModal'
 import { SyncHistoryModal } from '@/components/business/sync/SyncHistoryModal'
 
 export default function MeetingSyncPage() {
+  const { showError, showSuccess } = useNotifications()
+  
   // Mock数据 - 实际应该从API获取
   const [meetings] = useState<MeetingSyncInfo[]>([
     {
@@ -149,11 +155,11 @@ export default function MeetingSyncPage() {
 
   const handleStartSync = () => {
     if (selectedMeetingIds.length === 0) {
-      alert('请至少选择一个会议')
+      showError('请选择会议', '请至少选择一个会议进行同步')
       return
     }
     if (selectedDeviceIds.length === 0) {
-      alert('请至少选择一个设备')
+      showError('请选择设备', '请至少选择一个设备进行同步')
       return
     }
     
@@ -166,7 +172,7 @@ export default function MeetingSyncPage() {
       options: syncOptions
     })
     
-    alert(`开始同步 ${selectedMeetingIds.length} 个会议到 ${selectedDeviceIds.length} 台设备`)
+    showSuccess('同步已开始', `正在同步 ${selectedMeetingIds.length} 个会议到 ${selectedDeviceIds.length} 台设备`)
   }
 
   const handleDeviceDoubleClick = (device: SyncDevice) => {
@@ -202,7 +208,7 @@ export default function MeetingSyncPage() {
   const handleResyncMeeting = (meetingId: string) => {
     console.log('重新同步会议:', meetingId, '到设备:', selectedDevice?.id)
     // TODO: 调用API重新同步
-    alert('重新同步功能待实现')
+    showSuccess('重新同步', '已加入同步队列')
   }
 
   const getSecurityLevelStyle = (level: string) => {
@@ -246,37 +252,37 @@ export default function MeetingSyncPage() {
               type="checkbox"
               checked={batchSyncEnabled}
               onChange={(e) => setBatchSyncEnabled(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300"
+              className="w-4 h-4 rounded border"
             />
             <span className="text-sm font-medium">
               批量同步模式 {batchSyncEnabled && `(监听 ${selectedMeetingIds.length} 个会议)`}
             </span>
           </label>
-          <button 
+          <Button 
+            variant="outline"
             onClick={() => setShowHistory(true)}
-            className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors"
           >
             历史记录
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 grid grid-cols-2 gap-6 overflow-hidden">
         {/* Left Panel - Meeting List */}
-        <div className="flex flex-col border rounded-lg bg-white overflow-hidden">
+        <div className="flex flex-col border rounded-lg bg-card overflow-hidden">
           <div className="p-4 border-b">
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold">会议列表</h2>
             </div>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="搜索会议..."
                 value={searchMeeting}
                 onChange={(e) => setSearchMeeting(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
           </div>
@@ -287,8 +293,8 @@ export default function MeetingSyncPage() {
                 key={meeting.id}
                 className={`border rounded-lg p-4 cursor-pointer transition-all ${
                   selectedMeetingIds.includes(meeting.id)
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                    ? 'border-primary bg-primary/5'
+                    : 'hover:border-muted-foreground/50 hover:shadow-sm'
                 }`}
                 onClick={() => handleMeetingSelect(meeting.id)}
               >
@@ -297,7 +303,7 @@ export default function MeetingSyncPage() {
                     type="checkbox"
                     checked={selectedMeetingIds.includes(meeting.id)}
                     onChange={() => {}}
-                    className="mt-1 w-4 h-4 rounded border-gray-300"
+                    className="mt-1 w-4 h-4 rounded border"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
@@ -306,12 +312,12 @@ export default function MeetingSyncPage() {
                       </span>
                       <span className="font-medium truncate">{meeting.title}</span>
                     </div>
-                    <div className="text-sm text-gray-600 space-y-1">
+                    <div className="text-sm text-muted-foreground space-y-1">
                       <div>{meeting.meetingDate} | 125MB</div>
                       <div className="flex items-center gap-2">
                         <span>{meeting.syncedDeviceCount}/20台已同步</span>
                         {meeting.autoSyncEnabled && (
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                          <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full" style={{ backgroundColor: 'hsl(var(--success) / 0.1)', color: 'hsl(var(--success))' }}>
                             自动同步
                           </span>
                         )}
@@ -323,30 +329,31 @@ export default function MeetingSyncPage() {
             ))}
           </div>
 
-          <div className="p-4 border-t bg-gray-50">
-            <div className="text-sm text-gray-600">
+          <div className="p-4 border-t bg-muted">
+            <div className="text-sm text-muted-foreground">
               已选择: {selectedMeetingIds.length} 个会议
             </div>
           </div>
         </div>
 
         {/* Right Panel - Device List */}
-        <div className="flex flex-col border rounded-lg bg-white overflow-hidden">
+        <div className="flex flex-col border rounded-lg bg-card overflow-hidden">
           <div className="p-4 border-b">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-semibold">设备列表</h2>
-              <div className="flex gap-2">
-                <button className="p-2 hover:bg-gray-100 rounded transition-colors">
-                  <RefreshCw className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={handleSelectAllDevices}
-                  className="px-3 py-1 text-sm hover:bg-gray-100 rounded transition-colors"
-                >
-                  全选
-                </button>
+            <h2 className="font-semibold">设备列表</h2>
+            <div className="flex gap-2">
+            <Button variant="ghost" size="sm">
+            <RefreshCw className="w-4 h-4" />
+            </Button>
+            <Button
+            variant="ghost"
+            size="sm"
+              onClick={handleSelectAllDevices}
+            >
+              全选
+              </Button>
               </div>
-            </div>
+              </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4">
@@ -356,8 +363,8 @@ export default function MeetingSyncPage() {
                 key={device.id}
                 className={`border rounded-lg p-4 cursor-pointer transition-all ${
                   selectedDeviceIds.includes(device.id)
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                    ? 'border-primary bg-primary/5'
+                    : 'hover:border-muted-foreground/50 hover:shadow-sm'
                 }`}
                 onClick={() => handleDeviceSelect(device.id)}
                 onDoubleClick={() => handleDeviceDoubleClick(device)}
@@ -367,20 +374,20 @@ export default function MeetingSyncPage() {
                     type="checkbox"
                     checked={selectedDeviceIds.includes(device.id)}
                     onChange={() => {}}
-                    className="mt-1 w-4 h-4 rounded border-gray-300"
+                    className="mt-1 w-4 h-4 rounded border"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium mb-2">{device.name}</div>
-                    <div className="text-sm text-gray-600 space-y-1">
+                    <div className="text-sm text-muted-foreground space-y-1">
                       <div>{device.usedStorage}MB / {device.totalStorage}MB</div>
                       <div>已同步: {device.syncedMeetingCount} 个会议</div>
                       {device.lastSyncTime && (
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground/70">
                           最后同步: {new Date(device.lastSyncTime).toLocaleString()}
                         </div>
                       )}
                     </div>
-                    <div className="mt-2 text-xs text-gray-400">
+                    <div className="mt-2 text-xs text-muted-foreground/60">
                       双击查看详情
                     </div>
                   </div>
@@ -390,8 +397,8 @@ export default function MeetingSyncPage() {
             </div>
           </div>
 
-          <div className="p-4 border-t bg-gray-50">
-            <div className="text-sm text-gray-600">
+          <div className="p-4 border-t bg-muted">
+            <div className="text-sm text-muted-foreground">
               已选择: {selectedDeviceIds.length} 台设备 | 预计需要: {selectedMeetingsSize}MB
             </div>
           </div>
@@ -400,17 +407,16 @@ export default function MeetingSyncPage() {
 
       {/* Sync Options & Actions */}
       <div className="mt-6 border-t pt-6">
-        <div className="flex items-center justify-between">
-          <div className="flex gap-3">
-            <button
-              onClick={handleStartSync}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
-              disabled={selectedMeetingIds.length === 0 || selectedDeviceIds.length === 0}
-            >
-              开始同步
-            </button>
-          </div>
-        </div>
+      <div className="flex items-center justify-between">
+      <div className="flex gap-3">
+      <Button
+      onClick={handleStartSync}
+      disabled={selectedMeetingIds.length === 0 || selectedDeviceIds.length === 0}
+      >
+        开始同步
+      </Button>
+      </div>
+      </div>
       </div>
 
       {/* Device Detail Modal */}
