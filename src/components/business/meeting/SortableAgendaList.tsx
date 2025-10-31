@@ -266,6 +266,9 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
                     {vote.isAnonymous && (
                       <Badge variant="outline" size="sm">匿名</Badge>
                     )}
+                    {vote.voteType === 'custom' && vote.allowMultiple && (
+                      <Badge variant="outline" size="sm">多选</Badge>
+                    )}
                     {vote.securityLevel && (
                       <Badge variant="warning" size="sm">
                         {securityLevelOptions.find(opt => opt.value === vote.securityLevel)?.label || vote.securityLevel}
@@ -381,7 +384,7 @@ interface SortableAgendaListProps {
 
 const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
   agendas,
-  votes,
+  votes: votesProps,
   editingAgenda,
   onReorderAgendas,
   onRemoveAgenda,
@@ -401,6 +404,9 @@ const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
   readOnly = false,
   systemSecurityLevel
 }) => {
+  // 🛡️ 防御性编程：确保 votes 是数组
+  const votes = Array.isArray(votesProps) ? votesProps : []
+  
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 

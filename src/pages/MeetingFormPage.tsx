@@ -304,6 +304,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
               voteType: editingVote.voteType,
               options: editingVote.options,
               isAnonymous: editingVote.isAnonymous,
+              allowMultiple: editingVote.allowMultiple,
               securityLevel: editingVote.securityLevel
             } : undefined}
           />

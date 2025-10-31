@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMeetingDraft } from './useMeetingDraft'
 import { useMeetingAgenda } from './useMeetingAgenda'
 import { useMeetingMaterial } from './useMeetingMaterial'
+import { useMeetingVote } from './useMeetingVote'
 import { useNotifications } from './useNotifications'
 import { meetingApi } from '@/services/meeting'
 import { participantApi } from '@/services/api/participant.api'
@@ -78,11 +79,20 @@ export function useMeetingForm(
     reorderMaterials 
   } = useMeetingMaterial(currentMeetingId)
   
+  // 投票管理
+  const {
+    votes: votesData,
+    loadVotes,
+    addVote: addVoteToApi,
+    updateVote: updateVoteToApi,
+    removeVote: removeVoteFromApi
+  } = useMeetingVote(currentMeetingId)
+  
+  // 🛡️ 防御性编程：确保 votes 始终是数组
+  const votes = Array.isArray(votesData) ? votesData : []
+  
   // 表单数据状态
   const [formData, setFormData] = useState<MeetingFormData>(getInitialFormData)
-  
-  // 投票状态管理
-  const [votes, setVotes] = useState<MeetingVote[]>([])
   
   const agendasInitializedRef = useRef(false)
   const prevAgendasLengthRef = useRef(0)
@@ -134,6 +144,7 @@ export function useMeetingForm(
     }))
     
     loadAgendas()
+    loadVotes()
   }, [mode, meeting, participants])
   
   // ===== 创建模式：初始化议题 =====
@@ -205,54 +216,43 @@ export function useMeetingForm(
     await uploadFiles(agendaId, files, formData.securityLevel)
   }
   
-  // 投票管理
-  const addVote = (agendaId: string, voteData: {
+  // 投票管理 - 使用 Hook 提供的方法
+  const addVote = async (agendaId: string, voteData: {
     title: string
     voteType: VoteType
     options: VoteOption[]
     isAnonymous: boolean
+    allowMultiple?: boolean
     securityLevel: MeetingSecurityLevel | null
   }) => {
-    const newVote: MeetingVote = {
-      id: `vote-${Date.now()}`,
-      meetingId: currentMeetingId || '',
-      agendaId,
-      title: voteData.title,
-      voteType: voteData.voteType,
-      options: voteData.options,
-      isAnonymous: voteData.isAnonymous,
-      securityLevel: voteData.securityLevel,
-      orderNum: votes.filter(v => v.agendaId === agendaId).length,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+    try {
+      await addVoteToApi(agendaId, voteData)
+    } catch (error) {
+      console.error('添加投票失败:', error)
     }
-    setVotes(prev => [...prev, newVote])
   }
   
-  const removeVote = (agendaId: string, voteId: string) => {
-    setVotes(prev => prev.filter(v => v.id !== voteId))
+  const removeVote = async (agendaId: string, voteId: string) => {
+    try {
+      await removeVoteFromApi(agendaId, voteId)
+    } catch (error) {
+      console.error('删除投票失败:', error)
+    }
   }
   
-  const updateVote = (agendaId: string, voteId: string, voteData: {
+  const updateVote = async (agendaId: string, voteId: string, voteData: {
     title: string
     voteType: VoteType
     options: VoteOption[]
     isAnonymous: boolean
+    allowMultiple?: boolean
     securityLevel: MeetingSecurityLevel | null
   }) => {
-    setVotes(prev => prev.map(v => 
-      v.id === voteId 
-        ? {
-            ...v,
-            title: voteData.title,
-            voteType: voteData.voteType,
-            options: voteData.options,
-            isAnonymous: voteData.isAnonymous,
-            securityLevel: voteData.securityLevel,
-            updatedAt: new Date().toISOString()
-          }
-        : v
-    ))
+    try {
+      await updateVoteToApi(agendaId, voteId, voteData)
+    } catch (error) {
+      console.error('更新投票失败:', error)
+    }
   }
   
   // 表单验证

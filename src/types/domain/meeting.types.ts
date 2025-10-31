@@ -224,6 +224,7 @@ export interface MeetingVote {
   voteType: VoteType
   options: VoteOption[]
   isAnonymous: boolean
+  allowMultiple?: boolean  // 是否允许多选（仅自定义类型）
   securityLevel: MeetingSecurityLevel | null
   orderNum?: number
   createdAt: string

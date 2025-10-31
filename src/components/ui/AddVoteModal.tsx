@@ -29,6 +29,7 @@ interface AddVoteModalProps {
     voteType: VoteType
     options: VoteOption[]
     isAnonymous: boolean
+    allowMultiple?: boolean
     securityLevel: MeetingSecurityLevel | null
   }) => void
   systemSecurityLevel?: 'confidential' | 'secret'
@@ -37,6 +38,7 @@ interface AddVoteModalProps {
     voteType: VoteType
     options: VoteOption[]
     isAnonymous: boolean
+    allowMultiple?: boolean
     securityLevel: MeetingSecurityLevel | null
   }
 }
@@ -61,6 +63,7 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
     { id: '1', label: '', orderNum: 0 }
   ])
   const [isAnonymous, setIsAnonymous] = useState(false)
+  const [allowMultiple, setAllowMultiple] = useState(false)
   const [securityLevel, setSecurityLevel] = useState<string>('')
 
   useEffect(() => {
@@ -68,6 +71,7 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
       setTitle(initialData.title)
       setVoteType(initialData.voteType)
       setIsAnonymous(initialData.isAnonymous)
+      setAllowMultiple(initialData.allowMultiple || false)
       setSecurityLevel(initialData.securityLevel || '')
       if (initialData.voteType === 'custom') {
         setCustomOptions(initialData.options)
@@ -77,6 +81,7 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
       setVoteType('simple')
       setCustomOptions([{ id: '1', label: '', orderNum: 0 }])
       setIsAnonymous(false)
+      setAllowMultiple(false)
       setSecurityLevel('')
     }
   }, [open, initialData])
@@ -119,6 +124,7 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
       voteType,
       options,
       isAnonymous,
+      allowMultiple: voteType === 'custom' ? allowMultiple : undefined,
       securityLevel: securityLevel || null
     })
 
@@ -206,7 +212,7 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
             </div>
           )}
 
-          <div>
+          <div className="space-y-3">
             <label className="flex items-center gap-2 cursor-pointer">
               <Checkbox
                 checked={isAnonymous}
@@ -214,6 +220,17 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
               />
               <span className="text-sm text-text-primary">匿名投票</span>
             </label>
+            
+            {voteType === 'custom' && (
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={allowMultiple}
+                  onCheckedChange={(checked) => setAllowMultiple(checked as boolean)}
+                />
+                <span className="text-sm text-text-primary">允许多选</span>
+                <span className="text-xs text-text-tertiary">(可选择多个选项)</span>
+              </label>
+            )}
           </div>
 
           <div>
