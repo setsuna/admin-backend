@@ -61,20 +61,22 @@ class VoteService {
       isAnonymous: boolean
       allowMultiple?: boolean
       securityLevel: MeetingSecurityLevel | null
-      orderNum?: number
+      orderNum: number
     }
   ): Promise<MeetingVote> {
     const apiData: CreateVoteRequest = {
       title: voteData.title,
       vote_type: voteData.voteType,
+      agenda_id: agendaId,
+      order_num: voteData.orderNum,
       options: voteData.options.map(opt => ({
         id: opt.id,
         label: opt.label,
+        value: opt.value,
         order_num: opt.orderNum
       })),
       is_anonymous: voteData.isAnonymous,
-      security_level: voteData.securityLevel,
-      agenda_id: agendaId
+      security_level: voteData.securityLevel
     }
     
     if (voteData.voteType === 'custom' && voteData.allowMultiple !== undefined) {
@@ -98,21 +100,24 @@ class VoteService {
       allowMultiple?: boolean
       securityLevel: MeetingSecurityLevel | null
       agendaId: string
+      orderNum: number
     }>
   ): Promise<MeetingVote[]> {
     const apiData = {
       votes: votes.map(v => ({
         title: v.title,
         vote_type: v.voteType,
+        agenda_id: v.agendaId,
+        order_num: v.orderNum,
         options: v.options.map(opt => ({
           id: opt.id,
           label: opt.label,
+          value: opt.value,
           order_num: opt.orderNum
         })),
         is_anonymous: v.isAnonymous,
         allow_multiple: v.allowMultiple,
-        security_level: v.securityLevel,
-        agenda_id: v.agendaId
+        security_level: v.securityLevel
       }))
     }
 
@@ -142,6 +147,7 @@ class VoteService {
       apiUpdates.options = updates.options.map(opt => ({
         id: opt.id,
         label: opt.label,
+        value: opt.value,
         order_num: opt.orderNum
       }))
     }
@@ -208,6 +214,7 @@ class VoteService {
       options: (apiVote.options || []).map((opt: any) => ({
         id: opt.id,
         label: opt.label,
+        value: opt.value || opt.id,
         orderNum: opt.order_num ?? opt.orderNum ?? 0
       })),
       isAnonymous: apiVote.is_anonymous ?? apiVote.isAnonymous ?? false,

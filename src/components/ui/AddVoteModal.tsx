@@ -44,9 +44,9 @@ interface AddVoteModalProps {
 }
 
 const SIMPLE_VOTE_OPTIONS: VoteOption[] = [
-  { id: 'agree', label: '赞成', orderNum: 0 },
-  { id: 'disagree', label: '反对', orderNum: 1 },
-  { id: 'abstain', label: '弃权', orderNum: 2 }
+  { id: 'agree', label: '赞成', value: 'agree', orderNum: 0 },
+  { id: 'disagree', label: '反对', value: 'disagree', orderNum: 1 },
+  { id: 'abstain', label: '弃权', value: 'abstain', orderNum: 2 }
 ]
 
 export const AddVoteModal: React.FC<AddVoteModalProps> = ({
@@ -59,7 +59,7 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
   const [title, setTitle] = useState('')
   const [voteType, setVoteType] = useState<VoteType>('simple')
   const [customOptions, setCustomOptions] = useState<VoteOption[]>([
-    { id: '1', label: '', orderNum: 0 }
+    { id: '1', label: '', value: '1', orderNum: 0 }
   ])
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [allowMultiple, setAllowMultiple] = useState(false)
@@ -78,7 +78,7 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
     } else if (open) {
       setTitle('')
       setVoteType('simple')
-      setCustomOptions([{ id: '1', label: '', orderNum: 0 }])
+      setCustomOptions([{ id: '1', label: '', value: '1', orderNum: 0 }])
       setIsAnonymous(false)
       setAllowMultiple(false)
       setSecurityLevel('')
@@ -90,6 +90,7 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
     setCustomOptions([...customOptions, { 
       id: newId, 
       label: '', 
+      value: newId,
       orderNum: customOptions.length 
     }])
   }

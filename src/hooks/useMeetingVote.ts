@@ -62,7 +62,7 @@ export function useMeetingVote(meetingId: string | null) {
       if (!meetingId) throw new Error('会议ID不存在')
 
       const agendaVotes = votes.filter(v => v.agendaId === agendaId)
-      const orderNum = agendaVotes.length
+      const orderNum = agendaVotes.length + 1
 
       return await voteService.createVote(meetingId, agendaId, {
         ...voteData,

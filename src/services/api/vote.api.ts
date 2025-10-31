@@ -21,17 +21,18 @@ export interface VoteFilters {
 export interface CreateVoteRequest {
   title: string
   vote_type: 'simple' | 'custom'
-  options: Array<{ id: string; label: string; order_num: number }>
+  agenda_id: string
+  order_num: number
+  options: Array<{ id: string; label: string; value: string; order_num: number }>
   is_anonymous: boolean
   allow_multiple?: boolean
   security_level: string | null
-  agenda_id?: string
 }
 
 export interface UpdateVoteRequest {
   title?: string
   vote_type?: 'simple' | 'custom'
-  options?: Array<{ id: string; label: string; order_num: number }>
+  options?: Array<{ id: string; label: string; value: string; order_num: number }>
   is_anonymous?: boolean
   allow_multiple?: boolean
   security_level?: string | null

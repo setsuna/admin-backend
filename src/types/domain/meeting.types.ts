@@ -210,6 +210,7 @@ export type VoteType = 'simple' | 'custom'
 export interface VoteOption {
   id: string
   label: string
+  value: string
   orderNum: number
 }
 
