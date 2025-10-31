@@ -26,16 +26,7 @@ const AnomalyAlertsPage = lazy(() =>
     )
   })
 )
-const SyncStatusPage = lazy(() => 
-  Promise.resolve({
-    default: () => (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">会议同步</h1>
-        <p className="text-muted-foreground">会议同步页面待开发</p>
-      </div>
-    )
-  })
-)
+const MeetingSyncPage = lazy(() => import('@/pages/MeetingSyncPage'))
 
 
 
@@ -218,7 +209,7 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permissions={['sync:read']}>
             <LazyWrapper>
-              <SyncStatusPage />
+              <MeetingSyncPage />
             </LazyWrapper>
           </PermissionGuard>
         ),

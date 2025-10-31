@@ -39,3 +39,6 @@ export type {
   DeviceType as SystemDeviceType,
   DeviceStatus as SystemDeviceStatus
 } from './system.types'
+
+// 同步领域类型
+export * from './sync.types'
