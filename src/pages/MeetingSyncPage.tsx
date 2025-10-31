@@ -401,51 +401,7 @@ export default function MeetingSyncPage() {
       {/* Sync Options & Actions */}
       <div className="mt-6 border-t pt-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6 text-sm">
-            <span className="font-medium text-gray-700">同步设置:</span>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={syncOptions.includeMaterials}
-                onChange={(e) => setSyncOptions(prev => ({ ...prev, includeMaterials: e.target.checked }))}
-                className="w-4 h-4 rounded border-gray-300"
-              />
-              <span>包含会议材料</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={syncOptions.includeAgenda}
-                onChange={(e) => setSyncOptions(prev => ({ ...prev, includeAgenda: e.target.checked }))}
-                className="w-4 h-4 rounded border-gray-300"
-              />
-              <span>包含议程</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={syncOptions.includeRecording}
-                onChange={(e) => setSyncOptions(prev => ({ ...prev, includeRecording: e.target.checked }))}
-                className="w-4 h-4 rounded border-gray-300"
-              />
-              <span>包含录音(如有)</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={syncOptions.overwriteExisting}
-                onChange={(e) => setSyncOptions(prev => ({ ...prev, overwriteExisting: e.target.checked }))}
-                className="w-4 h-4 rounded border-gray-300"
-              />
-              <span>覆盖已有文件</span>
-            </label>
-          </div>
-
           <div className="flex gap-3">
-            <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition-colors flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              预览同步包
-            </button>
             <button
               onClick={handleStartSync}
               className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"

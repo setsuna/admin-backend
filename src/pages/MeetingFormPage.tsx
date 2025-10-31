@@ -174,10 +174,12 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
             <CardHeader className="p-4 border-b bg-bg-container flex-shrink-0 h-[72px] rounded-tr-xl">
               <div className="flex items-center justify-between h-full">
                 <h2 className="text-lg font-semibold text-text-primary">会议议题</h2>
-                <Button variant="outline" size="sm" onClick={addAgenda}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  添加议题
-                </Button>
+                {mode !== 'view' && (
+                  <Button variant="outline" size="sm" onClick={addAgenda}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    添加议题
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent className="flex-1 p-4 overflow-y-auto">

@@ -13,6 +13,7 @@ export * from './domain/meeting.types'
 export * from './domain/user.types'
 export * from './domain/system.types'
 export * from './domain/license.types'
+export * from './domain/sync.types'
 
 // ========== API 类型 ==========
 export * from './api/request.types'

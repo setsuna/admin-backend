@@ -16,6 +16,7 @@ interface SimpleSortableItemProps {
   isDragging: boolean
   dragOverIndex: number | null
   securityLevelOptions: SecurityLevelOption[]
+  readOnly?: boolean
   systemSecurityLevel?: 'confidential' | 'secret'
 }
 
@@ -31,6 +32,7 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
   isDragging,
   dragOverIndex,
   securityLevelOptions,
+  readOnly = false,
   systemSecurityLevel
 }) => {
   // ✅ 密级配置：颜色圆点 + 标签
@@ -79,13 +81,13 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
 
   return (
     <div
-      draggable
-      onDragStart={() => onDragStart(index)}
-      onDragOver={(e) => {
+      draggable={!readOnly}
+      onDragStart={!readOnly ? () => onDragStart(index) : undefined}
+      onDragOver={!readOnly ? (e) => {
         e.preventDefault()
         onDragOver(index)
-      }}
-      onDragEnd={onDragEnd}
+      } : undefined}
+      onDragEnd={!readOnly ? onDragEnd : undefined}
       className={`flex items-center gap-3 p-2 rounded-md group transition-all ${
         isCurrentDragging 
           ? 'opacity-50 scale-95' 
@@ -95,9 +97,11 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
       }`}
     >
       {/* 拖拽手柄 */}
-      <div className="cursor-grab active:cursor-grabbing text-text-tertiary hover:text-text-secondary">
-        <GripVertical className="h-4 w-4" />
-      </div>
+      {!readOnly && (
+        <div className="cursor-grab active:cursor-grabbing text-text-tertiary hover:text-text-secondary">
+          <GripVertical className="h-4 w-4" />
+        </div>
+      )}
 
       {/* 文件信息 */}
       <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -114,39 +118,43 @@ const SimpleSortableItem: React.FC<SimpleSortableItemProps> = ({
       </div>
 
       {/* ✅ 密级选择：动态渲染按数据字典排序 */}
-      <div className="flex items-center gap-1.5">
-        {securityLevelOptions.map((option) => {
-          const config = securityLevelConfig[option.value as keyof typeof securityLevelConfig]
-          if (!config) return null
-          const isSelected = material.securityLevel === option.value
-          const disabled = isSecurityLevelDisabled(option.value)
-          return (
-            <button
-              key={option.value}
-              onClick={() => !disabled && onUpdateSecurity(material.id, option.value as MeetingSecurityLevel)}
-              disabled={disabled}
-              className={`w-3 h-3 rounded-full transition-all ${
-                isSelected 
-                  ? `${config.color} ring-2 ring-offset-1 ring-border` 
-                  : disabled
-                  ? `${config.color} opacity-20 cursor-not-allowed`
-                  : `${config.color} opacity-40 hover:opacity-70`
-              }`}
-              title={disabled ? `超出系统密级限制 ${config.label}` : config.label}
-            />
-          )
-        })}
-      </div>
+      {!readOnly && (
+        <div className="flex items-center gap-1.5">
+          {securityLevelOptions.map((option) => {
+            const config = securityLevelConfig[option.value as keyof typeof securityLevelConfig]
+            if (!config) return null
+            const isSelected = material.securityLevel === option.value
+            const disabled = isSecurityLevelDisabled(option.value)
+            return (
+              <button
+                key={option.value}
+                onClick={() => !disabled && onUpdateSecurity(material.id, option.value as MeetingSecurityLevel)}
+                disabled={disabled}
+                className={`w-3 h-3 rounded-full transition-all ${
+                  isSelected 
+                    ? `${config.color} ring-2 ring-offset-1 ring-border` 
+                    : disabled
+                    ? `${config.color} opacity-20 cursor-not-allowed`
+                    : `${config.color} opacity-40 hover:opacity-70`
+                }`}
+                title={disabled ? `超出系统密级限制 ${config.label}` : config.label}
+              />
+            )
+          })}
+        </div>
+      )}
 
       {/* 删除按钮 */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => onRemove(material.id)}
-        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-text-tertiary hover:text-error"
-      >
-        <X className="h-3 w-3" />
-      </Button>
+      {!readOnly && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onRemove(material.id)}
+          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-text-tertiary hover:text-error"
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
     </div>
   )
 }
@@ -158,6 +166,7 @@ interface SimpleSortableMaterialListProps {
   onUpdateMaterialSecurity: (materialId: string, securityLevel: MeetingSecurityLevel) => void
   getFileIcon: (fileName: string) => React.ReactNode
   securityLevelOptions: SecurityLevelOption[]
+  readOnly?: boolean
   systemSecurityLevel?: 'confidential' | 'secret'
 }
 
@@ -168,6 +177,7 @@ const SimpleSortableMaterialList: React.FC<SimpleSortableMaterialListProps> = ({
   onUpdateMaterialSecurity,
   getFileIcon,
   securityLevelOptions,
+  readOnly = false,
   systemSecurityLevel
 }) => {
   const [dragIndex, setDragIndex] = useState<number | null>(null)
@@ -224,6 +234,7 @@ const SimpleSortableMaterialList: React.FC<SimpleSortableMaterialListProps> = ({
             isDragging={dragIndex === index}
             dragOverIndex={dragOverIndex}
             securityLevelOptions={securityLevelOptions}
+            readOnly={readOnly}
             systemSecurityLevel={systemSecurityLevel}
           />
         ))}

@@ -27,6 +27,7 @@ interface SortableAgendaItemProps {
   isDragging: boolean
   dragOverIndex: number | null
   canRemove: boolean
+  readOnly?: boolean
   systemSecurityLevel?: 'confidential' | 'secret'
 }
 
@@ -51,6 +52,7 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
   isDragging,
   dragOverIndex,
   canRemove,
+  readOnly = false,
   systemSecurityLevel
 }) => {
   const isCurrentDragging = isDragging
@@ -118,13 +120,13 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
 
   return (
     <div
-      draggable
-      onDragStart={() => onDragStart(index)}
-      onDragOver={(e) => {
+      draggable={!readOnly}
+      onDragStart={!readOnly ? () => onDragStart(index) : undefined}
+      onDragOver={!readOnly ? (e) => {
         e.preventDefault()
         onDragOver(index)
-      }}
-      onDragEnd={onDragEnd}
+      } : undefined}
+      onDragEnd={!readOnly ? onDragEnd : undefined}
       className={`border border-border rounded-lg overflow-hidden transition-all ${
         isCurrentDragging 
           ? 'opacity-50 scale-95' 
@@ -137,9 +139,11 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
       <div className="bg-primary/5 border-b border-border p-3">
         <div className="flex items-center gap-3">
           {/* 拖拽手柄 */}
-          <div className="cursor-grab active:cursor-grabbing text-text-tertiary hover:text-text-secondary">
-            <GripVertical className="h-4 w-4" />
-          </div>
+          {!readOnly && (
+            <div className="cursor-grab active:cursor-grabbing text-text-tertiary hover:text-text-secondary">
+              <GripVertical className="h-4 w-4" />
+            </div>
+          )}
           
           <div className="flex items-center gap-2 flex-1">
             <div className="w-6 h-6 bg-primary text-text-inverse rounded-full flex items-center justify-center text-sm font-medium">
@@ -161,13 +165,13 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
               />
             ) : (
               <div 
-                className="flex-1 cursor-pointer hover:bg-primary/10 rounded px-2 py-1 transition-colors"
-                onClick={() => onStartEdit(agenda.id)}
+                className={`flex-1 ${!readOnly ? 'cursor-pointer hover:bg-primary/10' : ''} rounded px-2 py-1 transition-colors`}
+                onClick={!readOnly ? () => onStartEdit(agenda.id) : undefined}
               >
                 <span className="text-sm font-medium text-text-primary">
                   {agenda.title || `议题 ${index + 1}`}
                 </span>
-                {!agenda.title && (
+                {!agenda.title && !readOnly && (
                   <span className="text-xs text-text-regular ml-2">点击编辑</span>
                 )}
               </div>
@@ -176,22 +180,24 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
           
           <div className="flex items-center gap-1">
             {/* 🎯 问题3修复：编辑主讲人按钮 */}
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => setShowPresenterModal(true)}
-              className="h-8 w-8 p-0 text-text-regular hover:text-primary"
-              title="编辑主讲人"
-            >
-              <User className="h-4 w-4" />
-            </Button>
+            {!readOnly && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowPresenterModal(true)}
+                className="h-8 w-8 p-0 text-text-regular hover:text-primary"
+                title="编辑主讲人"
+              >
+                <User className="h-4 w-4" />
+              </Button>
+            )}
             {/* 🎯 问题1修复：主讲人显示在按钮后面，不显示图标避免重复 */}
             {agenda.presenter && (
               <span className="text-xs text-text-secondary bg-primary/5 px-2 py-0.5 rounded">
                 {agenda.presenter}
               </span>
             )}
-            {canRemove && (
+            {!readOnly && canRemove && (
               <Button 
                 variant="ghost" 
                 size="sm"
@@ -208,9 +214,11 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
       {/* 议题内容 */}
       <div className="p-4 space-y-4">
         {/* 材料上传区域 */}
-        <div>
-          <FileDropzone agendaId={agenda.id} />
-        </div>
+        {!readOnly && (
+          <div>
+            <FileDropzone agendaId={agenda.id} />
+          </div>
+        )}
 
         {/* 已上传材料列表 */}
         {agenda.materials.length > 0 && (
@@ -223,6 +231,7 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
             }
             getFileIcon={getFileIcon}
             securityLevelOptions={securityLevelOptions}
+            readOnly={readOnly}
             systemSecurityLevel={systemSecurityLevel}
           />
         )}
@@ -303,6 +312,7 @@ const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
   getFileIcon,
   FileDropzone,
   securityLevelOptions,
+  readOnly = false,
   systemSecurityLevel
 }) => {
   const [dragIndex, setDragIndex] = useState<number | null>(null)
@@ -363,6 +373,7 @@ const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
           isDragging={dragIndex === index}
           dragOverIndex={dragOverIndex}
           canRemove={agendas.length > 1}
+          readOnly={readOnly}
           systemSecurityLevel={systemSecurityLevel}
         />
       ))}

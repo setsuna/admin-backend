@@ -1,6 +1,6 @@
 import { X, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { useState } from 'react'
-import type { SyncTask } from '@/types'
+import type { SyncTask, SyncTaskStatus } from '@/types'
 
 interface SyncHistoryModalProps {
   isOpen: boolean
@@ -19,8 +19,14 @@ export function SyncHistoryModal({ isOpen, onClose, tasks }: SyncHistoryModalPro
     ? tasks 
     : tasks.filter(task => task.status === filterStatus)
 
-  const getStatusConfig = (status: SyncTask['status']) => {
-    const configs = {
+  const getStatusConfig = (status: SyncTaskStatus) => {
+    const configs: Record<SyncTaskStatus, {
+      icon: typeof Clock
+      text: string
+      bgColor: string
+      textColor: string
+      iconColor: string
+    }> = {
       pending: {
         icon: Clock,
         text: '等待中',
