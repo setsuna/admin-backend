@@ -164,7 +164,7 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
                 <SelectValue placeholder="选择投票类型" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="simple">简单表决（赞成/反对/弃权）</SelectItem>
+                <SelectItem value="simple">意见表决（赞成/反对/弃权）</SelectItem>
                 <SelectItem value="custom">自定义选项</SelectItem>
               </SelectContent>
             </Select>
@@ -233,7 +233,7 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
             )}
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-text-primary mb-2">
               安全等级
             </label>
@@ -245,7 +245,7 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
                 ...securityLevels
               ]}
             />
-          </div>
+          </div> */}
         </div>
 
         <DialogFooter>
