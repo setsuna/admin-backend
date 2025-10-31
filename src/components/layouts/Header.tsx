@@ -45,7 +45,7 @@ export function Header({ className }: HeaderProps) {
       '/data-dictionary': { module: '系统配置', page: '数据字典' },
       '/basic-config': { module: '系统配置', page: '基础配置' },
       '/system-logs': { module: '系统监控', page: '系统日志' },
-      '/admin-logs': { module: '系统监控', page: '操作日志（系统员）' },
+      '/admin-logs': { module: '系统监控', page: '操作日志（安全管理员员）' },
       '/audit-logs': { module: '系统监控', page: '操作日志（审计员）' },
       '/anomaly-alerts': { module: '系统监控', page: '异常行为告警' },
     }
