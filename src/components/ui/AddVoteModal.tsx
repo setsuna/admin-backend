@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from './Button'
 import { Input } from './Input'
-import { Select } from './Select'
-import { Checkbox } from './Checkbox'
-import SecurityLevelSelect from './SecurityLevelSelect'
 import { Plus, X } from 'lucide-react'
 import { useSecurityLevels } from '@/hooks/useSecurityLevels'
 import {
@@ -13,6 +10,15 @@ import {
   DialogTitle,
   DialogFooter,
 } from './Dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './SelectNew'
+import { Checkbox } from './CheckboxNew'
+import SecurityLevelSelect from './SecurityLevelSelect'
 import type { VoteType, VoteOption, MeetingSecurityLevel } from '@/types'
 
 interface AddVoteModalProps {
@@ -147,14 +153,15 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
             <label className="block text-sm font-medium text-text-primary mb-2">
               投票类型 <span className="text-error">*</span>
             </label>
-            <Select
-              value={voteType}
-              onChange={(e) => setVoteType(e.target.value as VoteType)}
-              options={[
-                { value: 'simple', label: '简单表决（赞成/反对/弃权）' },
-                { value: 'custom', label: '自定义选项' }
-              ]}
-            />
+            <Select value={voteType} onValueChange={(value) => setVoteType(value as VoteType)}>
+              <SelectTrigger>
+                <SelectValue placeholder="选择投票类型" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="simple">简单表决（赞成/反对/弃权）</SelectItem>
+                <SelectItem value="custom">自定义选项</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {voteType === 'custom' && (
@@ -203,7 +210,7 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
             <label className="flex items-center gap-2 cursor-pointer">
               <Checkbox
                 checked={isAnonymous}
-                onChange={(e) => setIsAnonymous(e.target.checked)}
+                onCheckedChange={(checked) => setIsAnonymous(checked as boolean)}
               />
               <span className="text-sm text-text-primary">匿名投票</span>
             </label>
