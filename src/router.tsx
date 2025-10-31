@@ -75,7 +75,7 @@ const AdminLogsPage = lazy(() =>
   Promise.resolve({
     default: () => (
       <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">操作日志（系统员）</h1>
+        <h1 className="text-2xl font-bold mb-4">操作日志（安全管理员）</h1>
         <p className="text-muted-foreground">系统员操作日志页面待开发</p>
       </div>
     )
