@@ -1,13 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { GripVertical, Trash2, User } from 'lucide-react'
+import { GripVertical, Trash2, User, Vote } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
 import SimpleSortableMaterialList from './SimpleSortableMaterialList'
-import type { MeetingAgenda, MeetingMaterial, MeetingSecurityLevel } from '@/types'
+import type { MeetingAgenda, MeetingMaterial, MeetingSecurityLevel, MeetingVote } from '@/types'
 import type { SecurityLevelOption } from '@/hooks/useSecurityLevels'
 
 interface SortableAgendaItemProps {
   agenda: MeetingAgenda
+  votes: MeetingVote[]
   index: number
   editingAgenda: string | null
   onDragStart: (index: number) => void
@@ -21,6 +23,9 @@ interface SortableAgendaItemProps {
   onRemoveMaterial: (agendaId: string, materialId: string) => void
   onUpdateMaterialSecurity: (agendaId: string, materialId: string, securityLevel: MeetingSecurityLevel) => void
   onReorderMaterials: (agendaId: string, materials: MeetingMaterial[]) => void
+  onAddVote: (agendaId: string) => void
+  onRemoveVote: (agendaId: string, voteId: string) => void
+  onEditVote: (agendaId: string, vote: MeetingVote) => void
   getFileIcon: (fileName: string) => React.ReactNode
   FileDropzone: React.ComponentType<{ agendaId: string }>
   securityLevelOptions: SecurityLevelOption[]
@@ -33,6 +38,7 @@ interface SortableAgendaItemProps {
 
 const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
   agenda,
+  votes,
   index,
   editingAgenda,
   onDragStart,
@@ -46,6 +52,9 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
   onRemoveMaterial,
   onUpdateMaterialSecurity,
   onReorderMaterials,
+  onAddVote,
+  onRemoveVote,
+  onEditVote,
   getFileIcon,
   FileDropzone,
   securityLevelOptions,
@@ -235,6 +244,75 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
             systemSecurityLevel={systemSecurityLevel}
           />
         )}
+        
+        {/* 投票列表 */}
+        {votes.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-medium text-text-secondary">投票</h4>
+            </div>
+            {votes.map((vote) => (
+              <div
+                key={vote.id}
+                className="border border-border rounded-lg p-3 hover:bg-primary/5 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-1">
+                    <Vote className="h-4 w-4 text-primary flex-shrink-0" />
+                    <span className="text-sm font-medium text-text-primary">{vote.title}</span>
+                    <Badge variant={vote.voteType === 'simple' ? 'default' : 'secondary'} size="sm">
+                      {vote.voteType === 'simple' ? '简单表决' : '自定义'}
+                    </Badge>
+                    {vote.isAnonymous && (
+                      <Badge variant="outline" size="sm">匿名</Badge>
+                    )}
+                    {vote.securityLevel && (
+                      <Badge variant="warning" size="sm">
+                        {securityLevelOptions.find(opt => opt.value === vote.securityLevel)?.label || vote.securityLevel}
+                      </Badge>
+                    )}
+                  </div>
+                  {!readOnly && (
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEditVote(agenda.id, vote)}
+                        className="h-7 text-xs"
+                      >
+                        编辑
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onRemoveVote(agenda.id, vote.id)}
+                        className="h-7 text-xs text-text-regular hover:text-error"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-2 text-xs text-text-tertiary">
+                  选项: {vote.options.map(opt => opt.label).join(', ')}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* 添加投票按钮 */}
+        {!readOnly && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onAddVote(agenda.id)}
+            className="w-full"
+          >
+            <Vote className="h-4 w-4 mr-2" />
+            添加投票
+          </Button>
+        )}
       </div>
       
       {/* 🎯 问题3修复：主讲人编辑弹窗 */}
@@ -280,6 +358,7 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
 
 interface SortableAgendaListProps {
   agendas: MeetingAgenda[]
+  votes: MeetingVote[]
   editingAgenda: string | null
   onReorderAgendas: (newOrder: MeetingAgenda[]) => void
   onRemoveAgenda: (agendaId: string) => void
@@ -290,6 +369,9 @@ interface SortableAgendaListProps {
   onRemoveMaterial: (agendaId: string, materialId: string) => void
   onUpdateMaterialSecurity: (agendaId: string, materialId: string, securityLevel: MeetingSecurityLevel) => void
   onReorderMaterials: (agendaId: string, materials: MeetingMaterial[]) => void
+  onAddVote: (agendaId: string) => void
+  onRemoveVote: (agendaId: string, voteId: string) => void
+  onEditVote: (agendaId: string, vote: MeetingVote) => void
   getFileIcon: (fileName: string) => React.ReactNode
   FileDropzone: React.ComponentType<{ agendaId: string }>
   securityLevelOptions: SecurityLevelOption[]
@@ -299,6 +381,7 @@ interface SortableAgendaListProps {
 
 const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
   agendas,
+  votes,
   editingAgenda,
   onReorderAgendas,
   onRemoveAgenda,
@@ -309,6 +392,9 @@ const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
   onRemoveMaterial,
   onUpdateMaterialSecurity,
   onReorderMaterials,
+  onAddVote,
+  onRemoveVote,
+  onEditVote,
   getFileIcon,
   FileDropzone,
   securityLevelOptions,
@@ -350,33 +436,40 @@ const SortableAgendaList: React.FC<SortableAgendaListProps> = ({
 
   return (
     <div className="space-y-3">
-      {agendas.map((agenda, index) => (
-        <SortableAgendaItem
-          key={agenda.id}
-          agenda={agenda}
-          index={index}
-          editingAgenda={editingAgenda}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-          onRemove={onRemoveAgenda}
-          onUpdateName={onUpdateAgendaName}
-          onUpdatePresenter={handleUpdatePresenter}
-          onStartEdit={onStartEditAgenda}
-          onStopEdit={onStopEditAgenda}
-          onRemoveMaterial={onRemoveMaterial}
-          onUpdateMaterialSecurity={onUpdateMaterialSecurity}
-          onReorderMaterials={onReorderMaterials}
-          getFileIcon={getFileIcon}
-          FileDropzone={FileDropzone}
-          securityLevelOptions={securityLevelOptions}
-          isDragging={dragIndex === index}
-          dragOverIndex={dragOverIndex}
-          canRemove={agendas.length > 1}
-          readOnly={readOnly}
-          systemSecurityLevel={systemSecurityLevel}
-        />
-      ))}
+      {agendas.map((agenda, index) => {
+        const agendaVotes = votes.filter(v => v.agendaId === agenda.id)
+        return (
+          <SortableAgendaItem
+            key={agenda.id}
+            agenda={agenda}
+            votes={agendaVotes}
+            index={index}
+            editingAgenda={editingAgenda}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+            onRemove={onRemoveAgenda}
+            onUpdateName={onUpdateAgendaName}
+            onUpdatePresenter={handleUpdatePresenter}
+            onStartEdit={onStartEditAgenda}
+            onStopEdit={onStopEditAgenda}
+            onRemoveMaterial={onRemoveMaterial}
+            onUpdateMaterialSecurity={onUpdateMaterialSecurity}
+            onReorderMaterials={onReorderMaterials}
+            onAddVote={onAddVote}
+            onRemoveVote={onRemoveVote}
+            onEditVote={onEditVote}
+            getFileIcon={getFileIcon}
+            FileDropzone={FileDropzone}
+            securityLevelOptions={securityLevelOptions}
+            isDragging={dragIndex === index}
+            dragOverIndex={dragOverIndex}
+            canRemove={agendas.length > 1}
+            readOnly={readOnly}
+            systemSecurityLevel={systemSecurityLevel}
+          />
+        )
+      })}
     </div>
   )
 }

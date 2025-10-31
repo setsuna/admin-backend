@@ -200,6 +200,37 @@ export interface TemporaryParticipant {
 }
 
 /**
+ * 投票类型
+ */
+export type VoteType = 'simple' | 'custom'
+
+/**
+ * 投票选项
+ */
+export interface VoteOption {
+  id: string
+  label: string
+  orderNum: number
+}
+
+/**
+ * 会议投票
+ */
+export interface MeetingVote {
+  id: string
+  meetingId: string
+  agendaId: string
+  title: string
+  voteType: VoteType
+  options: VoteOption[]
+  isAnonymous: boolean
+  securityLevel: MeetingSecurityLevel | null
+  orderNum?: number
+  createdAt: string
+  updatedAt: string
+}
+
+/**
  * 会议表单数据（用于创建/编辑）
  */
 export interface MeetingFormData {

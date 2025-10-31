@@ -18,7 +18,7 @@ import {
   validateMeetingMaterialsSecurity
 } from '@/utils/meeting.utils'
 import { autoAdjustMeetingTimes } from '@/utils/time.utils'
-import type { MeetingFormData } from '@/types'
+import type { MeetingFormData, MeetingVote, VoteType, VoteOption, MeetingSecurityLevel } from '@/types'
 
 export function useMeetingForm(
   mode: 'create' | 'edit' | 'view',
@@ -80,6 +80,9 @@ export function useMeetingForm(
   
   // 表单数据状态
   const [formData, setFormData] = useState<MeetingFormData>(getInitialFormData)
+  
+  // 投票状态管理
+  const [votes, setVotes] = useState<MeetingVote[]>([])
   
   const agendasInitializedRef = useRef(false)
   const prevAgendasLengthRef = useRef(0)
@@ -202,6 +205,56 @@ export function useMeetingForm(
     await uploadFiles(agendaId, files, formData.securityLevel)
   }
   
+  // 投票管理
+  const addVote = (agendaId: string, voteData: {
+    title: string
+    voteType: VoteType
+    options: VoteOption[]
+    isAnonymous: boolean
+    securityLevel: MeetingSecurityLevel | null
+  }) => {
+    const newVote: MeetingVote = {
+      id: `vote-${Date.now()}`,
+      meetingId: currentMeetingId || '',
+      agendaId,
+      title: voteData.title,
+      voteType: voteData.voteType,
+      options: voteData.options,
+      isAnonymous: voteData.isAnonymous,
+      securityLevel: voteData.securityLevel,
+      orderNum: votes.filter(v => v.agendaId === agendaId).length,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    setVotes(prev => [...prev, newVote])
+  }
+  
+  const removeVote = (agendaId: string, voteId: string) => {
+    setVotes(prev => prev.filter(v => v.id !== voteId))
+  }
+  
+  const updateVote = (agendaId: string, voteId: string, voteData: {
+    title: string
+    voteType: VoteType
+    options: VoteOption[]
+    isAnonymous: boolean
+    securityLevel: MeetingSecurityLevel | null
+  }) => {
+    setVotes(prev => prev.map(v => 
+      v.id === voteId 
+        ? {
+            ...v,
+            title: voteData.title,
+            voteType: voteData.voteType,
+            options: voteData.options,
+            isAnonymous: voteData.isAnonymous,
+            securityLevel: voteData.securityLevel,
+            updatedAt: new Date().toISOString()
+          }
+        : v
+    ))
+  }
+  
   // 表单验证
   const validateForm = (): boolean => {
     const validation = validateMeetingForm(formData)
@@ -280,6 +333,11 @@ export function useMeetingForm(
     updateAgendaName,
     updateAgendaPresenter,
     reorderAgendas,
+    
+    votes,
+    addVote,
+    removeVote,
+    updateVote,
     
     handleFormDataChange,
     handleParticipantsChange,

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardContent } from '@/components/ui/Card'
+import { AddVoteModal } from '@/components/ui/AddVoteModal'
 import { Allotment } from "allotment"
 import { Plus } from 'lucide-react'
 import { getFormattedExtensions } from '@/utils'
@@ -10,6 +11,7 @@ import { DialogComponents } from '@/components/ui/DialogComponents'
 import { useMeetingForm } from '@/hooks/useMeetingForm'
 import { useNotifications } from '@/hooks/useNotifications'
 import { usePolicy } from '@/hooks/usePolicy'
+import type { MeetingVote } from '@/types'
 
 import BasicInfoForm from '@/components/business/meeting/BasicInfoForm'
 import AgendaForm from '@/components/business/meeting/AgendaForm'
@@ -28,6 +30,9 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
   const { policy } = usePolicy()
   
   const [showOrgModal, setShowOrgModal] = useState(false)
+  const [showVoteModal, setShowVoteModal] = useState(false)
+  const [currentVoteAgendaId, setCurrentVoteAgendaId] = useState<string | null>(null)
+  const [editingVote, setEditingVote] = useState<MeetingVote | null>(null)
   
   const {
     formData,
@@ -43,6 +48,11 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
     updateAgendaName,
     updateAgendaPresenter,
     reorderAgendas,
+    
+    votes,
+    addVote,
+    removeVote,
+    updateVote,
     
     handleFormDataChange,
     handleParticipantsChange,
@@ -97,6 +107,28 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
     
     if (confirmed) {
       navigate('/meetings')
+    }
+  }
+  
+  const handleAddVote = (agendaId: string) => {
+    setCurrentVoteAgendaId(agendaId)
+    setEditingVote(null)
+    setShowVoteModal(true)
+  }
+  
+  const handleEditVote = (agendaId: string, vote: MeetingVote) => {
+    setCurrentVoteAgendaId(agendaId)
+    setEditingVote(vote)
+    setShowVoteModal(true)
+  }
+  
+  const handleVoteConfirm = (data: any) => {
+    if (!currentVoteAgendaId) return
+    
+    if (editingVote) {
+      updateVote(currentVoteAgendaId, editingVote.id, data)
+    } else {
+      addVote(currentVoteAgendaId, data)
     }
   }
   
@@ -191,6 +223,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
               
               <AgendaForm
                 agendas={agendas}
+                votes={votes}
                 onRemoveAgenda={removeAgenda}
                 onUpdateAgendaName={updateAgendaName}
                 onUpdateAgendaPresenter={updateAgendaPresenter}
@@ -199,6 +232,9 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
                 onUpdateMaterialSecurity={updateMaterialSecurity}
                 onReorderMaterials={reorderMaterials}
                 onReorderAgendas={reorderAgendas}
+                onAddVote={handleAddVote}
+                onRemoveVote={removeVote}
+                onEditVote={handleEditVote}
                 readOnly={mode === 'view'}
                 systemSecurityLevel={policy?.systemSecurityLevel}
               />
@@ -242,14 +278,36 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
       </Card>
 
       {mode !== 'view' && (
-        <AddParticipantModal
-          isOpen={showOrgModal}
-          onClose={() => setShowOrgModal(false)}
-          meetingId={currentMeetingId}
-          selectedParticipants={formData.participants}
-          onParticipantsChange={handleParticipantsChange}
-          systemSecurityLevel={policy?.systemSecurityLevel}
-        />
+        <>
+          <AddParticipantModal
+            isOpen={showOrgModal}
+            onClose={() => setShowOrgModal(false)}
+            meetingId={currentMeetingId}
+            selectedParticipants={formData.participants}
+            onParticipantsChange={handleParticipantsChange}
+            systemSecurityLevel={policy?.systemSecurityLevel}
+          />
+          
+          <AddVoteModal
+            open={showVoteModal}
+            onOpenChange={(open) => {
+              setShowVoteModal(open)
+              if (!open) {
+                setEditingVote(null)
+                setCurrentVoteAgendaId(null)
+              }
+            }}
+            onConfirm={handleVoteConfirm}
+            systemSecurityLevel={policy?.systemSecurityLevel}
+            initialData={editingVote ? {
+              title: editingVote.title,
+              voteType: editingVote.voteType,
+              options: editingVote.options,
+              isAnonymous: editingVote.isAnonymous,
+              securityLevel: editingVote.securityLevel
+            } : undefined}
+          />
+        </>
       )}
       
       <DialogComponents dialog={dialog} />

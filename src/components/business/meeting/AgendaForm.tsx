@@ -4,10 +4,11 @@ import { useDropzone } from 'react-dropzone'
 import { getDropzoneAccept, isFileSupported } from '@/utils'
 import { useSecurityLevels } from '@/hooks/useSecurityLevels'
 import SortableAgendaList from './SortableAgendaList'
-import type { MeetingAgenda, MeetingMaterial, MeetingSecurityLevel } from '@/types'
+import type { MeetingAgenda, MeetingMaterial, MeetingSecurityLevel, MeetingVote } from '@/types'
 
 interface AgendaFormProps {
   agendas: MeetingAgenda[]
+  votes: MeetingVote[]
   onRemoveAgenda: (agendaId: string) => void
   onUpdateAgendaName: (agendaId: string, name: string) => void
   onUpdateAgendaPresenter?: (agendaId: string, presenter: string) => void
@@ -16,12 +17,16 @@ interface AgendaFormProps {
   onUpdateMaterialSecurity: (agendaId: string, materialId: string, securityLevel: MeetingSecurityLevel) => void
   onReorderMaterials?: (agendaId: string, materials: MeetingMaterial[]) => void
   onReorderAgendas?: (agendas: MeetingAgenda[]) => void
+  onAddVote: (agendaId: string) => void
+  onRemoveVote: (agendaId: string, voteId: string) => void
+  onEditVote: (agendaId: string, vote: MeetingVote) => void
   readOnly?: boolean
   systemSecurityLevel?: 'confidential' | 'secret'  // 系统密级
 }
 
 const AgendaForm: React.FC<AgendaFormProps> = ({
   agendas,
+  votes,
   onRemoveAgenda,
   onUpdateAgendaName,
   onUpdateAgendaPresenter,
@@ -30,6 +35,9 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
   onUpdateMaterialSecurity,
   onReorderMaterials,
   onReorderAgendas,
+  onAddVote,
+  onRemoveVote,
+  onEditVote,
   readOnly = false,
   systemSecurityLevel
 }) => {
@@ -141,6 +149,7 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
   return (
     <SortableAgendaList
       agendas={agendas}
+      votes={votes}
       editingAgenda={editingAgenda}
       onReorderAgendas={onReorderAgendas || (() => {})}
       onRemoveAgenda={onRemoveAgenda}
@@ -151,6 +160,9 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
       onRemoveMaterial={onRemoveMaterial}
       onUpdateMaterialSecurity={onUpdateMaterialSecurity}
       onReorderMaterials={onReorderMaterials || (() => {})}
+      onAddVote={onAddVote}
+      onRemoveVote={onRemoveVote}
+      onEditVote={onEditVote}
       getFileIcon={getFileIcon}
       FileDropzone={FileDropzone}
       securityLevelOptions={securityLevels}
