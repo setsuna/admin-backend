@@ -23,7 +23,7 @@ class VoteService {
   async getVotes(meetingId: string, agendaId?: string): Promise<MeetingVote[]> {
     const filters: VoteFilters = agendaId ? { agenda_id: agendaId } : {}
     const response = await voteApiService.listVotes(meetingId, filters)
-    return response.items || []
+    return (response.items || []).map(item => this.transformVoteFromApi(item))
   }
 
   /**
@@ -219,7 +219,7 @@ class VoteService {
       })),
       isAnonymous: apiVote.is_anonymous ?? apiVote.isAnonymous ?? false,
       allowMultiple: apiVote.allow_multiple ?? apiVote.allowMultiple,
-      securityLevel: apiVote.security_level ?? apiVote.securityLevel ?? null,
+      securityLevel: apiVote.security_level || apiVote.securityLevel || null,
       orderNum: apiVote.order_num ?? apiVote.orderNum ?? 0,
       createdAt: apiVote.created_at || apiVote.createdAt || new Date().toISOString(),
       updatedAt: apiVote.updated_at || apiVote.updatedAt || new Date().toISOString()
