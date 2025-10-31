@@ -53,7 +53,6 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
   open,
   onOpenChange,
   onConfirm,
-  systemSecurityLevel,
   initialData
 }) => {
   const { securityLevels } = useSecurityLevels()
@@ -64,7 +63,7 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
   ])
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [allowMultiple, setAllowMultiple] = useState(false)
-  const [securityLevel, setSecurityLevel] = useState<string>('')
+  const [securityLevel, setSecurityLevel] = useState<string | null>('')
 
   useEffect(() => {
     if (open && initialData) {
@@ -125,7 +124,7 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
       options,
       isAnonymous,
       allowMultiple: voteType === 'custom' ? allowMultiple : undefined,
-      securityLevel: securityLevel || null
+      securityLevel: (securityLevel || null) as MeetingSecurityLevel | null
     })
 
     onOpenChange(false)
@@ -238,7 +237,7 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
               安全等级
             </label>
             <SecurityLevelSelect
-              value={securityLevel}
+              value={securityLevel || ''}
               onChange={setSecurityLevel}
               options={[
                 { code: '', name: '不限', value: '' },

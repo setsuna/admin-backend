@@ -19,7 +19,7 @@ import {
   validateMeetingMaterialsSecurity
 } from '@/utils/meeting.utils'
 import { autoAdjustMeetingTimes } from '@/utils/time.utils'
-import type { MeetingFormData, MeetingVote, VoteType, VoteOption, MeetingSecurityLevel } from '@/types'
+import type { MeetingFormData, VoteType, VoteOption, MeetingSecurityLevel } from '@/types'
 
 export function useMeetingForm(
   mode: 'create' | 'edit' | 'view',
@@ -232,15 +232,15 @@ export function useMeetingForm(
     }
   }
   
-  const removeVote = async (agendaId: string, voteId: string) => {
+  const removeVote = async (_agendaId: string, voteId: string) => {
     try {
-      await removeVoteFromApi(agendaId, voteId)
+      await removeVoteFromApi(voteId)
     } catch (error) {
       console.error('删除投票失败:', error)
     }
   }
   
-  const updateVote = async (agendaId: string, voteId: string, voteData: {
+  const updateVote = async (_agendaId: string, voteId: string, voteData: {
     title: string
     voteType: VoteType
     options: VoteOption[]
@@ -249,7 +249,7 @@ export function useMeetingForm(
     securityLevel: MeetingSecurityLevel | null
   }) => {
     try {
-      await updateVoteToApi(agendaId, voteId, voteData)
+      await updateVoteToApi(voteId, voteData)
     } catch (error) {
       console.error('更新投票失败:', error)
     }

@@ -264,14 +264,14 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
                       {vote.voteType === 'simple' ? '简单表决' : '自定义'}
                     </Badge>
                     {vote.isAnonymous && (
-                      <Badge variant="outline" size="sm">匿名</Badge>
+                      <Badge variant="secondary" size="sm">匿名</Badge>
                     )}
                     {vote.voteType === 'custom' && vote.allowMultiple && (
-                      <Badge variant="outline" size="sm">多选</Badge>
+                      <Badge variant="secondary" size="sm">多选</Badge>
                     )}
                     {vote.securityLevel && (
                       <Badge variant="warning" size="sm">
-                        {securityLevelOptions.find(opt => opt.value === vote.securityLevel)?.label || vote.securityLevel}
+                        {securityLevelOptions.find(opt => opt.value === vote.securityLevel)?.name || vote.securityLevel}
                       </Badge>
                     )}
                   </div>

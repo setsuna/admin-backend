@@ -1,21 +1,20 @@
 /**
  * 会议投票管理 Hook
- * 负责投票的增删改查和排序
+ * 负责投票的增删改查
  * 使用 TanStack Query 管理状态
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { voteService } from '@/services/vote'
 import { useNotifications } from './useNotifications'
-import type { MeetingVote, VoteType, VoteOption, MeetingSecurityLevel } from '@/types'
+import type { VoteType, VoteOption, MeetingSecurityLevel } from '@/types'
 
 export function useMeetingVote(meetingId: string | null) {
   const queryClient = useQueryClient()
-  const { showError } = useNotifications()
+  const { showError, showSuccess } = useNotifications()
 
   /**
    * 加载会议的所有投票
-   * 使用 useQuery
    */
   const {
     data: votes = [],
@@ -29,11 +28,9 @@ export function useMeetingVote(meetingId: string | null) {
       if (!meetingId) return []
       try {
         const result = await voteService.getMeetingVotes(meetingId)
-        // 🛡️ 防御性编程：确保返回数组
         return Array.isArray(result) ? result : []
       } catch (error) {
         console.error('加载投票失败:', error)
-        // 如果接口未实现或失败，返回空数组
         return []
       }
     },
@@ -58,12 +55,12 @@ export function useMeetingVote(meetingId: string | null) {
         voteType: VoteType
         options: VoteOption[]
         isAnonymous: boolean
+        allowMultiple?: boolean
         securityLevel: MeetingSecurityLevel | null
       }
     }) => {
       if (!meetingId) throw new Error('会议ID不存在')
 
-      // 计算当前议题下的投票数量，用于orderNum
       const agendaVotes = votes.filter(v => v.agendaId === agendaId)
       const orderNum = agendaVotes.length
 
@@ -74,6 +71,7 @@ export function useMeetingVote(meetingId: string | null) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meeting-votes', meetingId] })
+      showSuccess('投票添加成功')
     },
     onError: (error: any) => {
       showError('添加投票失败', error.message)
@@ -99,25 +97,25 @@ export function useMeetingVote(meetingId: string | null) {
    */
   const updateVoteMutation = useMutation({
     mutationFn: async ({
-      agendaId,
       voteId,
       updates
     }: {
-      agendaId: string
       voteId: string
       updates: {
         title?: string
         voteType?: VoteType
         options?: VoteOption[]
         isAnonymous?: boolean
+        allowMultiple?: boolean
         securityLevel?: MeetingSecurityLevel | null
       }
     }) => {
       if (!meetingId) throw new Error('会议ID不存在')
-      return await voteService.updateVote(meetingId, agendaId, voteId, updates)
+      return await voteService.updateVote(meetingId, voteId, updates)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meeting-votes', meetingId] })
+      showSuccess('投票更新成功')
     },
     onError: (error: any) => {
       showError('更新投票失败', error.message)
@@ -125,7 +123,6 @@ export function useMeetingVote(meetingId: string | null) {
   })
 
   const updateVote = async (
-    agendaId: string,
     voteId: string,
     updates: {
       title?: string
@@ -136,63 +133,28 @@ export function useMeetingVote(meetingId: string | null) {
       securityLevel?: MeetingSecurityLevel | null
     }
   ) => {
-    await updateVoteMutation.mutateAsync({ agendaId, voteId, updates })
+    await updateVoteMutation.mutateAsync({ voteId, updates })
   }
 
   /**
    * 删除投票
    */
   const deleteVoteMutation = useMutation({
-    mutationFn: async ({
-      agendaId,
-      voteId
-    }: {
-      agendaId: string
-      voteId: string
-    }) => {
+    mutationFn: async (voteId: string) => {
       if (!meetingId) throw new Error('会议ID不存在')
-      await voteService.deleteVote(meetingId, agendaId, voteId)
+      await voteService.deleteVote(meetingId, voteId)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meeting-votes', meetingId] })
+      showSuccess('投票删除成功')
     },
     onError: (error: any) => {
       showError('删除投票失败', error.message)
     }
   })
 
-  const removeVote = async (agendaId: string, voteId: string) => {
-    await deleteVoteMutation.mutateAsync({ agendaId, voteId })
-  }
-
-  /**
-   * 重新排序投票
-   */
-  const reorderVotesMutation = useMutation({
-    mutationFn: async ({
-      agendaId,
-      newVotes
-    }: {
-      agendaId: string
-      newVotes: MeetingVote[]
-    }) => {
-      if (!meetingId) throw new Error('会议ID不存在')
-      
-      const voteIds = newVotes.map(v => v.id)
-      await voteService.updateVoteOrder(meetingId, agendaId, voteIds)
-      
-      return newVotes
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['meeting-votes', meetingId] })
-    },
-    onError: (error: any) => {
-      showError('排序失败', error.message)
-    }
-  })
-
-  const reorderVotes = async (agendaId: string, newVotes: MeetingVote[]) => {
-    await reorderVotesMutation.mutateAsync({ agendaId, newVotes })
+  const removeVote = async (voteId: string) => {
+    await deleteVoteMutation.mutateAsync(voteId)
   }
 
   return {
@@ -203,7 +165,6 @@ export function useMeetingVote(meetingId: string | null) {
     loadVotes,
     addVote,
     updateVote,
-    removeVote,
-    reorderVotes
+    removeVote
   }
 }
