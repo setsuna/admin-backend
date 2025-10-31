@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { Search, RefreshCw, Download } from 'lucide-react'
+import { Search, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Card } from '@/components/ui/Card'
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
+import { Checkbox } from '@/components/ui/Checkbox'
 import { useNotifications } from '@/hooks/useNotifications'
 import type { MeetingSyncInfo, SyncDevice, SyncedMeeting, SyncOptions, SyncTask } from '@/types'
 import { DeviceDetailModal } from '@/components/business/sync/DeviceDetailModal'
@@ -211,15 +213,9 @@ export default function MeetingSyncPage() {
     showSuccess('重新同步', '已加入同步队列')
   }
 
-  const getSecurityLevelStyle = (level: string) => {
-    const styles: Record<string, string> = {
-      top_secret: 'bg-red-100 text-red-700 border-red-300',
-      secret: 'bg-orange-100 text-orange-700 border-orange-300',
-      confidential: 'bg-yellow-100 text-yellow-700 border-yellow-300',
-      internal: 'bg-blue-100 text-blue-700 border-blue-300',
-      public: 'bg-gray-100 text-gray-700 border-gray-300'
-    }
-    return styles[level] || styles.internal
+  const getSecurityLevelVariant = (level: string): 'top_secret' | 'secret' | 'confidential' | 'internal' | 'public' => {
+    const validLevels = ['top_secret', 'secret', 'confidential', 'internal', 'public'] as const
+    return validLevels.includes(level as any) ? (level as any) : 'internal'
   }
 
   const getSecurityLevelText = (level: string) => {
@@ -247,17 +243,11 @@ export default function MeetingSyncPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">会议文件同步到设备</h1>
         <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={batchSyncEnabled}
-              onChange={(e) => setBatchSyncEnabled(e.target.checked)}
-              className="w-4 h-4 rounded border"
-            />
-            <span className="text-sm font-medium">
-              批量同步模式 {batchSyncEnabled && `(监听 ${selectedMeetingIds.length} 个会议)`}
-            </span>
-          </label>
+          <Checkbox
+            checked={batchSyncEnabled}
+            onChange={(e) => setBatchSyncEnabled(e.target.checked)}
+            label={`批量同步模式${batchSyncEnabled ? ` (监听 ${selectedMeetingIds.length} 个会议)` : ''}`}
+          />
           <Button 
             variant="outline"
             onClick={() => setShowHistory(true)}
@@ -270,46 +260,45 @@ export default function MeetingSyncPage() {
       {/* Main Content */}
       <div className="flex-1 grid grid-cols-2 gap-6 overflow-hidden">
         {/* Left Panel - Meeting List */}
-        <div className="flex flex-col border rounded-lg bg-card overflow-hidden">
-          <div className="p-4 border-b">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-semibold">会议列表</h2>
-            </div>
+        <Card className="flex flex-col overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="mb-3">会议列表</CardTitle>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Input
                 type="text"
                 placeholder="搜索会议..."
                 value={searchMeeting}
                 onChange={(e) => setSearchMeeting(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                className="pl-10"
               />
             </div>
-          </div>
+          </CardHeader>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <CardContent className="flex-1 overflow-y-auto space-y-3">
             {filteredMeetings.map((meeting) => (
-              <div
+              <Card
                 key={meeting.id}
-                className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                className={`p-4 cursor-pointer transition-all ${
                   selectedMeetingIds.includes(meeting.id)
                     ? 'border-primary bg-primary/5'
-                    : 'hover:border-muted-foreground/50 hover:shadow-sm'
+                    : ''
                 }`}
+                hover="border"
+                interactive
                 onClick={() => handleMeetingSelect(meeting.id)}
               >
                 <div className="flex items-start gap-3">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={selectedMeetingIds.includes(meeting.id)}
                     onChange={() => {}}
-                    className="mt-1 w-4 h-4 rounded border"
+                    className="mt-1"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className={`px-2 py-0.5 text-xs rounded border ${getSecurityLevelStyle(meeting.securityLevel)}`}>
+                      <Badge variant={getSecurityLevelVariant(meeting.securityLevel)}>
                         {getSecurityLevelText(meeting.securityLevel)}
-                      </span>
+                      </Badge>
                       <span className="font-medium truncate">{meeting.title}</span>
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
@@ -317,64 +306,65 @@ export default function MeetingSyncPage() {
                       <div className="flex items-center gap-2">
                         <span>{meeting.syncedDeviceCount}/20台已同步</span>
                         {meeting.autoSyncEnabled && (
-                          <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full" style={{ backgroundColor: 'hsl(var(--success) / 0.1)', color: 'hsl(var(--success))' }}>
+                          <Badge variant="success">
                             自动同步
-                          </span>
+                          </Badge>
                         )}
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </Card>
             ))}
-          </div>
+          </CardContent>
 
-          <div className="p-4 border-t bg-muted">
+          <div className="p-6 pt-0 border-t bg-muted">
             <div className="text-sm text-muted-foreground">
               已选择: {selectedMeetingIds.length} 个会议
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Right Panel - Device List */}
-        <div className="flex flex-col border rounded-lg bg-card overflow-hidden">
-          <div className="p-4 border-b">
-            <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold">设备列表</h2>
-            <div className="flex gap-2">
-            <Button variant="ghost" size="sm">
-            <RefreshCw className="w-4 h-4" />
-            </Button>
-            <Button
-            variant="ghost"
-            size="sm"
-              onClick={handleSelectAllDevices}
-            >
-              全选
-              </Button>
+        <Card className="flex flex-col overflow-hidden">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle>设备列表</CardTitle>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm">
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSelectAllDevices}
+                >
+                  全选
+                </Button>
               </div>
-              </div>
-          </div>
+            </div>
+          </CardHeader>
 
-          <div className="flex-1 overflow-y-auto p-4">
+          <CardContent className="flex-1 overflow-y-auto">
             <div className="grid grid-cols-2 gap-3">
             {devices.map((device) => (
-              <div
+              <Card
                 key={device.id}
-                className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                className={`p-4 cursor-pointer transition-all ${
                   selectedDeviceIds.includes(device.id)
                     ? 'border-primary bg-primary/5'
-                    : 'hover:border-muted-foreground/50 hover:shadow-sm'
+                    : ''
                 }`}
+                hover="border"
+                interactive
                 onClick={() => handleDeviceSelect(device.id)}
                 onDoubleClick={() => handleDeviceDoubleClick(device)}
               >
                 <div className="flex items-start gap-3">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={selectedDeviceIds.includes(device.id)}
                     onChange={() => {}}
-                    className="mt-1 w-4 h-4 rounded border"
+                    className="mt-1"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium mb-2">{device.name}</div>
@@ -392,17 +382,17 @@ export default function MeetingSyncPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Card>
             ))}
             </div>
-          </div>
+          </CardContent>
 
-          <div className="p-4 border-t bg-muted">
+          <div className="p-6 pt-0 border-t bg-muted">
             <div className="text-sm text-muted-foreground">
               已选择: {selectedDeviceIds.length} 台设备 | 预计需要: {selectedMeetingsSize}MB
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Sync Options & Actions */}
