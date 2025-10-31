@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Search, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/Card'
+import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { useNotifications } from '@/hooks/useNotifications'
@@ -71,7 +71,7 @@ export default function MeetingSyncPage() {
   const [searchMeeting, setSearchMeeting] = useState('')
   const [batchSyncEnabled, setBatchSyncEnabled] = useState(false)
   
-  const [syncOptions, setSyncOptions] = useState<SyncOptions>({
+  const [syncOptions] = useState<SyncOptions>({
     includeMaterials: true,
     includeAgenda: true,
     includeRecording: false,
