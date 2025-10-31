@@ -1,8 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { GripVertical, Trash2, User, Vote } from 'lucide-react'
+import { GripVertical, Trash2, User, Vote, ChevronDown, ChevronRight } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/AlertDialog'
 import SimpleSortableMaterialList from './SimpleSortableMaterialList'
 import type { MeetingAgenda, MeetingMaterial, MeetingSecurityLevel, MeetingVote } from '@/types'
 import type { SecurityLevelOption } from '@/hooks/useSecurityLevels'
@@ -74,6 +85,13 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
   // 🎯 问题3修复：主讲人编辑
   const [showPresenterModal, setShowPresenterModal] = useState(false)
   const [presenterInput, setPresenterInput] = useState(agenda.presenter || '')
+  
+  // 🎯 优化3：投票区域折叠状态（默认收起）
+  const [isVoteSectionExpanded, setIsVoteSectionExpanded] = useState(false)
+  
+  // 删除投票确认对话框状态
+  const [deleteVoteDialogOpen, setDeleteVoteDialogOpen] = useState(false)
+  const [voteToDelete, setVoteToDelete] = useState<MeetingVote | null>(null)
   
   // 同步外部变化
   useEffect(() => {
@@ -245,13 +263,27 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
           />
         )}
         
-        {/* 投票列表 */}
-        {votes.length > 0 && (
+        {/* 投票区域 - 优化3：可折叠 */}
+        {!readOnly && (
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium text-text-secondary">投票</h4>
+            <div 
+              className="flex items-center justify-between cursor-pointer hover:bg-primary/5 p-2 rounded transition-colors"
+              onClick={() => setIsVoteSectionExpanded(!isVoteSectionExpanded)}
+            >
+              <div className="flex items-center gap-2">
+                {isVoteSectionExpanded ? (
+                  <ChevronDown className="h-4 w-4 text-text-secondary" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-text-secondary" />
+                )}
+                <h4 className="text-sm font-medium text-text-secondary">投票</h4>
+                {votes.length > 0 && (
+                  <span className="text-xs text-text-tertiary">({votes.length})</span>
+                )}
+              </div>
             </div>
-            {votes.map((vote) => (
+            {/* 优化3：只有展开时才显示投票列表 */}
+            {isVoteSectionExpanded && votes.map((vote) => (
               <div
                 key={vote.id}
                 className="border border-border rounded-lg p-3 hover:bg-primary/5 transition-colors"
@@ -261,7 +293,7 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
                     <Vote className="h-4 w-4 text-primary flex-shrink-0" />
                     <span className="text-sm font-medium text-text-primary">{vote.title}</span>
                     <Badge variant={vote.voteType === 'simple' ? 'default' : 'secondary'} size="sm">
-                      {vote.voteType === 'simple' ? '简单表决' : '自定义'}
+                      {vote.voteType === 'simple' ? '意见表决' : '自定义'}
                     </Badge>
                     {vote.isAnonymous && (
                       <Badge variant="secondary" size="sm">匿名</Badge>
@@ -275,46 +307,77 @@ const SortableAgendaItem: React.FC<SortableAgendaItemProps> = ({
                       </Badge>
                     )}
                   </div>
-                  {!readOnly && (
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEditVote(agenda.id, vote)}
-                        className="h-7 text-xs"
-                      >
-                        编辑
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onRemoveVote(agenda.id, vote.id)}
-                        className="h-7 text-xs text-text-regular hover:text-error"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEditVote(agenda.id, vote)}
+                      className="h-7 text-xs"
+                    >
+                      编辑
+                    </Button>
+                    <AlertDialog open={deleteVoteDialogOpen && voteToDelete?.id === vote.id} onOpenChange={(open) => {
+                      setDeleteVoteDialogOpen(open)
+                      if (!open) setVoteToDelete(null)
+                    }}>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setVoteToDelete(vote)
+                            setDeleteVoteDialogOpen(true)
+                          }}
+                          className="h-7 text-xs text-text-regular hover:text-error"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>删除投票</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            确定要删除投票「{vote.title}」吗？此操作不可恢复。
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>取消</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => {
+                              if (voteToDelete) {
+                                onRemoveVote(agenda.id, voteToDelete.id)
+                                setVoteToDelete(null)
+                                setDeleteVoteDialogOpen(false)
+                              }
+                            }}
+                            className="bg-error hover:bg-error/90"
+                          >
+                            确定删除
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
                 <div className="mt-2 text-xs text-text-tertiary">
                   选项: {vote.options.map(opt => opt.label).join(', ')}
                 </div>
               </div>
             ))}
+            
+            {/* 优化3：展开时显示添加投票按钮 */}
+            {isVoteSectionExpanded && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onAddVote(agenda.id)}
+                className="w-full"
+              >
+                <Vote className="h-4 w-4 mr-2" />
+                添加投票
+              </Button>
+            )}
           </div>
-        )}
-        
-        {/* 添加投票按钮 */}
-        {!readOnly && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onAddVote(agenda.id)}
-            className="w-full"
-          >
-            <Vote className="h-4 w-4 mr-2" />
-            添加投票
-          </Button>
         )}
       </div>
       

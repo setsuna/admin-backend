@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { Button } from './Button'
 import { Input } from './Input'
 import { Plus, X } from 'lucide-react'
-import { useSecurityLevels } from '@/hooks/useSecurityLevels'
 import {
   Dialog,
   DialogContent,
@@ -18,7 +17,6 @@ import {
   SelectValue,
 } from './SelectNew'
 import { Checkbox } from './CheckboxNew'
-import SecurityLevelSelect from './SecurityLevelSelect'
 import type { VoteType, VoteOption, MeetingSecurityLevel } from '@/types'
 
 interface AddVoteModalProps {
@@ -55,7 +53,6 @@ export const AddVoteModal: React.FC<AddVoteModalProps> = ({
   onConfirm,
   initialData
 }) => {
-  const { securityLevels } = useSecurityLevels()
   const [title, setTitle] = useState('')
   const [voteType, setVoteType] = useState<VoteType>('simple')
   const [customOptions, setCustomOptions] = useState<VoteOption[]>([
