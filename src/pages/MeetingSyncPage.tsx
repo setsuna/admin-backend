@@ -175,9 +175,15 @@ export default function MeetingSyncPage() {
     showSuccess('重新同步', '已加入同步队列')
   }
 
-  const getSecurityLevelVariant = (level: string): 'top_secret' | 'secret' | 'confidential' | 'internal' | 'public' => {
-    const validLevels = ['top_secret', 'secret', 'confidential', 'internal', 'public'] as const
-    return validLevels.includes(level as any) ? (level as any) : 'internal'
+  const getSecurityLevelVariant = (level: string): 'success' | 'warning' | 'error' | 'default' => {
+    const variantMap: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
+      internal: 'success',      // 内部 - 绿色
+      confidential: 'warning',  // 秘密 - 黄色
+      secret: 'error',          // 机密 - 红色
+      top_secret: 'error',      // 绝密 - 红色
+      public: 'default'         // 公开 - 默认
+    }
+    return variantMap[level] || 'default'
   }
 
   const getSecurityLevelText = (level: string) => {
@@ -197,7 +203,7 @@ export default function MeetingSyncPage() {
 
   const selectedMeetingsSize = meetings
     .filter(m => selectedMeetingIds.includes(m.id))
-    .reduce((sum, m) => sum + (m.packageInfo?.packageSize || 0), 0) / (1024 * 1024) // 转换为MB
+    .reduce((sum, m) => sum + ((m as any).package_info?.package_size || 0), 0) / (1024 * 1024) // 转换为MB
 
   return (
     <div className="p-6 h-full flex flex-col">
@@ -268,22 +274,34 @@ export default function MeetingSyncPage() {
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <Badge variant={getSecurityLevelVariant(meeting.securityLevel)}>
-                        {getSecurityLevelText(meeting.securityLevel)}
+                      <Badge variant={getSecurityLevelVariant((meeting as any).security_level)}>
+                        {getSecurityLevelText((meeting as any).security_level)}
+                      </Badge>
+                      <Badge variant={(meeting as any).type === 'standard' ? 'default' : 'info'}>
+                        {(meeting as any).type === 'standard' ? '标准会议' : '平板会议'}
                       </Badge>
                       <span className="font-medium truncate">{meeting.name}</span>
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
                       <div>
-                        {new Date(meeting.startTime).toLocaleDateString()} | 
-                        {meeting.packageInfo ? ` ${(meeting.packageInfo.packageSize / (1024 * 1024)).toFixed(1)}MB` : ' 未打包'}
+                        {new Date((meeting as any).start_time).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })} | 
+                        {(meeting as any).package_info ? ` ${((meeting as any).package_info.package_size / (1024 * 1024)).toFixed(1)}MB` : ' 未打包'}
                       </div>
-                      {meeting.packageInfo && (
-                        <div className="flex items-center gap-2">
-                          <span>文件: {meeting.packageInfo.fileCount} 个</span>
-                          <Badge variant="success">
-                            已打包
-                          </Badge>
+                      {(meeting as any).package_info && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span>文件: {(meeting as any).package_info.file_count} 个</span>
+                          <span>投票: {(meeting as any).package_info.vote_count} 个</span>
+                        </div>
+                      )}
+                      {(meeting as any).package_info && (
+                        <div className="text-xs text-muted-foreground/70">
+                          打包时间: {new Date((meeting as any).package_info.packaged_at).toLocaleString('zh-CN', { 
+                            year: 'numeric', 
+                            month: '2-digit', 
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
                         </div>
                       )}
                     </div>
@@ -293,7 +311,7 @@ export default function MeetingSyncPage() {
             ))}
           </CardContent>
 
-          <div className="p-6 pt-0 border-t bg-muted">
+          <div className="px-6 py-4 border-t bg-muted flex items-center justify-center">
             <div className="text-sm text-muted-foreground">
               已选择: {selectedMeetingIds.length} 个会议
             </div>
@@ -367,7 +385,7 @@ export default function MeetingSyncPage() {
             </div>
           </CardContent>
 
-          <div className="p-6 pt-0 border-t bg-muted">
+          <div className="px-6 py-4 border-t bg-muted flex items-center justify-center">
             <div className="text-sm text-muted-foreground">
               已选择: {selectedDeviceIds.length} 台设备 | 预计需要: {selectedMeetingsSize.toFixed(1)}MB
             </div>
