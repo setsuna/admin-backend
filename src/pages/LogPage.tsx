@@ -15,6 +15,13 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent } from '@/components/ui/Card'
 import { DataTable } from '@/components/features/DataTable'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/SelectNew'
 import type { 
   ApplicationLog,
   ThreeAdminLog,
@@ -536,21 +543,25 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
                       <Shield className="h-4 w-4" />
                       管理员角色
                     </label>
-                    <select
-                      className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                    <Select
                       value={(filters as ThreeAdminLogFilters).operatorRole || ''}
-                      onChange={(e) => setFilters({ 
+                      onValueChange={(value) => setFilters({ 
                         ...filters, 
-                        operatorRole: e.target.value as 'SYSTEM_ADMIN' | 'SECURITY_ADMIN' | 'AUDITOR'
+                        operatorRole: value as 'SYSTEM_ADMIN' | 'SECURITY_ADMIN' | 'AUDITOR' | ''
                       })}
                     >
-                      <option value="">全部角色</option>
-                      {Object.entries(threeAdminRoleConfig).map(([key, roleConfig]) => (
-                        <option key={key} value={key}>
-                          {roleConfig.icon} {roleConfig.label}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="全部角色" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">全部角色</SelectItem>
+                        {Object.entries(threeAdminRoleConfig).map(([key, roleConfig]) => (
+                          <SelectItem key={key} value={key}>
+                            {roleConfig.icon} {roleConfig.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
 
@@ -560,18 +571,22 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
                     <Activity className="h-4 w-4" />
                     操作模块
                   </label>
-                  <select
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                  <Select
                     value={filters.module || ''}
-                    onChange={(e) => setFilters({ ...filters, module: e.target.value as OperationModule })}
+                    onValueChange={(value) => setFilters({ ...filters, module: value as OperationModule | '' })}
                   >
-                    <option value="">全部模块</option>
-                    {Object.entries(moduleConfig).map(([key, moduleConf]) => (
-                      <option key={key} value={key}>
-                        {moduleConf.label}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="全部模块" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">全部模块</SelectItem>
+                      {Object.entries(moduleConfig).map(([key, moduleConf]) => (
+                        <SelectItem key={key} value={key}>
+                          {moduleConf.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* 行为类别 */}
@@ -580,18 +595,22 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
                     <Activity className="h-4 w-4" />
                     行为类别
                   </label>
-                  <select
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                  <Select
                     value={filters.actionCategory || ''}
-                    onChange={(e) => setFilters({ ...filters, actionCategory: e.target.value as ActionCategory })}
+                    onValueChange={(value) => setFilters({ ...filters, actionCategory: value as ActionCategory | '' })}
                   >
-                    <option value="">全部类别</option>
-                    {Object.entries(actionConfig).map(([key, actionConf]) => (
-                      <option key={key} value={key}>
-                        {actionConf.label}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="全部类别" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">全部类别</SelectItem>
+                      {Object.entries(actionConfig).map(([key, actionConf]) => (
+                        <SelectItem key={key} value={key}>
+                          {actionConf.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* 操作结果 */}
@@ -600,15 +619,19 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
                     <AlertCircle className="h-4 w-4" />
                     操作结果
                   </label>
-                  <select
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                  <Select
                     value={filters.operationResult || ''}
-                    onChange={(e) => setFilters({ ...filters, operationResult: e.target.value as LogOperationResult })}
+                    onValueChange={(value) => setFilters({ ...filters, operationResult: value as LogOperationResult | '' })}
                   >
-                    <option value="">全部结果</option>
-                    <option value="success">成功</option>
-                    <option value="failure">失败</option>
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="全部结果" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">全部结果</SelectItem>
+                      <SelectItem value="success">成功</SelectItem>
+                      <SelectItem value="failure">失败</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
