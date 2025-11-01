@@ -71,27 +71,8 @@ const SystemLogsPage = lazy(() =>
   })
 )
 
-const AdminLogsPage = lazy(() => 
-  Promise.resolve({
-    default: () => (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">操作日志（安全管理员）</h1>
-        <p className="text-muted-foreground">系统员操作日志页面待开发</p>
-      </div>
-    )
-  })
-)
-
-const AuditLogsPage = lazy(() => 
-  Promise.resolve({
-    default: () => (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">操作日志（审计员）</h1>
-        <p className="text-muted-foreground">审计员操作日志页面待开发</p>
-      </div>
-    )
-  })
-)
+const AdminLogsPage = lazy(() => import('@/pages/logs/ApplicationLogPage'))
+const AuditLogsPage = lazy(() => import('@/pages/logs/ThreeAdminLogPage'))
 
 const PermissionManagePage = lazy(() => import('@/pages/permission/PermissionManagePage'))
 // 懒加载包装器组件
