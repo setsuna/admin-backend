@@ -71,8 +71,7 @@ const SystemLogsPage = lazy(() =>
   })
 )
 
-const AdminLogsPage = lazy(() => import('@/pages/logs/ApplicationLogPage'))
-const AuditLogsPage = lazy(() => import('@/pages/logs/ThreeAdminLogPage'))
+const LogPage = lazy(() => import('@/pages/LogPage'))
 
 const PermissionManagePage = lazy(() => import('@/pages/permission/PermissionManagePage'))
 // 懒加载包装器组件
@@ -300,7 +299,7 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permissions={['logs:admin:read']}>
             <LazyWrapper>
-              <AdminLogsPage />
+              <LogPage mode="application" />
             </LazyWrapper>
           </PermissionGuard>
         ),
@@ -310,7 +309,7 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permissions={['logs:audit:read']}>
             <LazyWrapper>
-              <AuditLogsPage />
+              <LogPage mode="three-admin" />
             </LazyWrapper>
           </PermissionGuard>
         ),
