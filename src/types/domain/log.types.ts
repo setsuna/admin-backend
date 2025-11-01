@@ -94,7 +94,7 @@ export interface ThreeAdminLog extends BaseEntity {
   /** 操作描述 */
   actionDescription: string
   /** 操作结果 */
-  operationResult: OperationResult
+  operationResult: LogOperationResult
   /** 修改前的数据 */
   beforeData?: Record<string, any>
   /** 修改后的数据 */
