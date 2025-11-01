@@ -169,3 +169,73 @@ export function safeParse<T>(jsonString: string, fallback: T): T {
     return fallback
   }
 }
+
+/**
+ * 下划线转驼峰
+ */
+export function snakeToCamel(str: string): string {
+  return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+}
+
+/**
+ * 驼峰转下划线
+ */
+export function camelToSnake(str: string): string {
+  return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
+}
+
+/**
+ * 递归将对象的key从下划线转为驼峰
+ */
+export function keysToCamel<T = any>(obj: any): T {
+  if (obj === null || obj === undefined) {
+    return obj
+  }
+  
+  if (obj instanceof Date) {
+    return obj as T
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => keysToCamel(item)) as T
+  }
+  
+  if (typeof obj === 'object') {
+    const result: any = {}
+    Object.keys(obj).forEach(key => {
+      const camelKey = snakeToCamel(key)
+      result[camelKey] = keysToCamel(obj[key])
+    })
+    return result as T
+  }
+  
+  return obj
+}
+
+/**
+ * 递归将对象的key从驼峰转为下划线
+ */
+export function keysToSnake<T = any>(obj: any): T {
+  if (obj === null || obj === undefined) {
+    return obj
+  }
+  
+  if (obj instanceof Date) {
+    return obj as T
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => keysToSnake(item)) as T
+  }
+  
+  if (typeof obj === 'object') {
+    const result: any = {}
+    Object.keys(obj).forEach(key => {
+      const snakeKey = camelToSnake(key)
+      result[snakeKey] = keysToSnake(obj[key])
+    })
+    return result as T
+  }
+  
+  return obj
+}

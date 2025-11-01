@@ -17,6 +17,7 @@ import type {
   MeetingAgenda,
   MeetingSecurityLevel,
   MeetingType,
+  PackagedMeeting,
   PaginatedResponse,
   OperationResult,
   FileUploadResponse,
@@ -319,6 +320,14 @@ export class MeetingApiService {
    */
   async updateMeetingType(id: string, type: MeetingType): Promise<Meeting> {
     return await httpClient.patch<Meeting>(`${this.basePath}/${id}/type`, { type })
+  }
+
+  /**
+   * 获取打包会议列表
+   */
+  async getPackagedMeetings(): Promise<PackagedMeeting[]> {
+    const result = await httpClient.get<{ items: PackagedMeeting[] }>(`${this.basePath}/packaged`)
+    return result.items || []
   }
 
   // ===== 统计和其他功能 =====

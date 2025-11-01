@@ -1,63 +1,25 @@
 import { useState } from 'react'
 import { Search, RefreshCw } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { useNotifications } from '@/hooks/useNotifications'
-import type { MeetingSyncInfo, SyncDevice, SyncedMeeting, SyncOptions, SyncTask } from '@/types'
+import { meetingApi } from '@/services/api/meeting.api'
+import type { SyncDevice, SyncedMeeting, SyncOptions, SyncTask } from '@/types'
 import { DeviceDetailModal } from '@/components/business/sync/DeviceDetailModal'
 import { SyncHistoryModal } from '@/components/business/sync/SyncHistoryModal'
 
 export default function MeetingSyncPage() {
   const { showError, showSuccess } = useNotifications()
   
-  // Mock数据 - 实际应该从API获取
-  const [meetings] = useState<MeetingSyncInfo[]>([
-    {
-      id: '1',
-      name: 'meeting-001',
-      title: '战略规划会议',
-      securityLevel: 'top_secret',
-      status: 'ready',
-      meetingDate: '2024-10-25',
-      syncedDeviceCount: 15,
-      autoSyncEnabled: true,
-      meetingType: 'standard',
-      createdBy: 'admin',
-      createdAt: '2024-10-20T10:00:00Z',
-      updatedAt: '2024-10-25T10:00:00Z'
-    },
-    {
-      id: '2',
-      name: 'meeting-002',
-      title: 'Q4财务审计会议',
-      securityLevel: 'secret',
-      status: 'editable',
-      meetingDate: '2024-10-28',
-      syncedDeviceCount: 0,
-      autoSyncEnabled: false,
-      meetingType: 'standard',
-      createdBy: 'admin',
-      createdAt: '2024-10-22T10:00:00Z',
-      updatedAt: '2024-10-28T10:00:00Z'
-    },
-    {
-      id: '3',
-      name: 'meeting-003',
-      title: '产品发布会',
-      securityLevel: 'internal',
-      status: 'ready',
-      meetingDate: '2024-11-02',
-      syncedDeviceCount: 8,
-      autoSyncEnabled: false,
-      meetingType: 'standard',
-      createdBy: 'admin',
-      createdAt: '2024-10-28T10:00:00Z',
-      updatedAt: '2024-11-02T10:00:00Z'
-    }
-  ])
+  // 获取打包会议列表
+  const { data: meetings = [], isLoading, refetch } = useQuery({
+    queryKey: ['packaged-meetings'],
+    queryFn: () => meetingApi.getPackagedMeetings(),
+  })
 
   const [devices] = useState<SyncDevice[]>([
     { id: '1', name: '平板-001', usedStorage: 125, totalStorage: 500, syncedMeetingCount: 1, lastSyncTime: '2024-10-30T08:00:00Z' },
@@ -169,7 +131,7 @@ export default function MeetingSyncPage() {
     const selectedDevices = devices.filter(d => selectedDeviceIds.includes(d.id))
     
     console.log('开始同步:', {
-      meetings: selectedMeetings.map(m => m.title),
+      meetings: selectedMeetings.map(m => m.name),
       devices: selectedDevices.map(d => d.name),
       options: syncOptions
     })
@@ -230,12 +192,12 @@ export default function MeetingSyncPage() {
   }
 
   const filteredMeetings = meetings.filter(meeting => 
-    meeting.title.toLowerCase().includes(searchMeeting.toLowerCase())
+    meeting.name.toLowerCase().includes(searchMeeting.toLowerCase())
   )
 
   const selectedMeetingsSize = meetings
     .filter(m => selectedMeetingIds.includes(m.id))
-    .reduce((sum) => sum + 125, 0) // Mock: 假设每个会议125MB
+    .reduce((sum, m) => sum + (m.packageInfo?.packageSize || 0), 0) / (1024 * 1024) // 转换为MB
 
   return (
     <div className="p-6 h-full flex flex-col">
@@ -276,7 +238,17 @@ export default function MeetingSyncPage() {
           </CardHeader>
 
           <CardContent className="flex-1 overflow-y-auto space-y-3">
-            {filteredMeetings.map((meeting) => (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-sm text-muted-foreground">加载中...</div>
+              </div>
+            ) : filteredMeetings.length === 0 ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-sm text-muted-foreground">
+                  {searchMeeting ? '没有找到匹配的会议' : '暂无打包会议'}
+                </div>
+              </div>
+            ) : filteredMeetings.map((meeting) => (
               <Card
                 key={meeting.id}
                 className={`p-4 cursor-pointer transition-all ${
@@ -299,18 +271,21 @@ export default function MeetingSyncPage() {
                       <Badge variant={getSecurityLevelVariant(meeting.securityLevel)}>
                         {getSecurityLevelText(meeting.securityLevel)}
                       </Badge>
-                      <span className="font-medium truncate">{meeting.title}</span>
+                      <span className="font-medium truncate">{meeting.name}</span>
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
-                      <div>{meeting.meetingDate} | 125MB</div>
-                      <div className="flex items-center gap-2">
-                        <span>{meeting.syncedDeviceCount}/20台已同步</span>
-                        {meeting.autoSyncEnabled && (
-                          <Badge variant="success">
-                            自动同步
-                          </Badge>
-                        )}
+                      <div>
+                        {new Date(meeting.startTime).toLocaleDateString()} | 
+                        {meeting.packageInfo ? ` ${(meeting.packageInfo.packageSize / (1024 * 1024)).toFixed(1)}MB` : ' 未打包'}
                       </div>
+                      {meeting.packageInfo && (
+                        <div className="flex items-center gap-2">
+                          <span>文件: {meeting.packageInfo.fileCount} 个</span>
+                          <Badge variant="success">
+                            已打包
+                          </Badge>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -331,9 +306,14 @@ export default function MeetingSyncPage() {
             <div className="flex items-center justify-between">
               <CardTitle>设备列表</CardTitle>
               <div className="flex gap-2">
-                <Button variant="ghost" size="sm">
-                  <RefreshCw className="w-4 h-4" />
-                </Button>
+                <Button 
+                variant="ghost" 
+                  size="sm"
+                onClick={() => refetch()}
+                disabled={isLoading}
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              </Button>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -389,7 +369,7 @@ export default function MeetingSyncPage() {
 
           <div className="p-6 pt-0 border-t bg-muted">
             <div className="text-sm text-muted-foreground">
-              已选择: {selectedDeviceIds.length} 台设备 | 预计需要: {selectedMeetingsSize}MB
+              已选择: {selectedDeviceIds.length} 台设备 | 预计需要: {selectedMeetingsSize.toFixed(1)}MB
             </div>
           </div>
         </Card>

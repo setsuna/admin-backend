@@ -286,6 +286,49 @@ export function validateMeetingForm(formData: MeetingFormData): { valid: boolean
 }
 
 /**
+ * 转换后端PackagedMeeting数据为前端格式
+ * 处理snake_case到camelCase的转换
+ */
+export function transformPackagedMeetingFromApi(apiData: any): any {
+  return {
+    id: apiData.id,
+    name: apiData.name,
+    title: apiData.name, // 兼容字段
+    description: apiData.description || '',
+    status: apiData.status,
+    type: apiData.type,
+    securityLevel: apiData.security_level,
+    category: apiData.category || '',
+    startTime: apiData.start_time,
+    endTime: apiData.end_time,
+    location: apiData.location || '',
+    organizer: apiData.organizer || '',
+    organizerName: apiData.organizer_name || '',
+    host: apiData.host || '',
+    hostName: apiData.host_name || '',
+    hostId: apiData.created_by,
+    password: apiData.password || '',
+    expiryType: apiData.expiry_type || 'none',
+    expiryDate: apiData.expiry_date || null,
+    signInType: apiData.sign_in_type || 'none',
+    createdBy: apiData.created_by,
+    createdByName: apiData.created_by_name,
+    createdAt: apiData.created_at,
+    updatedAt: apiData.updated_at,
+    // 转换packageInfo
+    packageInfo: apiData.package_info ? {
+      packagePath: apiData.package_info.package_path,
+      packageSize: apiData.package_info.package_size,
+      checksum: apiData.package_info.checksum,
+      fileCount: apiData.package_info.file_count,
+      totalFileSize: apiData.package_info.total_file_size,
+      voteCount: apiData.package_info.vote_count,
+      packagedAt: apiData.package_info.packaged_at
+    } : null
+  }
+}
+
+/**
  * 检查所有议题的所有材料是否都选择了密级
  */
 export function validateMeetingMaterialsSecurity(agendas: any[]): { 

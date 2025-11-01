@@ -253,3 +253,23 @@ export interface MeetingFormData {
   organizer: string
   host: string
 }
+
+/**
+ * 打包信息
+ */
+export interface PackageInfo {
+  packagePath: string
+  packageSize: number
+  checksum: string
+  fileCount: number
+  totalFileSize: number
+  voteCount: number
+  packagedAt: string
+}
+
+/**
+ * 打包会议
+ */
+export interface PackagedMeeting extends Meeting {
+  packageInfo: PackageInfo | null
+}
