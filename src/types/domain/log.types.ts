@@ -84,7 +84,7 @@ export interface ThreeAdminLog extends BaseEntity {
   /** 操作人ID */
   operatorId: string
   /** 操作人角色 */
-  operatorRole: 'SYSTEM_ADMIN' | 'SECURITY_ADMIN' | 'AUDITOR'
+  operatorRole: 'SYSTEM_ADMIN' | 'SECURITY_ADMIN'
   /** IP地址 */
   ipAddress: string
   /** 操作模块 */
@@ -138,7 +138,7 @@ export interface ApplicationLogFilters extends LogFiltersBase {
  */
 export interface ThreeAdminLogFilters extends LogFiltersBase {
   /** 操作人角色（限定为三员） */
-  operatorRole?: 'SYSTEM_ADMIN' | 'SECURITY_ADMIN' | 'AUDITOR'
+  operatorRole?: 'SYSTEM_ADMIN' | 'SECURITY_ADMIN'
 }
 
 // ==================== 常量配置 ====================

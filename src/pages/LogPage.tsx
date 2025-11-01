@@ -60,14 +60,25 @@ const logModeConfig: Record<LogMode, LogPageConfig> = {
     icon: <Shield className="h-6 w-6 text-orange-600" />,
     showOperatorFilter: false,
     showRoleFilter: true,
-    renderOperatorCell: (operator: string, record: ThreeAdminLog) => (
-      <div>
-        <div className="font-medium">{operator}</div>
-        <div className={`text-xs ${threeAdminRoleConfig[record.operatorRole]?.color}`}>
-          {threeAdminRoleConfig[record.operatorRole]?.icon} {threeAdminRoleConfig[record.operatorRole]?.label}
-        </div>
-      </div>
-    )
+    renderOperatorCell: (operator: string, record: ApplicationLog | ThreeAdminLog) => {
+      // 类型守卫：检查是否是 ThreeAdminLog
+      const isThreeAdminLog = (r: ApplicationLog | ThreeAdminLog): r is ThreeAdminLog => {
+        return 'operatorRole' in r && typeof r.operatorRole === 'string' && 
+               ['SYSTEM_ADMIN', 'SECURITY_ADMIN'].includes(r.operatorRole)
+      }
+      
+      if (isThreeAdminLog(record)) {
+        return (
+          <div>
+            <div className="font-medium">{operator}</div>
+            <div className={`text-xs ${threeAdminRoleConfig[record.operatorRole]?.color}`}>
+              {threeAdminRoleConfig[record.operatorRole]?.label}
+            </div>
+          </div>
+        )
+      }
+      return <span className="font-medium">{operator}</span>
+    }
   }
 }
 
@@ -76,20 +87,12 @@ const threeAdminRoleConfig = {
   SYSTEM_ADMIN: { 
     label: '系统管理员', 
     color: 'text-blue-600',
-    bgColor: 'bg-blue-100',
-    icon: '⚙️'
+    bgColor: 'bg-blue-100'
   },
   SECURITY_ADMIN: { 
     label: '安全管理员', 
     color: 'text-purple-600',
-    bgColor: 'bg-purple-100',
-    icon: '🛡️'
-  },
-  AUDITOR: { 
-    label: '审计员', 
-    color: 'text-green-600',
-    bgColor: 'bg-green-100',
-    icon: '🔍'
+    bgColor: 'bg-purple-100'
   }
 }
 
@@ -547,7 +550,7 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
                       value={(filters as ThreeAdminLogFilters).operatorRole || ''}
                       onValueChange={(value) => setFilters({ 
                         ...filters, 
-                        operatorRole: value as 'SYSTEM_ADMIN' | 'SECURITY_ADMIN' | 'AUDITOR' | ''
+                        operatorRole: value ? (value as 'SYSTEM_ADMIN' | 'SECURITY_ADMIN') : undefined
                       })}
                     >
                       <SelectTrigger>
@@ -557,7 +560,7 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
                         <SelectItem value="">全部角色</SelectItem>
                         {Object.entries(threeAdminRoleConfig).map(([key, roleConfig]) => (
                           <SelectItem key={key} value={key}>
-                            {roleConfig.icon} {roleConfig.label}
+                            {roleConfig.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -573,7 +576,7 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
                   </label>
                   <Select
                     value={filters.module || ''}
-                    onValueChange={(value) => setFilters({ ...filters, module: value as OperationModule | '' })}
+                    onValueChange={(value) => setFilters({ ...filters, module: value ? (value as OperationModule) : undefined })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="全部模块" />
@@ -597,7 +600,7 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
                   </label>
                   <Select
                     value={filters.actionCategory || ''}
-                    onValueChange={(value) => setFilters({ ...filters, actionCategory: value as ActionCategory | '' })}
+                    onValueChange={(value) => setFilters({ ...filters, actionCategory: value ? (value as ActionCategory) : undefined })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="全部类别" />
@@ -621,7 +624,7 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
                   </label>
                   <Select
                     value={filters.operationResult || ''}
-                    onValueChange={(value) => setFilters({ ...filters, operationResult: value as LogOperationResult | '' })}
+                    onValueChange={(value) => setFilters({ ...filters, operationResult: value ? (value as LogOperationResult) : undefined })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="全部结果" />
