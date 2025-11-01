@@ -60,24 +60,9 @@ const logModeConfig: Record<LogMode, LogPageConfig> = {
     icon: <Shield className="h-6 w-6 text-orange-600" />,
     showOperatorFilter: false,
     showRoleFilter: true,
-    renderOperatorCell: (operator: string, record: ApplicationLog | ThreeAdminLog) => {
-      // 类型守卫：检查是否是 ThreeAdminLog
-      if ('operatorRole' in record && 
-          (record.operatorRole === 'SYSTEM_ADMIN' || 
-           record.operatorRole === 'SECURITY_ADMIN' || 
-           record.operatorRole === 'AUDITOR')) {
-        return (
-          <div>
-            <div className="font-medium">{operator}</div>
-            <div className={`text-xs ${threeAdminRoleConfig[record.operatorRole]?.color}`}>
-              {threeAdminRoleConfig[record.operatorRole]?.icon} {threeAdminRoleConfig[record.operatorRole]?.label}
-            </div>
-          </div>
-        )
-      }
-      // 默认返回（不应该执行到这里）
-      return <span className="font-medium">{operator}</span>
-    }
+    renderOperatorCell: (operator: string) => (
+      <span className="font-medium">{operator}</span>
+    )
   }
 }
 
@@ -86,20 +71,17 @@ const threeAdminRoleConfig = {
   SYSTEM_ADMIN: { 
     label: '系统管理员', 
     color: 'text-blue-600',
-    bgColor: 'bg-blue-100',
-    icon: '⚙️'
+    bgColor: 'bg-blue-100'
   },
   SECURITY_ADMIN: { 
     label: '安全管理员', 
     color: 'text-purple-600',
-    bgColor: 'bg-purple-100',
-    icon: '🛡️'
+    bgColor: 'bg-purple-100'
   },
   AUDITOR: { 
     label: '审计员', 
     color: 'text-green-600',
-    bgColor: 'bg-green-100',
-    icon: '🔍'
+    bgColor: 'bg-green-100'
   }
 }
 
@@ -554,22 +536,23 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
                       管理员角色
                     </label>
                     <Select
-                      value={(filters as ThreeAdminLogFilters).operatorRole || ''}
+                      value={(filters as ThreeAdminLogFilters).operatorRole || undefined}
                       onValueChange={(value) => setFilters({ 
                         ...filters, 
-                        operatorRole: value as 'SYSTEM_ADMIN' | 'SECURITY_ADMIN' | 'AUDITOR' | ''
+                        operatorRole: value as 'SYSTEM_ADMIN' | 'SECURITY_ADMIN' | 'AUDITOR'
                       })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="全部角色" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">全部角色</SelectItem>
-                        {Object.entries(threeAdminRoleConfig).map(([key, roleConfig]) => (
-                          <SelectItem key={key} value={key}>
-                            {roleConfig.icon} {roleConfig.label}
-                          </SelectItem>
-                        ))}
+                        {Object.entries(threeAdminRoleConfig)
+                          .filter(([key]) => key !== 'AUDITOR')
+                          .map(([key, roleConfig]) => (
+                            <SelectItem key={key} value={key}>
+                              {roleConfig.label}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -583,13 +566,15 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
                   </label>
                   <Select
                     value={filters.module || undefined}
-                    onValueChange={(value) => setFilters({ ...filters, module: value || undefined as OperationModule | undefined })}
+                    onValueChange={(value) => setFilters({ 
+                      ...filters, 
+                      module: value as OperationModule
+                    })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="全部模块" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">全部模块</SelectItem>
                       {Object.entries(moduleConfig).map(([key, moduleConf]) => (
                         <SelectItem key={key} value={key}>
                           {moduleConf.label}
@@ -607,13 +592,15 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
                   </label>
                   <Select
                     value={filters.actionCategory || undefined}
-                    onValueChange={(value) => setFilters({ ...filters, actionCategory: value || undefined as ActionCategory | undefined })}
+                    onValueChange={(value) => setFilters({ 
+                      ...filters, 
+                      actionCategory: value as ActionCategory
+                    })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="全部类别" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">全部类别</SelectItem>
                       {Object.entries(actionConfig).map(([key, actionConf]) => (
                         <SelectItem key={key} value={key}>
                           {actionConf.label}
@@ -631,13 +618,15 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
                   </label>
                   <Select
                     value={filters.operationResult || undefined}
-                    onValueChange={(value) => setFilters({ ...filters, operationResult: value || undefined as LogOperationResult | undefined })}
+                    onValueChange={(value) => setFilters({ 
+                      ...filters, 
+                      operationResult: value as LogOperationResult
+                    })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="全部结果" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">全部结果</SelectItem>
                       <SelectItem value="success">成功</SelectItem>
                       <SelectItem value="failure">失败</SelectItem>
                     </SelectContent>
