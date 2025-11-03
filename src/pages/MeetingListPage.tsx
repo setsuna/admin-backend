@@ -168,11 +168,11 @@ const MeetingListPage: React.FC = () => {
     }
   }
 
-  // 取消下发 (ready → editable)
+  // 取消准备 (ready → editable)
   const handleCancelReady = async (id: string) => {
     const confirmed = await dialog.confirm({
-      title: '取消下发',
-      message: '确定要取消下发吗？',
+      title: '取消准备',
+      message: '确定要取消准备吗？',
       content: '这将删除已打包的文件，会议恢复为可编辑状态。',
       type: 'warning',
       confirmText: '确定取消',
@@ -323,7 +323,7 @@ const MeetingListPage: React.FC = () => {
                   onClick={() => handlePackageMeeting(record.id)}
                   className="text-blue-600 hover:text-blue-700"
                 >
-                  打包
+                  准备会议
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -337,24 +337,14 @@ const MeetingListPage: React.FC = () => {
             )}
             
             {mappedStatus === 'ready' && (
-              <>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => handleCancelReady(record.id)}
-                  className="text-yellow-600 hover:text-yellow-700"
-                >
-                  取消下发
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => handleCloseMeeting(record.id)}
-                  className="text-orange-600 hover:text-orange-700"
-                >
-                  关闭
-                </Button>
-              </>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => handleCancelReady(record.id)}
+                className="text-yellow-600 hover:text-yellow-700"
+              >
+                取消准备
+              </Button>
             )}
             
             {mappedStatus === 'closed' && (

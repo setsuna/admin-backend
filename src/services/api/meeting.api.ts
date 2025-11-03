@@ -113,7 +113,13 @@ export class MeetingApiService {
    * 关闭会议（任意状态 → closed）
    */
   async closeMeeting(id: string): Promise<OperationResult> {
-    return await httpClient.patch<OperationResult>(`${this.basePath}/${id}/status`, { status: 'closed' })
+    // ✅ 改用 updateMeeting，只更新 status 字段
+    const result = await this.updateMeeting(id, { status: 'closed' })
+    return {
+      success: true,
+      message: '会议已关闭',
+      data: result
+    }
   }
 
   /**
