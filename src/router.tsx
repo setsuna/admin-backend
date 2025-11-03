@@ -13,8 +13,7 @@ const MyMeetingPage = lazy(() => import('@/pages/MyMeetingPage'))
 const MeetingFormPage = lazy(() => import('@/pages/MeetingFormPage'))
 const DataDictionaryPage = lazy(() => import('@/pages/DataDictionaryPage'))
 
-const UserPage = lazy(() => import('@/pages/UserPage'))
-const SecurityUserManagePage = lazy(() => import('@/pages/SecurityUserManagePage'))
+const UserManagePage = lazy(() => import('@/pages/UserManagePage'))
 
 const AnomalyAlertsPage = lazy(() => 
   Promise.resolve({
@@ -30,18 +29,6 @@ const MeetingSyncPage = lazy(() => import('@/pages/MeetingSyncPage'))
 
 
 
-// const RolePermissionsPage = lazy(() => 
-//   Promise.resolve({
-//     default: () => (
-//       <div className="p-6">
-//         <h1 className="text-2xl font-bold mb-4">角色权限</h1>
-//         <p className="text-muted-foreground">角色权限页面待开发</p>
-//       </div>
-//     )
-//   })
-// )
-
-const SecurityLevelsPage = lazy(() => import('@/pages/SecurityLevelManagePage'))
 
 const DepartmentsPage = lazy(() => import('@/pages/DepartmentPage'))
 
@@ -199,7 +186,7 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permissions={['user:manage']}>
             <LazyWrapper>
-              <UserPage />
+              <UserManagePage mode="admin" />
             </LazyWrapper>
           </PermissionGuard>
         ),
@@ -219,7 +206,7 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permissions={['security:manage']}>
             <LazyWrapper>
-              <SecurityLevelsPage />
+              <UserManagePage mode="security_level" />
             </LazyWrapper>
           </PermissionGuard>
         ),
@@ -239,7 +226,7 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permissions={['user:manage']}>
             <LazyWrapper>
-              <UserPage />
+              <UserManagePage mode="admin" />
             </LazyWrapper>
           </PermissionGuard>
         ),
@@ -249,7 +236,7 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permissions={['security:user:manage', 'user:manage']}>
             <LazyWrapper>
-              <SecurityUserManagePage />
+              <UserManagePage mode="security" />
             </LazyWrapper>
           </PermissionGuard>
         ),
