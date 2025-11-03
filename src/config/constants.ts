@@ -54,6 +54,10 @@ export const API_PATHS = {
   LICENSE_DETAILS: '/license/details',
   LICENSE_EXPORT: '/license/export',
   LICENSE_RESET: '/license/reset',
+  
+  // 日志管理
+  LOGS: '/logs',
+  LOGS_THREE_ADMIN: '/logs/three-admin',
 } as const
 
 // HTTP状态码配置

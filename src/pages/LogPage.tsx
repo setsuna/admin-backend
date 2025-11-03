@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { 
   Search, 
   Filter, 
@@ -22,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/SelectNew'
+import { logService } from '@/services'
 import type { 
   ApplicationLog,
   ThreeAdminLog,
@@ -127,191 +129,6 @@ const moduleConfig = {
   SYNC: { label: '同步管理' }
 }
 
-// 应用日志模拟数据
-const mockApplicationLogs: ApplicationLog[] = [
-  {
-    id: '1',
-    timestamp: '2024-11-01 10:30:25',
-    operator: '张三',
-    operatorId: 'user_001',
-    operatorRole: 'Security Admin',
-    ipAddress: '192.168.1.100',
-    module: 'USER' as OperationModule,
-    actionCategory: 'UPDATE' as ActionCategory,
-    actionDescription: '修改用户状态：将用户"李四"的状态从"启用"改为"禁用"',
-    operationResult: 'success' as LogOperationResult,
-    beforeData: { status: 'enabled', username: '李四' },
-    afterData: { status: 'disabled', username: '李四' },
-    changeDetails: '将用户"李四"的状态从"启用"改为"禁用"',
-    createdAt: '2024-11-01 10:30:25',
-    updatedAt: '2024-11-01 10:30:25'
-  },
-  {
-    id: '2',
-    timestamp: '2024-11-01 10:25:18',
-    operator: '王五',
-    operatorId: 'user_002',
-    operatorRole: 'Auditor',
-    ipAddress: '192.168.1.101',
-    module: 'AUTH' as OperationModule,
-    actionCategory: 'LOGIN' as ActionCategory,
-    actionDescription: '用户登录系统',
-    operationResult: 'success' as LogOperationResult,
-    createdAt: '2024-11-01 10:25:18',
-    updatedAt: '2024-11-01 10:25:18'
-  },
-  {
-    id: '3',
-    timestamp: '2024-11-01 10:20:45',
-    operator: '赵六',
-    operatorId: 'user_003',
-    operatorRole: 'System Admin',
-    ipAddress: '192.168.1.102',
-    module: 'MEETING' as OperationModule,
-    actionCategory: 'CREATE' as ActionCategory,
-    actionDescription: '创建会议：标题为"项目评审会"，状态为草稿',
-    operationResult: 'success' as LogOperationResult,
-    afterData: { title: '项目评审会', status: 'draft' },
-    createdAt: '2024-11-01 10:20:45',
-    updatedAt: '2024-11-01 10:20:45'
-  },
-  {
-    id: '4',
-    timestamp: '2024-11-01 10:15:30',
-    operator: '孙七',
-    operatorId: 'user_004',
-    operatorRole: 'User',
-    ipAddress: '192.168.1.103',
-    module: 'AUTH' as OperationModule,
-    actionCategory: 'LOGIN' as ActionCategory,
-    actionDescription: '用户登录失败：密码错误',
-    operationResult: 'failure' as LogOperationResult,
-    createdAt: '2024-11-01 10:15:30',
-    updatedAt: '2024-11-01 10:15:30'
-  },
-  {
-    id: '5',
-    timestamp: '2024-11-01 10:10:12',
-    operator: '张三',
-    operatorId: 'user_001',
-    operatorRole: 'Security Admin',
-    ipAddress: '192.168.1.100',
-    module: 'PERMISSION' as OperationModule,
-    actionCategory: 'UPDATE' as ActionCategory,
-    actionDescription: '修改角色权限：为角色"管理员"添加了"删除用户"权限',
-    operationResult: 'success' as LogOperationResult,
-    beforeData: { permissions: ['user:read', 'user:write'] },
-    afterData: { permissions: ['user:read', 'user:write', 'user:delete'] },
-    changeDetails: '为角色"管理员"添加了"删除用户"权限',
-    createdAt: '2024-11-01 10:10:12',
-    updatedAt: '2024-11-01 10:10:12'
-  }
-]
-
-// 三员日志模拟数据
-const mockThreeAdminLogs: ThreeAdminLog[] = [
-  {
-    id: '1',
-    timestamp: '2024-11-01 10:30:25',
-    operator: '安全管理员',
-    operatorId: 'security_admin',
-    operatorRole: 'SECURITY_ADMIN',
-    ipAddress: '192.168.1.100',
-    module: 'USER' as OperationModule,
-    actionCategory: 'UPDATE' as ActionCategory,
-    actionDescription: '修改用户状态：将用户"李四"的状态从"启用"改为"禁用"',
-    operationResult: 'success' as LogOperationResult,
-    beforeData: { status: 'enabled', username: '李四' },
-    afterData: { status: 'disabled', username: '李四' },
-    changeDetails: '将用户"李四"的状态从"启用"改为"禁用"',
-    createdAt: '2024-11-01 10:30:25',
-    updatedAt: '2024-11-01 10:30:25'
-  },
-  {
-    id: '2',
-    timestamp: '2024-11-01 10:20:45',
-    operator: '系统管理员',
-    operatorId: 'system_admin',
-    operatorRole: 'SYSTEM_ADMIN',
-    ipAddress: '192.168.1.102',
-    module: 'SYSTEM' as OperationModule,
-    actionCategory: 'CONFIG' as ActionCategory,
-    actionDescription: '修改系统配置：将最大登录尝试次数从3次修改为5次',
-    operationResult: 'success' as LogOperationResult,
-    beforeData: { maxLoginAttempts: 3 },
-    afterData: { maxLoginAttempts: 5 },
-    changeDetails: '将最大登录尝试次数从3次修改为5次',
-    createdAt: '2024-11-01 10:20:45',
-    updatedAt: '2024-11-01 10:20:45'
-  },
-  {
-    id: '3',
-    timestamp: '2024-11-01 10:15:30',
-    operator: '安全管理员',
-    operatorId: 'security_admin',
-    operatorRole: 'SECURITY_ADMIN',
-    ipAddress: '192.168.1.100',
-    module: 'PERMISSION' as OperationModule,
-    actionCategory: 'UPDATE' as ActionCategory,
-    actionDescription: '修改角色权限：为角色"管理员"添加了"删除用户"权限',
-    operationResult: 'success' as LogOperationResult,
-    beforeData: { permissions: ['user:read', 'user:write'] },
-    afterData: { permissions: ['user:read', 'user:write', 'user:delete'] },
-    changeDetails: '为角色"管理员"添加了"删除用户"权限',
-    createdAt: '2024-11-01 10:15:30',
-    updatedAt: '2024-11-01 10:15:30'
-  },
-  {
-    id: '4',
-    timestamp: '2024-11-01 10:05:00',
-    operator: '系统管理员',
-    operatorId: 'system_admin',
-    operatorRole: 'SYSTEM_ADMIN',
-    ipAddress: '192.168.1.102',
-    module: 'SECURITY' as OperationModule,
-    actionCategory: 'UPDATE' as ActionCategory,
-    actionDescription: '修改安全策略：将密码过期天数从90天修改为60天',
-    operationResult: 'success' as LogOperationResult,
-    beforeData: { passwordExpireDays: 90 },
-    afterData: { passwordExpireDays: 60 },
-    changeDetails: '将密码过期天数从90天修改为60天',
-    createdAt: '2024-11-01 10:05:00',
-    updatedAt: '2024-11-01 10:05:00'
-  },
-  {
-    id: '5',
-    timestamp: '2024-11-01 09:50:00',
-    operator: '安全管理员',
-    operatorId: 'security_admin',
-    operatorRole: 'SECURITY_ADMIN',
-    ipAddress: '192.168.1.100',
-    module: 'USER' as OperationModule,
-    actionCategory: 'CREATE' as ActionCategory,
-    actionDescription: '创建用户：新建用户"王五"，角色为"普通用户"',
-    operationResult: 'success' as LogOperationResult,
-    afterData: { username: '王五', role: 'user' },
-    createdAt: '2024-11-01 09:50:00',
-    updatedAt: '2024-11-01 09:50:00'
-  },
-  {
-    id: '6',
-    timestamp: '2024-11-01 09:30:00',
-    operator: '系统管理员',
-    operatorId: 'system_admin',
-    operatorRole: 'SYSTEM_ADMIN',
-    ipAddress: '192.168.1.102',
-    module: 'SYSTEM' as OperationModule,
-    actionCategory: 'CONFIG' as ActionCategory,
-    actionDescription: '修改数据库备份策略：将备份频率从每天一次修改为每12小时一次',
-    operationResult: 'success' as LogOperationResult,
-    beforeData: { backupFrequency: '24h' },
-    afterData: { backupFrequency: '12h' },
-    changeDetails: '将备份频率从每天一次修改为每12小时一次',
-    createdAt: '2024-11-01 09:30:00',
-    updatedAt: '2024-11-01 09:30:00'
-  }
-]
-
 interface LogPageProps {
   mode: LogMode
 }
@@ -320,13 +137,8 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
   // 根据模式获取配置
   const config = logModeConfig[mode]
   
-  // 根据模式获取数据
-  const mockData = mode === 'application' ? mockApplicationLogs : mockThreeAdminLogs
-  
   // 状态
-  const [logs] = useState<(ApplicationLog | ThreeAdminLog)[]>(mockData)
   const [isFilterExpanded, setIsFilterExpanded] = useState(false)
-  const [isLoading] = useState(false)
   
   // 筛选条件
   const [filters, setFilters] = useState<ApplicationLogFilters | ThreeAdminLogFilters>({})
@@ -336,8 +148,40 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
   const [pagination, setPagination] = useState({
     page: 1,
     pageSize: 20,
-    total: mockData.length
+    total: 0
   })
+
+  // 使用TanStack Query获取数据
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['logs', mode, pagination.page, pagination.pageSize, filters, searchKeyword],
+    queryFn: async () => {
+      const params = {
+        ...filters,
+        keyword: searchKeyword || undefined,
+        page: pagination.page,
+        pageSize: pagination.pageSize
+      }
+      
+      if (mode === 'application') {
+        return logService.getApplicationLogs(params)
+      } else {
+        return logService.getThreeAdminLogs(params)
+      }
+    },
+    staleTime: 30000 // 30秒缓存
+  })
+
+  // 更新分页总数
+  React.useEffect(() => {
+    if (data?.pagination) {
+      setPagination(prev => ({
+        ...prev,
+        total: data.pagination.total
+      }))
+    }
+  }, [data?.pagination])
+
+  const logs = data?.items || []
 
   // 处理分页变化
   const handlePaginationChange = (newPagination: { page: number; pageSize: number }) => {
@@ -355,14 +199,22 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
 
   // 处理刷新
   const handleRefresh = () => {
-    console.log('刷新日志')
-    // TODO: 实现刷新功能
+    refetch()
   }
 
   // 重置筛选
   const handleResetFilters = () => {
     setFilters({})
     setSearchKeyword('')
+  }
+
+  // 应用筛选
+  const handleApplyFilters = () => {
+    // 重置到第一页
+    setPagination(prev => ({
+      ...prev,
+      page: 1
+    }))
   }
   
   // 表格列定义
@@ -473,6 +325,11 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
                 placeholder="搜索操作描述..."
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleApplyFilters()
+                  }
+                }}
                 className="pl-9"
               />
             </div>
@@ -640,7 +497,7 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
                   <X className="h-4 w-4 mr-2" />
                   重置
                 </Button>
-                <Button onClick={() => console.log('应用筛选', filters)}>
+                <Button onClick={handleApplyFilters}>
                   应用筛选
                 </Button>
               </div>

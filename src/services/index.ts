@@ -23,6 +23,7 @@ export { policyApi } from './api/policy.api'
 export { departmentApiService } from './api/department.api'
 export { participantApi } from './api/participant.api'
 export { licenseApi } from './api/license.api'
+export { logApiService } from './api/log.api'
 
 // 简写导出
 export { departmentApiService as departmentApi } from './api/department.api'
@@ -38,6 +39,7 @@ export { meetingService } from './meeting'
 export { permissionService } from './permission'
 export { deviceService } from './device'
 export { websocketService } from './websocket'
+export { logService } from './log'
 
 // ========================================
 // 类型导出
