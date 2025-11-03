@@ -4,10 +4,23 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { DataTable } from '@/components/features/DataTable'
-import { Select } from '@/components/ui/Select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/SelectNew'
 import { StatusIndicator } from '@/components/ui/StatusIndicator'
 import { Loading } from '@/components/ui/Loading'
 import { FormModal } from '@/components/ui/FormModal'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/Dialog'
 import { useGlobalDialog } from '@/components/ui/DialogProvider'
 import { useUser } from '@/hooks/useUser'
 import type { User, CreateUserRequest, UpdateUserRequest, UserSecurityLevel } from '@/types'
@@ -71,6 +84,10 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [showSecurityLevelModal, setShowSecurityLevelModal] = useState(false)
   const [showBatchUpdateModal, setShowBatchUpdateModal] = useState(false)
+  const [securityLevelFormData, setSecurityLevelFormData] = useState<{ securityLevel: UserSecurityLevel; reason?: string }>({
+    securityLevel: 'unknown',
+    reason: ''
+  })
   
   // 搜索关键词状态
   const [searchKeyword, setSearchKeyword] = useState(filters.keyword || '')
@@ -93,8 +110,8 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
   const securityLevelOptions = [
     { label: '密级未知', value: 'unknown' },
     { label: '内部', value: 'internal' },
-    { label: '机密', value: 'confidential' },
-    { label: '绝密', value: 'secret' }
+    { label: '秘密', value: 'secret' },
+    { label: '机密', value: 'confidential' }
   ]
   
   // 根据模式获取页面配置
@@ -265,43 +282,51 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
   // ========== Security Level 模式操作 ==========
   const handleUpdateSecurityLevel = (user: User) => {
     setEditingUser(user)
+    setSecurityLevelFormData({
+      securityLevel: user.securityLevel || 'unknown',
+      reason: ''
+    })
     setShowSecurityLevelModal(true)
   }
   
   const handleBatchUpdateSecurityLevel = () => {
     if (selectedIds.length === 0) return
+    setSecurityLevelFormData({
+      securityLevel: 'unknown',
+      reason: ''
+    })
     setShowBatchUpdateModal(true)
   }
   
-  const handleSecurityLevelSubmit = async (formData: { securityLevel: UserSecurityLevel; reason?: string }) => {
+  const handleSecurityLevelSubmit = async () => {
     if (!editingUser) return
     
     const levelMap = { unknown: '未知', internal: '内部', confidential: '机密', secret: '绝密' }
     const confirmed = await showConfirm({
       title: '调整用户密级',
-      content: `确定要将用户"${editingUser.username}"的密级调整为"${levelMap[formData.securityLevel]}"吗？`,
+      content: `确定要将用户"${editingUser.username}"的密级调整为"${levelMap[securityLevelFormData.securityLevel]}"吗？`,
       confirmText: '确定',
       cancelText: '取消'
     })
     
     if (confirmed) {
-      updateUserSecurityLevel(editingUser.id, formData.securityLevel)
+      updateUserSecurityLevel(editingUser.id, securityLevelFormData.securityLevel)
       setShowSecurityLevelModal(false)
       setEditingUser(null)
     }
   }
   
-  const handleBatchUpdateSubmit = async (formData: { securityLevel: UserSecurityLevel; reason?: string }) => {
+  const handleBatchUpdateSubmit = async () => {
     const levelMap = { unknown: '未知', internal: '内部', confidential: '机密', secret: '绝密' }
     const confirmed = await showConfirm({
       title: '批量调整密级',
-      content: `确定要将选中的 ${selectedIds.length} 个用户的密级调整为"${levelMap[formData.securityLevel]}"吗？`,
+      content: `确定要将选中的 ${selectedIds.length} 个用户的密级调整为"${levelMap[securityLevelFormData.securityLevel]}"吗？`,
       confirmText: '确定',
       cancelText: '取消'
     })
     
     if (confirmed) {
-      batchUpdateSecurityLevel(selectedIds, formData.securityLevel)
+      batchUpdateSecurityLevel(selectedIds, securityLevelFormData.securityLevel)
       setShowBatchUpdateModal(false)
     }
   }
@@ -324,8 +349,8 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
           const Icon = roleIconMap[user.role] || UserCheck
           return (
             <div className="flex justify-center">
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                <Icon className="w-5 h-5 text-blue-600" />
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Icon className="w-5 h-5 text-primary" />
               </div>
             </div>
           )
@@ -338,7 +363,7 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
         render: (username: string, user: User) => (
           <div>
             <div className="font-medium">{username}</div>
-            <div className="text-sm text-gray-500">{user.email || '-'}</div>
+            <div className="text-sm text-text-tertiary">{user.email || '-'}</div>
           </div>
         )
       },
@@ -357,15 +382,15 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
         title: '角色',
         render: (role: string) => {
           const roleMap: Record<string, { label: string; color: string }> = {
-            admin: { label: '管理员', color: 'red' },
-            meeting_admin: { label: '会议管理员', color: 'blue' },
-            auditor: { label: '审计员', color: 'yellow' },
-            security_admin: { label: '安全管理员', color: 'purple' },
-            user: { label: '普通用户', color: 'gray' }
+            admin: { label: '管理员', color: 'error' },
+            meeting_admin: { label: '会议管理员', color: 'primary' },
+            auditor: { label: '审计员', color: 'warning' },
+            security_admin: { label: '安全管理员', color: 'secondary' },
+            user: { label: '普通用户', color: 'default' }
           }
-          const roleInfo = roleMap[role] || { label: role || '未知', color: 'gray' }
+          const roleInfo = roleMap[role] || { label: role || '未知', color: 'default' }
           return (
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${roleInfo.color}-100 text-${roleInfo.color}-800`}>
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${roleInfo.color}/10 text-${roleInfo.color}`}>
               {roleInfo.label}
             </span>
           )
@@ -376,15 +401,15 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
         title: mode === 'security_level' ? '当前密级' : '密级',
         render: (securityLevel: UserSecurityLevel) => {
           const levelMap: Record<UserSecurityLevel, { label: string; color: string; icon: any }> = {
-            unknown: { label: '未知', color: 'gray', icon: ShieldX },
-            internal: { label: '内部', color: 'green', icon: Shield },
-            confidential: { label: '机密', color: 'yellow', icon: ShieldAlert },
-            secret: { label: '绝密', color: 'red', icon: ShieldCheck }
+            unknown: { label: '未知', color: 'bg-gray-100 text-gray-800', icon: ShieldX },
+            internal: { label: '内部', color: 'bg-success text-text-inverse', icon: Shield },
+            confidential: { label: '机密', color: 'bg-error text-text-inverse', icon: ShieldAlert },
+            secret: { label: '秘密', color: 'bg-warning text-text-inverse', icon: ShieldCheck }
           }
           const levelInfo = levelMap[securityLevel] || levelMap.unknown
           const IconComponent = levelInfo.icon
           return (
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${levelInfo.color}-100 text-${levelInfo.color}-800`}>
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${levelInfo.color}`}>
               <IconComponent className="w-3 h-3 mr-1" />
               {levelInfo.label}
             </span>
@@ -438,7 +463,7 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
               disabled={isDeleting}
               title="删除用户"
             >
-              <Trash2 className="w-4 h-4 text-red-500" />
+              <Trash2 className="w-4 h-4 text-error" />
             </Button>
           </div>
         )
@@ -467,7 +492,7 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
                 disabled={isUpdatingStatus}
                 title="禁用用户"
               >
-                <UserX className="w-4 h-4 text-orange-500" />
+                <UserX className="w-4 h-4 text-warning" />
               </Button>
             ) : (
               <Button
@@ -477,7 +502,7 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
                 disabled={isUpdatingStatus}
                 title="启用用户"
               >
-                <UserCheck className="w-4 h-4 text-green-500" />
+                <UserCheck className="w-4 h-4 text-success" />
               </Button>
             )}
             {user.status !== 'suspended' && (
@@ -488,7 +513,7 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
                 disabled={isUpdatingStatus}
                 title="停用用户"
               >
-                <AlertTriangle className="w-4 h-4 text-red-500" />
+                <AlertTriangle className="w-4 h-4 text-error" />
               </Button>
             )}
           </div>
@@ -577,39 +602,6 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
       label: '允许登录的IP',
       type: 'text',
       placeholder: '多个IP用逗号分隔，例如：192.168.1.1,192.168.1.2'
-    },
-    ...(editingUser ? [
-      {
-        name: 'securityLevel',
-        label: '密级',
-        type: 'select' as const,
-        required: true,
-        options: securityLevelOptions
-      },
-      {
-        name: 'status',
-        label: '状态',
-        type: 'select' as const,
-        required: true,
-        options: statusOptions
-      }
-    ] : [])
-  ]
-  
-  // 密级调整表单字段
-  const securityLevelFormFields = [
-    {
-      name: 'securityLevel',
-      label: mode === 'security_level' && !editingUser ? '统一密级' : '新密级',
-      type: 'select',
-      required: true,
-      options: securityLevelOptions
-    },
-    {
-      name: 'reason',
-      label: '调整原因',
-      type: 'textarea',
-      placeholder: '请输入调整原因（可选）'
     }
   ]
   
@@ -623,12 +615,12 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Users className="w-6 h-6 text-blue-600" />
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Users className="w-6 h-6 text-primary" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">总用户数</p>
-                  <p className="text-2xl font-bold text-gray-900">{userStats.total}</p>
+                  <p className="text-sm font-medium text-text-tertiary">总用户数</p>
+                  <p className="text-2xl font-bold text-text-primary">{userStats.total}</p>
                 </div>
               </div>
             </CardContent>
@@ -637,12 +629,12 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Shield className="w-6 h-6 text-green-600" />
+                <div className="p-2 bg-success/10 rounded-lg">
+                  <Shield className="w-6 h-6 text-success" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">内部级别</p>
-                  <p className="text-2xl font-bold text-gray-900">{userStats.bySecurityLevel?.internal || 0}</p>
+                  <p className="text-sm font-medium text-text-tertiary">内部级别</p>
+                  <p className="text-2xl font-bold text-text-primary">{userStats.bySecurityLevel?.internal || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -651,12 +643,12 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <div className="p-2 bg-yellow-100 rounded-lg">
-                  <ShieldAlert className="w-6 h-6 text-yellow-600" />
+                <div className="p-2 bg-warning/10 rounded-lg">
+                  <ShieldAlert className="w-6 h-6 text-warning" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">机密级别</p>
-                  <p className="text-2xl font-bold text-gray-900">{userStats.bySecurityLevel?.confidential || 0}</p>
+                  <p className="text-sm font-medium text-text-tertiary">机密级别</p>
+                  <p className="text-2xl font-bold text-text-primary">{userStats.bySecurityLevel?.confidential || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -665,12 +657,12 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <div className="p-2 bg-red-100 rounded-lg">
-                  <ShieldCheck className="w-6 h-6 text-red-600" />
+                <div className="p-2 bg-error/10 rounded-lg">
+                  <ShieldCheck className="w-6 h-6 text-error" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">绝密级别</p>
-                  <p className="text-2xl font-bold text-gray-900">{userStats.bySecurityLevel?.secret || 0}</p>
+                  <p className="text-sm font-medium text-text-tertiary">绝密级别</p>
+                  <p className="text-2xl font-bold text-text-primary">{userStats.bySecurityLevel?.secret || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -685,12 +677,12 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="w-6 h-6 text-blue-600" />
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Users className="w-6 h-6 text-primary" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">总用户数</p>
-                <p className="text-2xl font-bold text-gray-900">{userStats.total}</p>
+                <p className="text-sm font-medium text-text-tertiary">总用户数</p>
+                <p className="text-2xl font-bold text-text-primary">{userStats.total}</p>
               </div>
             </div>
           </CardContent>
@@ -699,12 +691,12 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <UserCheck className="w-6 h-6 text-green-600" />
+              <div className="p-2 bg-success/10 rounded-lg">
+                <UserCheck className="w-6 h-6 text-success" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">正常用户</p>
-                <p className="text-2xl font-bold text-gray-900">{userStats.active}</p>
+                <p className="text-sm font-medium text-text-tertiary">正常用户</p>
+                <p className="text-2xl font-bold text-text-primary">{userStats.active}</p>
               </div>
             </div>
           </CardContent>
@@ -713,12 +705,12 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <UserX className="w-6 h-6 text-yellow-600" />
+              <div className="p-2 bg-warning/10 rounded-lg">
+                <UserX className="w-6 h-6 text-warning" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">禁用用户</p>
-                <p className="text-2xl font-bold text-gray-900">{userStats.inactive}</p>
+                <p className="text-sm font-medium text-text-tertiary">禁用用户</p>
+                <p className="text-2xl font-bold text-text-primary">{userStats.inactive}</p>
               </div>
             </div>
           </CardContent>
@@ -727,12 +719,12 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
+              <div className="p-2 bg-error/10 rounded-lg">
+                <AlertTriangle className="w-6 h-6 text-error" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">停用用户</p>
-                <p className="text-2xl font-bold text-gray-900">{userStats.suspended}</p>
+                <p className="text-sm font-medium text-text-tertiary">停用用户</p>
+                <p className="text-2xl font-bold text-text-primary">{userStats.suspended}</p>
               </div>
             </div>
           </CardContent>
@@ -774,56 +766,55 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
             
             <div className="flex space-x-2">
               <Select
-                placeholder="筛选部门"
-                value={filters.department}
+                value={filters.department || undefined}
                 onValueChange={(value) => {
-                  setFilters({ ...filters, department: value })
+                  setFilters({ ...filters, department: value || '' })
                   setPagination({ page: 1, pageSize: pagination?.pageSize || 20 })
                 }}
-                options={[
-                  { label: '全部部门', value: '' },
-                  ...departmentOptions.map(dept => ({ label: dept.name, value: dept.id }))
-                ]}
-              />
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="全部部门" />
+                </SelectTrigger>
+                <SelectContent>
+                  {departmentOptions.map(dept => (
+                    <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               
               <Select
-                placeholder="筛选角色"
-                value={filters.role}
+                value={filters.status || undefined}
                 onValueChange={(value) => {
-                  setFilters({ ...filters, role: value as any })
+                  setFilters({ ...filters, status: (value || '') as any })
                   setPagination({ page: 1, pageSize: pagination?.pageSize || 20 })
                 }}
-                options={[
-                  { label: '全部角色', value: '' },
-                  ...roleOptions
-                ]}
-              />
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="全部状态" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map(status => (
+                    <SelectItem key={status.value} value={status.value}>{status.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               
               <Select
-                placeholder="筛选状态"
-                value={filters.status}
+                value={filters.securityLevel || undefined}
                 onValueChange={(value) => {
-                  setFilters({ ...filters, status: value as any })
+                  setFilters({ ...filters, securityLevel: (value || '') as any })
                   setPagination({ page: 1, pageSize: pagination?.pageSize || 20 })
                 }}
-                options={[
-                  { label: '全部状态', value: '' },
-                  ...statusOptions
-                ]}
-              />
-              
-              <Select
-                placeholder="筛选密级"
-                value={filters.securityLevel}
-                onValueChange={(value) => {
-                  setFilters({ ...filters, securityLevel: value as any })
-                  setPagination({ page: 1, pageSize: pagination?.pageSize || 20 })
-                }}
-                options={[
-                  { label: '全部密级', value: '' },
-                  ...securityLevelOptions
-                ]}
-              />
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="全部密级" />
+                </SelectTrigger>
+                <SelectContent>
+                  {securityLevelOptions.map(level => (
+                    <SelectItem key={level.value} value={level.value}>{level.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               
               <Button
                 variant="outline"
@@ -926,7 +917,7 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
           )}
         </div>
         
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-text-tertiary">
           共 {pagination?.total || 0} 条记录
         </div>
       </div>
@@ -975,38 +966,99 @@ const UserManagePage: React.FC<UserManagePageProps> = ({ mode }) => {
         />
       )}
       
-      {/* Security Level 模式表单弹窗 */}
+      {/* Security Level 模式表单弹窗 - 单个用户调整 */}
       {pageConfig.showSecurityLevelOperations && (
         <>
-          <FormModal
-            open={showSecurityLevelModal}
-            onOpenChange={setShowSecurityLevelModal}
-            title={`调整用户密级 - ${editingUser?.username}`}
-            fields={securityLevelFormFields}
-            initialData={{ 
-              securityLevel: editingUser?.securityLevel,
-              reason: ''
-            }}
-            onSubmit={handleSecurityLevelSubmit}
-            loading={isUpdatingSecurityLevel}
-            submitText="调整"
-            cancelText="取消"
-          />
+          <Dialog open={showSecurityLevelModal} onOpenChange={setShowSecurityLevelModal}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>调整用户密级 - {editingUser?.username}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    新密级 <span className="text-error">*</span>
+                  </label>
+                  <Select
+                    value={securityLevelFormData.securityLevel}
+                    onValueChange={(value) => setSecurityLevelFormData({
+                      ...securityLevelFormData,
+                      securityLevel: value as UserSecurityLevel
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="请选择密级" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {securityLevelOptions.filter(level => level.value !== 'unknown').map(level => (
+                        <SelectItem key={level.value} value={level.value}>{level.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSecurityLevelModal(false)}
+                >
+                  取消
+                </Button>
+                <Button
+                  onClick={handleSecurityLevelSubmit}
+                  disabled={isUpdatingSecurityLevel}
+                >
+                  调整
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           
-          <FormModal
-            open={showBatchUpdateModal}
-            onOpenChange={setShowBatchUpdateModal}
-            title={`批量调整密级 (${selectedIds.length} 个用户)`}
-            fields={securityLevelFormFields}
-            initialData={{ 
-              securityLevel: 'unknown',
-              reason: ''
-            }}
-            onSubmit={handleBatchUpdateSubmit}
-            loading={isBatchUpdatingSecurityLevel}
-            submitText="批量调整"
-            cancelText="取消"
-          />
+          {/* Security Level 模式表单弹窗 - 批量调整 */}
+          <Dialog open={showBatchUpdateModal} onOpenChange={setShowBatchUpdateModal}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>批量调整密级 ({selectedIds.length} 个用户)</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    统一密级 <span className="text-error">*</span>
+                  </label>
+                  <Select
+                    value={securityLevelFormData.securityLevel}
+                    onValueChange={(value) => setSecurityLevelFormData({
+                      ...securityLevelFormData,
+                      securityLevel: value as UserSecurityLevel
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="请选择密级" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {securityLevelOptions.filter(level => level.value !== 'unknown').map(level => (
+                        <SelectItem key={level.value} value={level.value}>{level.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowBatchUpdateModal(false)}
+                >
+                  取消
+                </Button>
+                <Button
+                  onClick={handleBatchUpdateSubmit}
+                  disabled={isBatchUpdatingSecurityLevel}
+                >
+                  批量调整
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </>
       )}
     </div>
