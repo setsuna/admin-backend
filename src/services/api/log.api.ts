@@ -62,11 +62,14 @@ export class LogApiService {
       delete params.operationResult
     }
 
-    const result = await httpClient.get<PaginatedResponse<any>>(this.basePath, params)
+    const response = await httpClient.get<any>(this.basePath, params)
+    
+    // 转换后端返回格式 { logs: [...], total: 2 } -> PaginatedResponse
+    const logs = response?.logs || []
+    const total = response?.total || 0
     
     // 字段映射：snake_case -> camelCase
-    if (result.items) {
-      result.items = result.items.map((log: any) => ({
+    const items = logs.map((log: any) => ({
         ...log,
         operatorId: log.operator_id || log.operatorId,
         operatorRole: log.operator_role || log.operatorRole,
@@ -80,9 +83,15 @@ export class LogApiService {
         createdAt: log.created_at || log.createdAt,
         updatedAt: log.updated_at || log.updatedAt
       }))
-    }
     
-    return result as PaginatedResponse<ApplicationLog>
+    return {
+      items,
+      pagination: {
+        total,
+        page,
+        pageSize
+      }
+    } as PaginatedResponse<ApplicationLog>
   }
 
   /**
@@ -131,11 +140,14 @@ export class LogApiService {
       delete params.operationResult
     }
 
-    const result = await httpClient.get<PaginatedResponse<any>>(this.threeAdminPath, params)
+    const response = await httpClient.get<any>(this.threeAdminPath, params)
+    
+    // 转换后端返回格式 { logs: [...], total: 2 } -> PaginatedResponse
+    const logs = response?.logs || []
+    const total = response?.total || 0
     
     // 字段映射：snake_case -> camelCase
-    if (result.items) {
-      result.items = result.items.map((log: any) => ({
+    const items = logs.map((log: any) => ({
         ...log,
         operatorId: log.operator_id || log.operatorId,
         operatorRole: log.operator_role || log.operatorRole,
@@ -149,9 +161,15 @@ export class LogApiService {
         createdAt: log.created_at || log.createdAt,
         updatedAt: log.updated_at || log.updatedAt
       }))
-    }
     
-    return result as PaginatedResponse<ThreeAdminLog>
+    return {
+      items,
+      pagination: {
+        total,
+        page,
+        pageSize
+      }
+    } as PaginatedResponse<ThreeAdminLog>
   }
 }
 
