@@ -146,11 +146,11 @@ const MeetingListPage: React.FC = () => {
   // 打包会议 (editable → ready)
   const handlePackageMeeting = async (id: string) => {
     const confirmed = await dialog.confirm({
-      title: '打包会议',
-      message: '确定要打包这个会议吗？',
-      content: '打包后会议将进入就绪状态，无法编辑。',
+      title: '准备会议',
+      message: '确定要吗？',
+      content: '准备好后会议将进入就绪状态，无法编辑。',
       type: 'warning',
-      confirmText: '确定打包',
+      confirmText: '确定',
       cancelText: '取消'
     })
     
@@ -158,11 +158,11 @@ const MeetingListPage: React.FC = () => {
     
     try {
       const result = await meetingApiService.packageMeeting(id)
-      showSuccess('打包成功', result.message)
+      showSuccess('准备完成', result.message)
       // ✅ 刷新列表
       queryClient.invalidateQueries({ queryKey: ['meetings'] })
     } catch (error: any) {
-      showError('打包失败', error.message)
+      showError('准备失败', error.message)
       // ✅ 刷新列表（后端会把状态改回 editable）
       queryClient.invalidateQueries({ queryKey: ['meetings'] })
     }
@@ -173,7 +173,7 @@ const MeetingListPage: React.FC = () => {
     const confirmed = await dialog.confirm({
       title: '取消准备',
       message: '确定要取消准备吗？',
-      content: '这将删除已打包的文件，会议恢复为可编辑状态。',
+      content: '这将删除已准备会议的文件，会议恢复为可编辑状态。',
       type: 'warning',
       confirmText: '确定取消',
       cancelText: '保持就绪'
