@@ -8,6 +8,9 @@ export * from './common/base.types'
 // ========== UI 类型 ==========
 export * from './common/ui.types'
 
+// ========== WebSocket 类型 ==========
+export * from './common/websocket.types'
+
 // ========== 域类型 ==========
 export * from './domain/meeting.types'
 export * from './domain/user.types'

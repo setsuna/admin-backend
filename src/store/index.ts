@@ -58,11 +58,16 @@ export const useUI = () => useStore((state) => ({
   theme: state.theme,
   notifications: state.notifications,
   globalLoading: state.globalLoading,
+  soundEnabled: state.soundEnabled,
+  soundVolume: state.soundVolume,
   setTheme: state.setTheme,
   addNotification: state.addNotification,
   removeNotification: state.removeNotification,
   clearNotifications: state.clearNotifications,
   setGlobalLoading: state.setGlobalLoading,
+  setSoundEnabled: state.setSoundEnabled,
+  setSoundVolume: state.setSoundVolume,
+  toggleSound: state.toggleSound,
 }))
 
 export const useApp = () => useStore((state) => ({

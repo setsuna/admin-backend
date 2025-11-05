@@ -38,6 +38,13 @@ export interface UISlice {
   clearNotifications: () => void
   clearNotificationsByType?: (type: string) => void  // 🆕 添加按类型清除方法
   
+  // 音效系统
+  soundEnabled: boolean
+  soundVolume: number
+  setSoundEnabled: (enabled: boolean) => void
+  setSoundVolume: (volume: number) => void
+  toggleSound: () => void
+  
   // 全局加载状态
   globalLoading: boolean
   setGlobalLoading: (loading: boolean) => void

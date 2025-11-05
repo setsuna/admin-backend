@@ -23,6 +23,13 @@ export const createUISlice: StateCreator<
   theme: 'system',
   setTheme: (theme) => set({ theme }),
   
+  // 🔊 音效系统
+  soundEnabled: true,
+  soundVolume: 0.5,
+  setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
+  setSoundVolume: (volume) => set({ soundVolume: Math.max(0, Math.min(1, volume)) }),
+  toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
+  
   // 🔄 更新：增强的通知系统
   notifications: [],
   addNotification: (notification) => {
@@ -60,3 +67,4 @@ export const createUISlice: StateCreator<
   globalLoading: false,
   setGlobalLoading: (loading) => set({ globalLoading: loading }),
 })
+

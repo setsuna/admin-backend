@@ -2,20 +2,32 @@ import { Outlet } from 'react-router-dom'
 import { AppSidebar } from './AppSidebar'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { usePermission } from '@/hooks/usePermission'
+import { useWebSocket } from '@/hooks/useWebSocket'
 import { Separator } from '@/components/ui/Separator'
-import { Bell } from 'lucide-react'
+import { Bell, Volume2, VolumeX } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
-import { useAuth } from '@/store'
+import { useAuth, useUI } from '@/store'
 import { authService } from '@/services/core/auth.service'
+import { soundManager } from '@/utils/sound'
 import { useLocation } from 'react-router-dom'
 import { getBreadcrumbFromMenu } from '@/utils/breadcrumb'
+import { useEffect } from 'react'
 
 export function MainLayout() {
-  // 初始化权限数据
+  // 初始化权限数据和 WebSocket
   const { menuConfig } = usePermission()
   const { user, clearAuth } = useAuth()
+  const { soundEnabled, toggleSound } = useUI()
   const location = useLocation()
+  
+  // 初始化 WebSocket 连接
+  useWebSocket()
+  
+  // 同步音效状态到 soundManager
+  useEffect(() => {
+    soundManager.setEnabled(soundEnabled)
+  }, [soundEnabled])
   
   const handleLogout = async () => {
     try {
@@ -59,6 +71,20 @@ export function MainLayout() {
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-4 w-4" />
                 <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
+              </Button>
+              
+              {/* 音效开关 */}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={toggleSound}
+                title={soundEnabled ? '关闭音效' : '开启音效'}
+              >
+                {soundEnabled ? (
+                  <Volume2 className="h-4 w-4" />
+                ) : (
+                  <VolumeX className="h-4 w-4" />
+                )}
               </Button>
               
               {/* 主题切换 */}
