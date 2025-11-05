@@ -45,7 +45,7 @@ export type MeetingType =
  * 会议基础信息
  */
 export interface Meeting {
-  id: string
+  id: string | number // 支持后端返回 string 或 number
   name: string
   title: string
   description?: string

@@ -4,7 +4,7 @@
 
 import { httpClient } from '@/services/core/http.client'
 import { API_PATHS } from '@/config'
-import type { Device, PaginatedResponse } from '@/types'
+import type { OnlineDevice, PaginatedResponse } from '@/types'
 
 /**
  * 设备查询过滤器
@@ -24,7 +24,7 @@ export class DeviceApiService {
    */
   async getOnlineDevices(
     filters: DeviceFilters = {}
-  ): Promise<PaginatedResponse<Device>> {
+  ): Promise<PaginatedResponse<OnlineDevice>> {
     // 设置默认值
     const params = {
       page: filters.page || 1,
@@ -32,7 +32,7 @@ export class DeviceApiService {
       ...filters
     }
     
-    return await httpClient.get<PaginatedResponse<Device>>(this.basePath, params)
+    return await httpClient.get<PaginatedResponse<OnlineDevice>>(this.basePath, params)
   }
 }
 

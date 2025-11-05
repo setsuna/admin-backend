@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/Checkbox'
 import { useNotifications } from '@/hooks/useNotifications'
 import { meetingApi } from '@/services/api/meeting.api'
 import { deviceApi } from '@/services'
-import type { Device, SyncedMeeting, SyncOptions, SyncTask } from '@/types'
+import type { OnlineDevice, SyncedMeeting, SyncOptions, SyncTask } from '@/types'
 import { DeviceDetailModal } from '@/components/business/sync/DeviceDetailModal'
 import { SyncHistoryModal } from '@/components/business/sync/SyncHistoryModal'
 
@@ -17,7 +17,7 @@ export default function MeetingSyncPage() {
   const { showError, showSuccess } = useNotifications()
   
   // 获取打包会议列表
-  const { data: meetings = [], isLoading, refetch } = useQuery({
+  const { data: meetings = [], isLoading } = useQuery({
     queryKey: ['packaged-meetings'],
     queryFn: () => meetingApi.getPackagedMeetings(),
   })
@@ -29,7 +29,7 @@ export default function MeetingSyncPage() {
     refetchInterval: 30000, // 每30秒刷新一次
   })
 
-  const devices = devicesData?.items || []
+  const devices: OnlineDevice[] = devicesData?.items || []
 
   const [selectedMeetingIds, setSelectedMeetingIds] = useState<string[]>([])
   const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([])
@@ -43,22 +43,22 @@ export default function MeetingSyncPage() {
     overwriteExisting: false
   })
 
-  const [selectedDevice, setSelectedDevice] = useState<Device | null>(null)
+  const [selectedDevice, setSelectedDevice] = useState<OnlineDevice | null>(null)
   const [deviceSyncedMeetings, setDeviceSyncedMeetings] = useState<SyncedMeeting[]>([])
   const [showHistory, setShowHistory] = useState(false)
 
-
-  const handleMeetingSelect = (meetingId: string) => {
+  const handleMeetingSelect = (meetingId: string | number) => {
+    const idStr = String(meetingId)
     setSelectedMeetingIds(prev => 
-      prev.includes(meetingId) 
-        ? prev.filter(id => id !== meetingId)
-        : [...prev, meetingId]
+      prev.includes(idStr) 
+        ? prev.filter(id => id !== idStr)
+        : [...prev, idStr]
     )
   }
 
   const handleDeviceSelect = (deviceId: string) => {
     // 查找设备，验证是否为未注册设备
-    const device = devices.find(d => d.serialNumber === deviceId)
+    const device = devices.find(d => d.serial_number === deviceId)
     if (device && device.status === -1) {
       // 未注册设备不能选择
       return
@@ -77,7 +77,7 @@ export default function MeetingSyncPage() {
     if (selectedDeviceIds.length === registeredDevices.length) {
       setSelectedDeviceIds([])
     } else {
-      setSelectedDeviceIds(registeredDevices.map(d => d.serialNumber))
+      setSelectedDeviceIds(registeredDevices.map(d => d.serial_number))
     }
   }
 
@@ -91,19 +91,19 @@ export default function MeetingSyncPage() {
       return
     }
     
-    const selectedMeetings = meetings.filter(m => selectedMeetingIds.includes(m.id))
-    const selectedDevices = devices.filter(d => selectedDeviceIds.includes(d.serialNumber))
+    const selectedMeetings = meetings.filter(m => selectedMeetingIds.includes(String(m.id)))
+    const selectedDevices = devices.filter(d => selectedDeviceIds.includes(d.serial_number))
     
     console.log('开始同步:', {
       meetings: selectedMeetings.map(m => m.name),
-      devices: selectedDevices.map(d => d.serialNumber),
+      devices: selectedDevices.map(d => d.serial_number),
       options: syncOptions
     })
     
     showSuccess('同步已开始', `正在同步 ${selectedMeetingIds.length} 个会议到 ${selectedDeviceIds.length} 台设备`)
   }
 
-  const handleDeviceDoubleClick = (device: Device) => {
+  const handleDeviceDoubleClick = (device: OnlineDevice) => {
     // Mock数据 - 实际应该从API获取该设备的已同步会议
     const mockSyncedMeetings: SyncedMeeting[] = device.status === 1 ? [
       {
@@ -122,19 +122,19 @@ export default function MeetingSyncPage() {
   }
 
   const handleDeleteMeeting = (meetingId: string) => {
-    console.log('删除会议:', meetingId, '从设备:', selectedDevice?.id)
+    console.log('删除会议:', meetingId, '从设备:', selectedDevice?.serial_number)
     // TODO: 调用API删除
     setDeviceSyncedMeetings(prev => prev.filter(m => m.meetingId !== meetingId))
   }
 
   const handleDeleteAllMeetings = () => {
-    console.log('清空设备所有会议:', selectedDevice?.id)
+    console.log('清空设备所有会议:', selectedDevice?.serial_number)
     // TODO: 调用API删除所有
     setDeviceSyncedMeetings([])
   }
 
   const handleResyncMeeting = (meetingId: string) => {
-    console.log('重新同步会议:', meetingId, '到设备:', selectedDevice?.id)
+    console.log('重新同步会议:', meetingId, '到设备:', selectedDevice?.serial_number)
     // TODO: 调用API重新同步
     showSuccess('重新同步', '已加入同步队列')
   }
@@ -166,7 +166,7 @@ export default function MeetingSyncPage() {
   )
 
   const selectedMeetingsSize = meetings
-    .filter(m => selectedMeetingIds.includes(m.id))
+    .filter(m => selectedMeetingIds.includes(String(m.id)))
     .reduce((sum, m) => sum + ((m as any).package_info?.package_size || 0), 0) / (1024 * 1024) // 转换为MB
 
   return (
@@ -222,7 +222,7 @@ export default function MeetingSyncPage() {
               <Card
                 key={meeting.id}
                 className={`p-4 cursor-pointer transition-all ${
-                  selectedMeetingIds.includes(meeting.id)
+                  selectedMeetingIds.includes(String(meeting.id))
                     ? 'border-primary bg-primary/5'
                     : ''
                 }`}
@@ -232,7 +232,7 @@ export default function MeetingSyncPage() {
               >
                 <div className="flex items-start gap-3">
                   <Checkbox
-                    checked={selectedMeetingIds.includes(meeting.id)}
+                    checked={selectedMeetingIds.includes(String(meeting.id))}
                     onChange={() => {}}
                     className="mt-1"
                   />
@@ -323,36 +323,36 @@ export default function MeetingSyncPage() {
                 
                 return (
                   <Card
-                    key={device.serialNumber}
+                    key={device.serial_number}
                     className={`p-4 cursor-pointer transition-all ${
-                      selectedDeviceIds.includes(device.serialNumber)
+                      selectedDeviceIds.includes(device.serial_number)
                         ? 'border-primary bg-primary/5'
                         : ''
                     }`}
                     hover="border"
                     interactive
-                    onClick={() => handleDeviceSelect(device.serialNumber)}
+                    onClick={() => handleDeviceSelect(device.serial_number)}
                     onDoubleClick={() => handleDeviceDoubleClick(device)}
                   >
                     <div className="flex items-start gap-3">
                       <Checkbox
-                        checked={selectedDeviceIds.includes(device.serialNumber)}
+                        checked={selectedDeviceIds.includes(device.serial_number)}
                         onChange={() => {}}
                         className="mt-1"
                         disabled={isUnregistered}
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="font-medium truncate">{device.serialNumber}</span>
+                          <span className="font-medium truncate">{device.serial_number}</span>
                           <Badge variant={statusVariant}>
-                            {device.statusName}
+                            {device.status_name}
                           </Badge>
                         </div>
                         <div className="text-sm text-muted-foreground space-y-1">
                           {device.ip && <div>IP: {device.ip}</div>}
-                          {device.lastLogin && (
+                          {device.last_login && (
                             <div className="text-xs text-muted-foreground/70">
-                              最后登录: {new Date(device.lastLogin).toLocaleString('zh-CN')}
+                              最后登录: {new Date(device.last_login).toLocaleString('zh-CN')}
                             </div>
                           )}
                         </div>

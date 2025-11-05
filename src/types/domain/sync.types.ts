@@ -25,39 +25,55 @@ export interface MeetingSyncInfo {
 /**
  * 设备状态
  */
-export type DeviceStatus = -1 | 0 | 1 | 2 | 3
+export type OnlineDeviceStatus = -1 | 0 | 1 | 2 | 3
 // -1: 未注册, 0: 离线, 1: 在线, 2: 维护中, 3: 已禁用
 
 /**
  * 设备类型
  */
-export type DeviceType = 1 | 2 | 9
+export type OnlineDeviceType = 1 | 2 | 9
 // 1: 平板设备, 2: 屏幕设备, 9: 其他设备
 
 /**
- * 设备信息（来自后端API）
+ * 在线设备信息（来自后端API /mount/online-devices）
  */
-export interface Device {
+export interface OnlineDevice {
   id?: number
   code?: string
-  serialNumber: string // 设备序列号
-  type?: DeviceType
+  serial_number: string // 设备序列号（后端字段名）
+  serialNumber: string // 设备序列号（驼峰命名）
+  type?: OnlineDeviceType
+  type_name?: string
+  typeName?: string
   number?: number
+  bind_id?: number
   bindId?: number
+  room_id?: number
   roomId?: number
+  last_login?: string
   lastLogin?: string
   ip?: string
   mac?: string
+  screen_port?: number
   screenPort?: number
+  screen_width?: number
   screenWidth?: number
+  screen_height?: number
   screenHeight?: number
+  screen_img_ext?: string
   screenImgExt?: string
+  ctrl_code?: string
   ctrlCode?: string
-  status: DeviceStatus
-  statusName: string // 状态名称
+  status: OnlineDeviceStatus
+  status_name: string // 状态名称（后端字段名）
+  statusName: string // 状态名称（驼峰命名）
+  is_deleted?: boolean
   isDeleted?: boolean
+  auth_code?: string
   authCode?: string
+  created_at?: string
   createdAt?: string
+  updated_at?: string
   updatedAt?: string
 }
 
@@ -73,7 +89,7 @@ export interface SyncDevice {
   lastSyncTime?: string
   // 新增字段用于兼容Device
   serialNumber?: string
-  status?: DeviceStatus
+  status?: OnlineDeviceStatus
   statusName?: string
 }
 

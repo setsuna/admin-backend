@@ -1,8 +1,8 @@
 import { X } from 'lucide-react'
-import type { Device, SyncedMeeting } from '@/types'
+import type { OnlineDevice, SyncedMeeting } from '@/types'
 
 interface DeviceDetailModalProps {
-  device: Device | null
+  device: OnlineDevice | null
   syncedMeetings: SyncedMeeting[]
   onClose: () => void
   onDelete: (meetingId: string) => void
@@ -54,8 +54,8 @@ export function DeviceDetailModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div>
-            <h2 className="text-xl font-semibold">{device.serialNumber} 设备详情</h2>
-            <div className="text-sm text-gray-500 mt-1">状态: {device.statusName}</div>
+            <h2 className="text-xl font-semibold">{device.serial_number} 设备详情</h2>
+            <div className="text-sm text-gray-500 mt-1">状态: {device.status_name}</div>
           </div>
           <button
             onClick={onClose}
