@@ -23,7 +23,7 @@ export function useWebSocket() {
     // 确保只初始化一次
     if (hasInitializedRef.current) return
     
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('access_token')
     if (!token || !user) {
       console.log('No token or user, skipping WebSocket connection')
       return
