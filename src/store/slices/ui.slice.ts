@@ -25,7 +25,7 @@ export const createUISlice: StateCreator<
   
   // 🔊 音效系统
   soundEnabled: true,
-  soundVolume: 0.5,
+  soundVolume: 0.8,  // 调大音量到 0.8
   setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
   setSoundVolume: (volume) => set({ soundVolume: Math.max(0, Math.min(1, volume)) }),
   toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),

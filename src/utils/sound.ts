@@ -7,7 +7,7 @@ export type SoundType = 'online' | 'offline' | 'notify'
 
 class SoundManager {
   private enabled: boolean = true
-  private volume: number = 0.5
+  private volume: number = 0.8  // 调大音量到 0.8
   private audioCache: Map<SoundType, HTMLAudioElement> = new Map()
   private initialized: boolean = false
 
@@ -24,7 +24,7 @@ class SoundManager {
       if (settings) {
         const { enabled, volume } = JSON.parse(settings)
         this.enabled = enabled ?? true
-        this.volume = volume ?? 0.5
+        this.volume = volume ?? 0.8  // 默认音量 0.8
       }
     } catch (error) {
       console.error('Failed to load sound settings:', error)
