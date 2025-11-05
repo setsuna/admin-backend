@@ -47,6 +47,55 @@ export default function MeetingSyncPage() {
   const [deviceSyncedMeetings, setDeviceSyncedMeetings] = useState<SyncedMeeting[]>([])
   const [showHistory, setShowHistory] = useState(false)
 
+  // Mock历史记录数据
+  const [syncTasks] = useState<SyncTask[]>([
+    {
+      id: '1',
+      meetingId: '1',
+      meetingTitle: '战略规划会议',
+      deviceIds: ['1', '2', '3', '4', '5'],
+      deviceNames: ['平板-001', '平板-002', '平板-003', '平板-004', '平板-005'],
+      status: 'completed',
+      completedCount: 5,
+      totalCount: 5,
+      createdAt: '2024-10-30T08:00:00Z',
+      completedAt: '2024-10-30T08:15:00Z'
+    },
+    {
+      id: '2',
+      meetingId: '3',
+      meetingTitle: '产品发布会',
+      deviceIds: ['1', '2', '3'],
+      deviceNames: ['平板-001', '平板-002', '平板-003'],
+      status: 'running',
+      completedCount: 2,
+      totalCount: 3,
+      createdAt: '2024-10-31T10:00:00Z'
+    },
+    {
+      id: '3',
+      meetingId: '2',
+      meetingTitle: 'Q4财务审计会议',
+      deviceIds: ['1', '2', '3', '4'],
+      deviceNames: ['平板-001', '平板-002', '平板-003', '平板-004'],
+      status: 'pending',
+      completedCount: 0,
+      totalCount: 4,
+      createdAt: '2024-10-31T11:00:00Z'
+    },
+    {
+      id: '4',
+      meetingId: '1',
+      meetingTitle: '战略规划会议',
+      deviceIds: ['6', '7'],
+      deviceNames: ['平板-006', '平板-007'],
+      status: 'failed',
+      completedCount: 0,
+      totalCount: 2,
+      createdAt: '2024-10-30T16:00:00Z'
+    }
+  ])
+
   const handleMeetingSelect = (meetingId: string | number) => {
     const idStr = String(meetingId)
     setSelectedMeetingIds(prev => 
