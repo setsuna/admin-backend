@@ -5,15 +5,15 @@ import { NotificationItem } from './NotificationItem'
 
 export function NotificationPanel() {
   const { 
-    notifications, 
+    notificationHistory,
     unreadCount,
     markNotificationAsRead, 
     markAllAsRead,
-    clearNotifications 
+    clearNotificationHistory
   } = useUI()
   
   // 只显示最近10条
-  const recentNotifications = (notifications || []).slice(-10).reverse()
+  const recentNotifications = (notificationHistory || []).slice(-10).reverse()
   
   return (
     <div className="w-80 max-h-96 overflow-y-auto">
@@ -28,7 +28,7 @@ export function NotificationPanel() {
             </span>
           )}
         </div>
-        {notifications.length > 0 && (
+        {notificationHistory.length > 0 && (
           <Button 
             variant="ghost" 
             size="sm"
@@ -59,13 +59,13 @@ export function NotificationPanel() {
       </div>
       
       {/* 底部 */}
-      {notifications.length > 0 && (
+      {notificationHistory.length > 0 && (
         <div className="p-2 border-t">
           <Button 
             variant="ghost" 
             size="sm"
             className="w-full"
-            onClick={clearNotifications}
+            onClick={clearNotificationHistory}
           >
             清空全部
           </Button>

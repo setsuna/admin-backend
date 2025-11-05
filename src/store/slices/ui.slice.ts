@@ -30,8 +30,11 @@ export const createUISlice: StateCreator<
   setSoundVolume: (volume) => set({ soundVolume: Math.max(0, Math.min(1, volume)) }),
   toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
   
-  // 🔄 更新：增强的通知系统
+  // 🔄 Toast通知系统（自动消失）
   notifications: [],
+  
+  // 📜 通知历史（持久保存）
+  notificationHistory: [],
   unreadCount: 0,
   
   addNotification: (notification) => {
@@ -43,30 +46,36 @@ export const createUISlice: StateCreator<
       read: false,
     }
     
+    // 添加到 Toast 列表（用于显示）
     set((state) => ({
       notifications: [...state.notifications, newNotification],
+      notificationHistory: [...state.notificationHistory, newNotification],
       unreadCount: state.unreadCount + 1,
     }))
     
-    // 🆕 自动移除通知 - 支持持久显示
+    // Toast 自动消失（但保留在历史中）
     if (!newNotification.persistent && notification.duration !== 0) {
       setTimeout(() => {
-        get().removeNotification(notificationId)
+        set((state) => ({
+          notifications: state.notifications.filter(n => n.id !== notificationId)
+        }))
       }, notification.duration || 5000)
     }
   },
   
+  // Toast 清空
   removeNotification: (id) => set((state) => ({
     notifications: state.notifications.filter(n => n.id !== id)
   })),
   
-  clearNotifications: () => set({ notifications: [], unreadCount: 0 }),
+  clearNotifications: () => set({ notifications: [] }),
   
+  // 通知历史管理
   markNotificationAsRead: (id) => set((state) => {
-    const notification = state.notifications.find(n => n.id === id)
+    const notification = state.notificationHistory.find(n => n.id === id)
     if (notification && !notification.read) {
       return {
-        notifications: state.notifications.map(n => 
+        notificationHistory: state.notificationHistory.map(n => 
           n.id === id ? { ...n, read: true } : n
         ),
         unreadCount: Math.max(0, state.unreadCount - 1)
@@ -76,13 +85,18 @@ export const createUISlice: StateCreator<
   }),
   
   markAllAsRead: () => set((state) => ({
-    notifications: state.notifications.map(n => ({ ...n, read: true })),
+    notificationHistory: state.notificationHistory.map(n => ({ ...n, read: true })),
     unreadCount: 0
   })),
   
+  clearNotificationHistory: () => set({ 
+    notificationHistory: [], 
+    unreadCount: 0 
+  }),
+  
   // 🆕 新增：按类型清除通知
   clearNotificationsByType: (type: string) => set((state) => ({
-    notifications: state.notifications.filter(n => (n as ExtendedNotification).category !== type)
+    notificationHistory: state.notificationHistory.filter(n => (n as ExtendedNotification).category !== type)
   })),
   
   // 全局加载状态
