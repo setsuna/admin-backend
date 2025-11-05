@@ -37,6 +37,9 @@ export interface UISlice {
   removeNotification: (id: string) => void
   clearNotifications: () => void
   clearNotificationsByType?: (type: string) => void  // 🆕 添加按类型清除方法
+  unreadCount: number
+  markNotificationAsRead: (id: string) => void
+  markAllAsRead: () => void
   
   // 音效系统
   soundEnabled: boolean

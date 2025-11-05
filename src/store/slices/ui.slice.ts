@@ -32,16 +32,20 @@ export const createUISlice: StateCreator<
   
   // 🔄 更新：增强的通知系统
   notifications: [],
+  unreadCount: 0,
+  
   addNotification: (notification) => {
     const notificationId = Math.random().toString(36).substring(2)
     const newNotification: ExtendedNotification = {
       ...notification,
       id: notificationId,
       timestamp: Date.now(),
+      read: false,
     }
     
     set((state) => ({
-      notifications: [...state.notifications, newNotification]
+      notifications: [...state.notifications, newNotification],
+      unreadCount: state.unreadCount + 1,
     }))
     
     // 🆕 自动移除通知 - 支持持久显示
@@ -56,7 +60,25 @@ export const createUISlice: StateCreator<
     notifications: state.notifications.filter(n => n.id !== id)
   })),
   
-  clearNotifications: () => set({ notifications: [] }),
+  clearNotifications: () => set({ notifications: [], unreadCount: 0 }),
+  
+  markNotificationAsRead: (id) => set((state) => {
+    const notification = state.notifications.find(n => n.id === id)
+    if (notification && !notification.read) {
+      return {
+        notifications: state.notifications.map(n => 
+          n.id === id ? { ...n, read: true } : n
+        ),
+        unreadCount: Math.max(0, state.unreadCount - 1)
+      }
+    }
+    return state
+  }),
+  
+  markAllAsRead: () => set((state) => ({
+    notifications: state.notifications.map(n => ({ ...n, read: true })),
+    unreadCount: 0
+  })),
   
   // 🆕 新增：按类型清除通知
   clearNotificationsByType: (type: string) => set((state) => ({
