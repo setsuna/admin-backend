@@ -53,7 +53,7 @@ class SoundManager {
       return this.audioCache.get(soundType)!
     }
 
-    const audio = new Audio(`/sounds/device-${soundType}.wav`)
+    const audio = new Audio(`/sounds/device-${soundType}.mp3`)
     audio.volume = this.volume
     audio.preload = 'auto'
     this.audioCache.set(soundType, audio)
