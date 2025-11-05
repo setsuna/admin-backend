@@ -23,7 +23,46 @@ export interface MeetingSyncInfo {
 }
 
 /**
- * 同步设备
+ * 设备状态
+ */
+export type DeviceStatus = -1 | 0 | 1 | 2 | 3
+// -1: 未注册, 0: 离线, 1: 在线, 2: 维护中, 3: 已禁用
+
+/**
+ * 设备类型
+ */
+export type DeviceType = 1 | 2 | 9
+// 1: 平板设备, 2: 屏幕设备, 9: 其他设备
+
+/**
+ * 设备信息（来自后端API）
+ */
+export interface Device {
+  id?: number
+  code?: string
+  serialNumber: string // 设备序列号
+  type?: DeviceType
+  number?: number
+  bindId?: number
+  roomId?: number
+  lastLogin?: string
+  ip?: string
+  mac?: string
+  screenPort?: number
+  screenWidth?: number
+  screenHeight?: number
+  screenImgExt?: string
+  ctrlCode?: string
+  status: DeviceStatus
+  statusName: string // 状态名称
+  isDeleted?: boolean
+  authCode?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+/**
+ * 同步设备（兼容旧代码）
  */
 export interface SyncDevice {
   id: string
@@ -32,6 +71,10 @@ export interface SyncDevice {
   totalStorage: number // MB
   syncedMeetingCount: number
   lastSyncTime?: string
+  // 新增字段用于兼容Device
+  serialNumber?: string
+  status?: DeviceStatus
+  statusName?: string
 }
 
 /**

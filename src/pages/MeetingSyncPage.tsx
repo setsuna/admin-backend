@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/Badge'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { useNotifications } from '@/hooks/useNotifications'
 import { meetingApi } from '@/services/api/meeting.api'
-import type { SyncDevice, SyncedMeeting, SyncOptions, SyncTask } from '@/types'
+import { deviceApi } from '@/services'
+import type { Device, SyncedMeeting, SyncOptions, SyncTask } from '@/types'
 import { DeviceDetailModal } from '@/components/business/sync/DeviceDetailModal'
 import { SyncHistoryModal } from '@/components/business/sync/SyncHistoryModal'
 
@@ -21,12 +22,14 @@ export default function MeetingSyncPage() {
     queryFn: () => meetingApi.getPackagedMeetings(),
   })
 
-  const [devices] = useState<SyncDevice[]>([
-    { id: '1', name: '平板-001', usedStorage: 125, totalStorage: 500, syncedMeetingCount: 1, lastSyncTime: '2024-10-30T08:00:00Z' },
-    { id: '2', name: '平板-002', usedStorage: 0, totalStorage: 500, syncedMeetingCount: 0 },
-    { id: '3', name: '平板-003', usedStorage: 340, totalStorage: 500, syncedMeetingCount: 3, lastSyncTime: '2024-10-29T14:00:00Z' },
-    { id: '4', name: '平板-004', usedStorage: 160, totalStorage: 500, syncedMeetingCount: 2, lastSyncTime: '2024-10-28T16:00:00Z' }
-  ])
+  // 获取设备列表
+  const { data: devicesData, isLoading: isDevicesLoading, refetch: refetchDevices } = useQuery({
+    queryKey: ['online-devices'],
+    queryFn: () => deviceApi.getOnlineDevices({ page: 1, size: 100 }),
+    refetchInterval: 30000, // 每30秒刷新一次
+  })
+
+  const devices = devicesData?.items || []
 
   const [selectedMeetingIds, setSelectedMeetingIds] = useState<string[]>([])
   const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([])
@@ -40,58 +43,10 @@ export default function MeetingSyncPage() {
     overwriteExisting: false
   })
 
-  const [selectedDevice, setSelectedDevice] = useState<SyncDevice | null>(null)
+  const [selectedDevice, setSelectedDevice] = useState<Device | null>(null)
   const [deviceSyncedMeetings, setDeviceSyncedMeetings] = useState<SyncedMeeting[]>([])
   const [showHistory, setShowHistory] = useState(false)
 
-  // Mock历史记录数据
-  const [syncTasks] = useState<SyncTask[]>([
-    {
-      id: '1',
-      meetingId: '1',
-      meetingTitle: '战略规划会议',
-      deviceIds: ['1', '2', '3', '4', '5'],
-      deviceNames: ['平板-001', '平板-002', '平板-003', '平板-004', '平板-005'],
-      status: 'completed',
-      completedCount: 5,
-      totalCount: 5,
-      createdAt: '2024-10-30T08:00:00Z',
-      completedAt: '2024-10-30T08:15:00Z'
-    },
-    {
-      id: '2',
-      meetingId: '3',
-      meetingTitle: '产品发布会',
-      deviceIds: ['1', '2', '3'],
-      deviceNames: ['平板-001', '平板-002', '平板-003'],
-      status: 'running',
-      completedCount: 2,
-      totalCount: 3,
-      createdAt: '2024-10-31T10:00:00Z'
-    },
-    {
-      id: '3',
-      meetingId: '2',
-      meetingTitle: 'Q4财务审计会议',
-      deviceIds: ['1', '2', '3', '4'],
-      deviceNames: ['平板-001', '平板-002', '平板-003', '平板-004'],
-      status: 'pending',
-      completedCount: 0,
-      totalCount: 4,
-      createdAt: '2024-10-31T11:00:00Z'
-    },
-    {
-      id: '4',
-      meetingId: '1',
-      meetingTitle: '战略规划会议',
-      deviceIds: ['6', '7'],
-      deviceNames: ['平板-006', '平板-007'],
-      status: 'failed',
-      completedCount: 0,
-      totalCount: 2,
-      createdAt: '2024-10-30T16:00:00Z'
-    }
-  ])
 
   const handleMeetingSelect = (meetingId: string) => {
     setSelectedMeetingIds(prev => 
@@ -102,6 +57,13 @@ export default function MeetingSyncPage() {
   }
 
   const handleDeviceSelect = (deviceId: string) => {
+    // 查找设备，验证是否为未注册设备
+    const device = devices.find(d => d.serialNumber === deviceId)
+    if (device && device.status === -1) {
+      // 未注册设备不能选择
+      return
+    }
+    
     setSelectedDeviceIds(prev => 
       prev.includes(deviceId) 
         ? prev.filter(id => id !== deviceId)
@@ -110,10 +72,12 @@ export default function MeetingSyncPage() {
   }
 
   const handleSelectAllDevices = () => {
-    if (selectedDeviceIds.length === devices.length) {
+    // 只选择已注册的设备
+    const registeredDevices = devices.filter(d => d.status !== -1)
+    if (selectedDeviceIds.length === registeredDevices.length) {
       setSelectedDeviceIds([])
     } else {
-      setSelectedDeviceIds(devices.map(d => d.id))
+      setSelectedDeviceIds(registeredDevices.map(d => d.serialNumber))
     }
   }
 
@@ -128,20 +92,20 @@ export default function MeetingSyncPage() {
     }
     
     const selectedMeetings = meetings.filter(m => selectedMeetingIds.includes(m.id))
-    const selectedDevices = devices.filter(d => selectedDeviceIds.includes(d.id))
+    const selectedDevices = devices.filter(d => selectedDeviceIds.includes(d.serialNumber))
     
     console.log('开始同步:', {
       meetings: selectedMeetings.map(m => m.name),
-      devices: selectedDevices.map(d => d.name),
+      devices: selectedDevices.map(d => d.serialNumber),
       options: syncOptions
     })
     
     showSuccess('同步已开始', `正在同步 ${selectedMeetingIds.length} 个会议到 ${selectedDeviceIds.length} 台设备`)
   }
 
-  const handleDeviceDoubleClick = (device: SyncDevice) => {
+  const handleDeviceDoubleClick = (device: Device) => {
     // Mock数据 - 实际应该从API获取该设备的已同步会议
-    const mockSyncedMeetings: SyncedMeeting[] = device.syncedMeetingCount > 0 ? [
+    const mockSyncedMeetings: SyncedMeeting[] = device.status === 1 ? [
       {
         meetingId: '1',
         title: '战略规划会议',
@@ -327,10 +291,10 @@ export default function MeetingSyncPage() {
                 <Button 
                 variant="ghost" 
                   size="sm"
-                onClick={() => refetch()}
-                disabled={isLoading}
+                onClick={() => refetchDevices()}
+                disabled={isDevicesLoading}
               >
-                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 ${isDevicesLoading ? 'animate-spin' : ''}`} />
               </Button>
                 <Button
                   variant="ghost"
@@ -345,43 +309,64 @@ export default function MeetingSyncPage() {
 
           <CardContent className="flex-1 overflow-y-auto">
             <div className="grid grid-cols-2 gap-3">
-            {devices.map((device) => (
-              <Card
-                key={device.id}
-                className={`p-4 cursor-pointer transition-all ${
-                  selectedDeviceIds.includes(device.id)
-                    ? 'border-primary bg-primary/5'
-                    : ''
-                }`}
-                hover="border"
-                interactive
-                onClick={() => handleDeviceSelect(device.id)}
-                onDoubleClick={() => handleDeviceDoubleClick(device)}
-              >
-                <div className="flex items-start gap-3">
-                  <Checkbox
-                    checked={selectedDeviceIds.includes(device.id)}
-                    onChange={() => {}}
-                    className="mt-1"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium mb-2">{device.name}</div>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <div>{device.usedStorage}MB / {device.totalStorage}MB</div>
-                      <div>已同步: {device.syncedMeetingCount} 个会议</div>
-                      {device.lastSyncTime && (
-                        <div className="text-xs text-muted-foreground/70">
-                          最后同步: {new Date(device.lastSyncTime).toLocaleString()}
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-2 text-xs text-muted-foreground/60">
-                      双击查看详情
-                    </div>
-                  </div>
+            {devices.length === 0 ? (
+              <div className="col-span-2 flex items-center justify-center py-8">
+                <div className="text-sm text-muted-foreground">
+                  {isDevicesLoading ? '加载中...' : '暂无设备'}
                 </div>
-              </Card>
-            ))}
+              </div>
+            ) : (
+              devices.map((device) => {
+                const isUnregistered = device.status === -1
+                const isOnline = device.status === 1
+                const statusVariant = isUnregistered ? 'warning' : isOnline ? 'success' : 'default'
+                
+                return (
+                  <Card
+                    key={device.serialNumber}
+                    className={`p-4 cursor-pointer transition-all ${
+                      selectedDeviceIds.includes(device.serialNumber)
+                        ? 'border-primary bg-primary/5'
+                        : ''
+                    }`}
+                    hover="border"
+                    interactive
+                    onClick={() => handleDeviceSelect(device.serialNumber)}
+                    onDoubleClick={() => handleDeviceDoubleClick(device)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Checkbox
+                        checked={selectedDeviceIds.includes(device.serialNumber)}
+                        onChange={() => {}}
+                        className="mt-1"
+                        disabled={isUnregistered}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-medium truncate">{device.serialNumber}</span>
+                          <Badge variant={statusVariant}>
+                            {device.statusName}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          {device.ip && <div>IP: {device.ip}</div>}
+                          {device.lastLogin && (
+                            <div className="text-xs text-muted-foreground/70">
+                              最后登录: {new Date(device.lastLogin).toLocaleString('zh-CN')}
+                            </div>
+                          )}
+                        </div>
+                        {!isUnregistered && (
+                          <div className="mt-2 text-xs text-muted-foreground/60">
+                            双击查看详情
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                )
+              })
+            )}
             </div>
           </CardContent>
 

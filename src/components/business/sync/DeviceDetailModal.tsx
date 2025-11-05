@@ -1,8 +1,8 @@
 import { X } from 'lucide-react'
-import type { SyncDevice, SyncedMeeting } from '@/types'
+import type { Device, SyncedMeeting } from '@/types'
 
 interface DeviceDetailModalProps {
-  device: SyncDevice | null
+  device: Device | null
   syncedMeetings: SyncedMeeting[]
   onClose: () => void
   onDelete: (meetingId: string) => void
@@ -20,8 +20,11 @@ export function DeviceDetailModal({
 }: DeviceDetailModalProps) {
   if (!device) return null
 
-  const storagePercent = (device.usedStorage / device.totalStorage) * 100
-  const remainingStorage = device.totalStorage - device.usedStorage
+  // 暂时使用默认值，实际应从后端获取存储信息
+  const usedStorage = 0
+  const totalStorage = 500
+  const storagePercent = (usedStorage / totalStorage) * 100
+  const remainingStorage = totalStorage - usedStorage
 
   const getSecurityLevelStyle = (level: string) => {
     const styles: Record<string, string> = {
@@ -51,7 +54,8 @@ export function DeviceDetailModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div>
-            <h2 className="text-xl font-semibold">{device.name} 设备详情</h2>
+            <h2 className="text-xl font-semibold">{device.serialNumber} 设备详情</h2>
+            <div className="text-sm text-gray-500 mt-1">状态: {device.statusName}</div>
           </div>
           <button
             onClick={onClose}
@@ -66,7 +70,7 @@ export function DeviceDetailModal({
           <div className="mb-2 flex items-center justify-between text-sm">
             <span className="text-gray-600">存储空间:</span>
             <span className="font-medium">
-              {device.usedStorage}MB / {device.totalStorage}MB (剩余{remainingStorage}MB)
+              {usedStorage}MB / {totalStorage}MB (剩余{remainingStorage}MB)
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">

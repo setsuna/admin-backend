@@ -24,6 +24,7 @@ export { departmentApiService } from './api/department.api'
 export { participantApi } from './api/participant.api'
 export { licenseApi } from './api/license.api'
 export { logApiService } from './api/log.api'
+export { deviceApi } from './api/device.api'
 
 // 简写导出
 export { departmentApiService as departmentApi } from './api/department.api'
