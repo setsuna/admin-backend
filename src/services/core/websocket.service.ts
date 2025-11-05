@@ -201,7 +201,16 @@ class WebSocketService {
 // 创建单例实例
 const getWebSocketURL = () => {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const host = import.meta.env.VITE_API_BASE_URL?.replace(/^https?:\/\//, '') || 'localhost:8080'
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1'
+  
+  // 如果是相对路径（开发环境），使用当前域名
+  if (apiBaseUrl.startsWith('/')) {
+    const host = window.location.host
+    return `${protocol}//${host}/api/v1/ws`
+  }
+  
+  // 如果是完整URL（生产环境），提取host
+  const host = apiBaseUrl.replace(/^https?:\/\//, '').replace(/\/.*$/, '')
   return `${protocol}//${host}/api/v1/ws`
 }
 
