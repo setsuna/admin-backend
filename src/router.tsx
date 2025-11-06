@@ -1,67 +1,13 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { MainLayout } from '@/components/layouts'
-import { PermissionGuard } from '@/components/business/permission/PermissionGuard'
 import { Loading } from '@/components/ui/Loading'
 import { useGlobalStore } from '@/store'
+import { useMenuPermission } from '@/hooks/usePermission'
+import { generateRoutesFromMenus } from '@/utils/routeGenerator'
 
-// 懒加载组件
-const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const LoginPage = lazy(() => import('@/pages/LoginPage'))
-const MeetingListPage = lazy(() => import('@/pages/MeetingListPage'))
-const MyMeetingPage = lazy(() => import('@/pages/MyMeetingPage'))
-const MeetingFormPage = lazy(() => import('@/pages/MeetingFormPage'))
-const DataDictionaryPage = lazy(() => import('@/pages/DataDictionaryPage'))
 
-const UserManagePage = lazy(() => import('@/pages/UserManagePage'))
-
-const AnomalyAlertsPage = lazy(() => 
-  Promise.resolve({
-    default: () => (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">异常行为告警</h1>
-        <p className="text-muted-foreground">异常行为告警页面待开发</p>
-      </div>
-    )
-  })
-)
-const MeetingSyncPage = lazy(() => import('@/pages/MeetingSyncPage'))
-
-
-
-
-const DepartmentsPage = lazy(() => import('@/pages/DepartmentPage'))
-
-const StaffPage = lazy(() => 
-  Promise.resolve({
-    default: () => (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">人员管理</h1>
-        <p className="text-muted-foreground">人员管理页面待开发</p>
-      </div>
-    )
-  })
-)
-
-
-
-const PolicyConfigPage = lazy(() => import('@/pages/PolicyConfigPage'))
-
-const SystemLogsPage = lazy(() => 
-  Promise.resolve({
-    default: () => (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">系统日志</h1>
-        <p className="text-muted-foreground">系统日志页面待开发</p>
-      </div>
-    )
-  })
-)
-
-const LogPage = lazy(() => import('@/pages/LogPage'))
-
-const PermissionManagePage = lazy(() => import('@/pages/permission/PermissionManagePage'))
-// 懒加载包装器组件
 function LazyWrapper({ children }: { children: React.ReactNode }) {
   return (
     <Suspense fallback={<Loading />}>
@@ -70,7 +16,6 @@ function LazyWrapper({ children }: { children: React.ReactNode }) {
   )
 }
 
-// 路由守卫组件
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user } = useGlobalStore()
   
@@ -81,7 +26,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-// 公共路由组件
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { user } = useGlobalStore()
   
@@ -92,7 +36,8 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-export const router = createBrowserRouter([
+// 静态基础路由
+const staticRoutes = createBrowserRouter([
   {
     path: '/login',
     element: (
@@ -104,217 +49,57 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: '/',
-    element: (
-      <ProtectedRoute>
-        <MainLayout />
-      </ProtectedRoute>
-    ),
-    children: [
-      {
-        index: true,
-        element: (
-          <PermissionGuard permissions={['dashboard:view']}>
-            <LazyWrapper>
-              <Dashboard />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'meetings',
-        element: (
-          <PermissionGuard permissions={['meeting:read']}>
-            <LazyWrapper>
-              <MeetingListPage />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'meetings/create',
-        element: (
-          <PermissionGuard permissions={['meeting:manage']}>
-            <LazyWrapper>
-              <MeetingFormPage mode="create" />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'meetings/edit/:id',
-        element: (
-          <PermissionGuard permissions={['meeting:manage']}>
-            <LazyWrapper>
-              <MeetingFormPage mode="edit" />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'meetings/view/:id',
-        element: (
-          <PermissionGuard permissions={['meeting:read']}>
-            <LazyWrapper>
-              <MeetingFormPage mode="view" />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'my-meetings',
-        element: (
-          <PermissionGuard permissions={['meeting:read']}>
-            <LazyWrapper>
-              <MyMeetingPage />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'sync-status',
-        element: (
-          <PermissionGuard permissions={['sync:read']}>
-            <LazyWrapper>
-              <MeetingSyncPage />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'participants',
-        element: (
-          <PermissionGuard permissions={['user:manage']}>
-            <LazyWrapper>
-              <UserManagePage mode="admin" />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'role-permissions',
-        element: (
-          <PermissionGuard permissions={['role:manage']}>
-            <LazyWrapper>
-              <PermissionManagePage />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'security-levels',
-        element: (
-          <PermissionGuard permissions={['security:manage']}>
-            <LazyWrapper>
-              <UserManagePage mode="security_level" />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'departments',
-        element: (
-          <PermissionGuard permissions={['org:manage']}>
-            <LazyWrapper>
-              <DepartmentsPage />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'users',
-        element: (
-          <PermissionGuard permissions={['user:manage']}>
-            <LazyWrapper>
-              <UserManagePage mode="admin" />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'security-users',
-        element: (
-          <PermissionGuard permissions={['security:user:manage', 'user:manage']}>
-            <LazyWrapper>
-              <UserManagePage mode="security" />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'staff',
-        element: (
-          <PermissionGuard permissions={['staff:manage']}>
-            <LazyWrapper>
-              <StaffPage />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'data-dictionary',
-        element: (
-          <PermissionGuard permissions={['system:dict:read']}>
-            <LazyWrapper>
-              <DataDictionaryPage />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'basic-config',
-        element: (
-          <PermissionGuard permissions={['system:config:read']}>
-            <LazyWrapper>
-              <PolicyConfigPage />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'system-logs',
-        element: (
-          <PermissionGuard permissions={['system:logs:read']}>
-            <LazyWrapper>
-              <SystemLogsPage />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'admin-logs',
-        element: (
-          <PermissionGuard permissions={['logs:admin:read']}>
-            <LazyWrapper>
-              <LogPage mode="application" />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'audit-logs',
-        element: (
-          <PermissionGuard permissions={['logs:audit:read']}>
-            <LazyWrapper>
-              <LogPage mode="three-admin" />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-      {
-        path: 'anomaly-alerts',
-        element: (
-          <PermissionGuard permissions={['monitor:alerts:read']}>
-            <LazyWrapper>
-              <AnomalyAlertsPage />
-            </LazyWrapper>
-          </PermissionGuard>
-        ),
-      },
-    ],
-  },
-  {
     path: '*',
-    element: <Navigate to="/" replace />,
+    element: <Navigate to="/login" replace />,
   },
 ])
+
+// 动态路由提供者组件
+export function DynamicRouter() {
+  const { user } = useGlobalStore()
+  const { menus, isLoading } = useMenuPermission()
+
+  // 未登录时使用静态路由
+  if (!user) {
+    return <RouterProvider router={staticRoutes} />
+  }
+
+  // 加载菜单时显示加载状态
+  if (isLoading) {
+    return <Loading />
+  }
+
+  // 生成动态路由
+  const dynamicRoutes = generateRoutesFromMenus(menus)
+  
+  const router = createBrowserRouter([
+    {
+      path: '/login',
+      element: (
+        <PublicRoute>
+          <LazyWrapper>
+            <LoginPage />
+          </LazyWrapper>
+        </PublicRoute>
+      ),
+    },
+    {
+      path: '/',
+      element: (
+        <ProtectedRoute>
+          <MainLayout />
+        </ProtectedRoute>
+      ),
+      children: dynamicRoutes,
+    },
+    {
+      path: '*',
+      element: <Navigate to="/" replace />,
+    },
+  ])
+
+  return <RouterProvider router={router} />
+}
+
+// 导出空的 router 用于兼容旧代码
+export const router = staticRoutes
