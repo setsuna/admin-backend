@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, RefreshCw } from 'lucide-react'
+import { Search, RefreshCw, Cable, Unplug } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -32,6 +32,17 @@ export default function MeetingSyncPage() {
   })
 
   const devices: OnlineDevice[] = devicesData?.items || []
+
+  // 设备排序：在线状态优先显示在最上面
+  const sortedDevices = [...devices].sort((a, b) => {
+    // status: 1=在线, 0=离线, -1=未注册
+    // 在线的排最前面，离线其次，未注册最后
+    if (a.status !== b.status) {
+      return b.status - a.status
+    }
+    // 同状态按序列号排序
+    return a.serial_number.localeCompare(b.serial_number)
+  })
 
   // 监听设备状态变化，自动刷新设备列表
   useEffect(() => {
@@ -365,15 +376,15 @@ export default function MeetingSyncPage() {
           </CardHeader>
 
           <CardContent className="flex-1 overflow-y-auto">
-            <div className="grid grid-cols-2 gap-3">
-            {devices.length === 0 ? (
-              <div className="col-span-2 flex items-center justify-center py-8">
+            <div className="grid grid-cols-1 gap-3">
+            {sortedDevices.length === 0 ? (
+              <div className="flex items-center justify-center py-8">
                 <div className="text-sm text-muted-foreground">
                   {isDevicesLoading ? '加载中...' : '暂无设备'}
                 </div>
               </div>
             ) : (
-              devices.map((device) => {
+              sortedDevices.map((device) => {
                 const isUnregistered = device.status === -1
                 const isOnline = device.status === 1
                 const statusVariant = isUnregistered ? 'warning' : isOnline ? 'success' : 'default'
@@ -381,42 +392,48 @@ export default function MeetingSyncPage() {
                 return (
                   <Card
                     key={device.serial_number}
-                    className={`p-4 cursor-pointer transition-all ${
+                    className={`p-4 transition-all ${
                       selectedDeviceIds.includes(device.serial_number)
                         ? 'border-primary bg-primary/5'
                         : ''
                     }`}
                     hover="border"
-                    interactive
-                    onClick={() => handleDeviceSelect(device.serial_number)}
-                    onDoubleClick={() => handleDeviceDoubleClick(device)}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-center gap-3">
                       <Checkbox
                         checked={selectedDeviceIds.includes(device.serial_number)}
-                        onChange={() => {}}
-                        className="mt-1"
+                        onChange={() => handleDeviceSelect(device.serial_number)}
                         disabled={isUnregistered}
                       />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
+                      <div className="flex-1 flex items-center justify-between gap-4 min-w-0">
+                        <div className="flex items-center gap-2 min-w-0">
                           <span className="font-medium truncate">{device.serial_number}</span>
-                          <Badge variant={statusVariant}>
+                          <Badge variant={statusVariant} className="flex items-center gap-1">
+                            {isOnline && <Cable className="w-3 h-3" />}
+                            {device.status === 0 && <Unplug className="w-3 h-3" />}
                             {device.status_name}
                           </Badge>
                         </div>
-                        <div className="text-sm text-muted-foreground space-y-1">
-                          {device.ip && <div>IP: {device.ip}</div>}
-                          {device.last_login && (
-                            <div className="text-xs text-muted-foreground/70">
-                              最后登录: {new Date(device.last_login).toLocaleString('zh-CN')}
-                            </div>
-                          )}
+                        <div className="text-sm text-muted-foreground whitespace-nowrap">
+                          最后在线时间：{device.last_login 
+                            ? new Date(device.last_login).toLocaleString('zh-CN', {
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })
+                            : '-/- --:--'
+                          }
                         </div>
                         {!isUnregistered && (
-                          <div className="mt-2 text-xs text-muted-foreground/60">
-                            双击查看详情
-                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeviceDoubleClick(device)}
+                            className="whitespace-nowrap"
+                          >
+                            查看详情
+                          </Button>
                         )}
                       </div>
                     </div>
