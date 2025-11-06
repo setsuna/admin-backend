@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, RefreshCw } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
@@ -7,6 +7,7 @@ import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { useNotifications } from '@/hooks/useNotifications'
+import { useApp } from '@/store'
 import { meetingApi } from '@/services/api/meeting.api'
 import { deviceApi } from '@/services'
 import type { OnlineDevice, SyncedMeeting, SyncOptions, SyncTask } from '@/types'
@@ -15,6 +16,7 @@ import { SyncHistoryModal } from '@/components/business/sync/SyncHistoryModal'
 
 export default function MeetingSyncPage() {
   const { showError, showSuccess } = useNotifications()
+  const { devices: deviceStatusMap } = useApp()
   
   // 获取打包会议列表
   const { data: meetings = [], isLoading } = useQuery({
@@ -30,6 +32,12 @@ export default function MeetingSyncPage() {
   })
 
   const devices: OnlineDevice[] = devicesData?.items || []
+
+  // 监听设备状态变化，自动刷新设备列表
+  useEffect(() => {
+    // 当设备状态发生变化时，刷新设备列表
+    refetchDevices()
+  }, [deviceStatusMap, refetchDevices])
 
   const [selectedMeetingIds, setSelectedMeetingIds] = useState<string[]>([])
   const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([])
