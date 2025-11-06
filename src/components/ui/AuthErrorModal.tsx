@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Modal } from './Modal'
 import { Button } from './Button'
@@ -33,21 +33,8 @@ export const AuthErrorModal: React.FC = () => {
     retry: false,
   })
 
-  // 计算剩余天数
-  const remainingDays = useMemo(() => {
-    if (!licenseStatus?.status?.expire_date) return null
-    
-    try {
-      const expireDate = new Date(licenseStatus.status.expire_date)
-      const now = new Date()
-      const diffTime = expireDate.getTime() - now.getTime()
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-      return diffDays > 0 ? diffDays : 0
-    } catch (error) {
-      console.error('计算剩余天数失败:', error)
-      return null
-    }
-  }, [licenseStatus?.status?.expire_date])
+  // 直接使用后端返回的剩余天数
+  const remainingDays = licenseStatus?.days_remaining ?? null
 
   // 导入授权码 mutation
   const importMutation = useMutation({
@@ -151,7 +138,7 @@ export const AuthErrorModal: React.FC = () => {
   const isLoading = importMutation.isPending
   
   // 判断授权是否有效，用于决定按钮文本
-  const isLicenseValid = licenseStatus?.status?.valid || false
+  const isLicenseValid = licenseStatus?.valid || false
 
   return (
     <Modal
@@ -180,7 +167,7 @@ export const AuthErrorModal: React.FC = () => {
         </div>
 
         {/* 当前授权状态（仅info模式） */}
-        {isInfoMode && licenseStatus && licenseStatus.status && (
+        {isInfoMode && licenseStatus && (
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">当前授权状态</CardTitle>
@@ -190,26 +177,26 @@ export const AuthErrorModal: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-text-secondary">授权状态:</span>
                   <span className={`text-sm font-medium ${
-                    licenseStatus.status.valid 
+                    licenseStatus.valid 
                       ? 'text-success' 
                       : 'text-error'
                   }`}>
-                    {licenseStatus.status.valid ? '有效' : '无效/过期'}
+                    {licenseStatus.valid ? '有效' : '无效/过期'}
                   </span>
                 </div>
                 
-                {licenseStatus.status.message && (
+                {licenseStatus.message && (
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-text-secondary">状态信息:</span>
-                    <span className="text-sm text-text-regular">{licenseStatus.status.message}</span>
+                    <span className="text-sm text-text-regular">{licenseStatus.message}</span>
                   </div>
                 )}
                 
-                {licenseStatus.status.expire_date && (
+                {licenseStatus.expire_date && (
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-text-secondary">到期时间:</span>
                     <span className="text-sm text-text-regular">
-                      {licenseStatus.status.expire_date}
+                      {licenseStatus.expire_date}
                     </span>
                   </div>
                 )}
@@ -229,19 +216,19 @@ export const AuthErrorModal: React.FC = () => {
                   </div>
                 )}
                 
-                {licenseStatus.status.device_count !== undefined && (
+                {licenseStatus.device_count !== undefined && (
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-text-secondary">授权设备数:</span>
                     <span className="text-sm font-medium text-text-primary">
-                      {licenseStatus.status.device_count}台
+                      {licenseStatus.device_count}台
                     </span>
                   </div>
                 )}
                 
-                {licenseStatus.status.license_type && (
+                {licenseStatus.license_type && (
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-text-secondary">授权类型:</span>
-                    <span className="text-sm text-text-regular">{licenseStatus.status.license_type}</span>
+                    <span className="text-sm text-text-regular">{licenseStatus.license_type}</span>
                   </div>
                 )}
                 

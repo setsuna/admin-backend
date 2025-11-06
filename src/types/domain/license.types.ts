@@ -2,20 +2,16 @@
  * 授权管理相关类型定义
  */
 
-// 授权状态详情（后端实际返回的嵌套结构）
-export interface LicenseStatusDetail {
-  valid: boolean
-  message: string
-  expire_date?: string
-  device_count?: number
-  license_type?: string
-}
-
-// 授权状态响应（完整的返回结构）
+// 授权状态响应（后端实际返回的扁平结构）
 export interface LicenseStatus {
   valid: boolean
-  current_time?: string
-  status: LicenseStatusDetail
+  message: string
+  current_time: string
+  cache_time: string
+  expire_date: string
+  days_remaining: number
+  device_count: number
+  license_type?: string
 }
 
 // 申请码数据
