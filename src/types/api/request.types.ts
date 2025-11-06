@@ -77,6 +77,7 @@ export interface UpdateMeetingRequest {
   title?: string
   description?: string
   type?: MeetingType
+  status?: MeetingStatus
   securityLevel?: MeetingSecurityLevel
   startTime?: string
   endTime?: string

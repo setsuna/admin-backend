@@ -320,7 +320,7 @@ const MeetingListPage: React.FC = () => {
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  onClick={() => handlePackageMeeting(record.id)}
+                  onClick={() => handlePackageMeeting(String(record.id))}
                   className="text-blue-600 hover:text-blue-700"
                 >
                   准备会议
@@ -328,7 +328,7 @@ const MeetingListPage: React.FC = () => {
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  onClick={() => handleCloseMeeting(record.id)}
+                  onClick={() => handleCloseMeeting(String(record.id))}
                   className="text-orange-600 hover:text-orange-700"
                 >
                   关闭
@@ -340,7 +340,7 @@ const MeetingListPage: React.FC = () => {
               <Button 
                 variant="ghost" 
                 size="sm"
-                onClick={() => handleCancelReady(record.id)}
+                onClick={() => handleCancelReady(String(record.id))}
                 className="text-yellow-600 hover:text-yellow-700"
               >
                 取消准备
@@ -351,7 +351,7 @@ const MeetingListPage: React.FC = () => {
               <Button 
                 variant="ghost" 
                 size="sm"
-                onClick={() => handleDeleteMeeting(record.id)}
+                onClick={() => handleDeleteMeeting(String(record.id))}
                 className="text-red-600 hover:text-red-700"
               >
                 删除

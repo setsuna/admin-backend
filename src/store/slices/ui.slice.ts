@@ -18,7 +18,7 @@ export const createUISlice: StateCreator<
   [],
   [],
   UISlice
-> = (set, get) => ({
+> = (set) => ({
   // 主题
   theme: 'system',
   setTheme: (theme) => set({ theme }),

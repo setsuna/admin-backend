@@ -163,9 +163,9 @@ const LogPage: React.FC<LogPageProps> = ({ mode }) => {
       }
       
       if (mode === 'application') {
-        return logService.getApplicationLogs(params)
+        return logService.getApplicationLogs(params as ApplicationLogFilters & { page?: number; pageSize?: number })
       } else {
-        return logService.getThreeAdminLogs(params)
+        return logService.getThreeAdminLogs(params as ThreeAdminLogFilters & { page?: number; pageSize?: number })
       }
     },
     staleTime: 30000 // 30秒缓存
