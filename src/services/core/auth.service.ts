@@ -101,7 +101,13 @@ class AuthService {
       console.warn('Logout API warning:', error)
     } finally {
       this.clearStorage()
-      // 🔧 Store 清理由调用者负责（Header、路由守卫等）
+      // 🔧 修复：同步清空 Zustand Store，避免循环调用
+      try {
+        const { useStore } = await import('@/store')
+        useStore.getState().clearAuth()
+      } catch (err) {
+        console.warn('Failed to clear auth store:', err)
+      }
     }
   }
 
