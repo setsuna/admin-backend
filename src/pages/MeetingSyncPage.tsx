@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Search, RefreshCw, Cable, Unplug } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
@@ -68,6 +68,49 @@ export default function MeetingSyncPage() {
 
   // 设备同步状态管理
   const [deviceSyncStates, setDeviceSyncStates] = useState<Map<string, DeviceSyncState>>(new Map())
+  
+  // 任务ID映射：taskId -> { deviceId, meetingId, meetingName }
+  const taskMappingRef = useRef<Map<string, { deviceId: string; meetingId: string; meetingName: string }>>(new Map())
+  
+  // 从 localStorage 加载任务映射
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('sync_task_mapping')
+      if (saved) {
+        const entries = JSON.parse(saved) as Array<[string, { deviceId: string; meetingId: string; meetingName: string }]>
+        taskMappingRef.current = new Map(entries)
+        console.log('[Sync] 从 localStorage 加载任务映射:', taskMappingRef.current.size, '个任务')
+      }
+    } catch (error) {
+      console.error('[Sync] 加载任务映射失败:', error)
+    }
+  }, [])
+  
+  // 保存任务映射到 localStorage
+  const saveTaskMapping = useCallback(() => {
+    try {
+      const entries = Array.from(taskMappingRef.current.entries())
+      localStorage.setItem('sync_task_mapping', JSON.stringify(entries))
+      console.log('[Sync] 保存任务映射到 localStorage:', entries.length, '个任务')
+    } catch (error) {
+      console.error('[Sync] 保存任务映射失败:', error)
+    }
+  }, [])
+
+  // Debug: 监控 deviceSyncStates 变化
+  useEffect(() => {
+    if (deviceSyncStates.size > 0) {
+      console.log('[Sync State] deviceSyncStates 更新:', {
+        size: deviceSyncStates.size,
+        keys: Array.from(deviceSyncStates.keys()),
+        details: Array.from(deviceSyncStates.entries()).map(([key, state]) => ({
+          deviceId: key,
+          taskCount: state.tasks.size,
+          isActive: state.isActive
+        }))
+      })
+    }
+  }, [deviceSyncStates])
 
   // Mock历史记录数据
   const [syncTasks] = useState<SyncTask[]>([
@@ -87,23 +130,33 @@ export default function MeetingSyncPage() {
 
   // WebSocket 进度处理
   const handleSyncProgress = useCallback((message: WSMessage<SyncProgressData>) => {
-    const { task_id, device_id, meeting_id, progress, speed, eta } = message.data
+    console.log('[Sync Progress] 收到同步进度消息:', message.data)
+    const { task_id, progress, speed, eta } = message.data
+    
+    // 通过 taskId 查找对应的设备和会议信息
+    const taskInfo = taskMappingRef.current.get(task_id)
+    if (!taskInfo) {
+      console.warn('[Sync Progress] 未找到任务映射:', task_id)
+      return
+    }
+    
+    const { deviceId, meetingId, meetingName } = taskInfo
+    console.log('[Sync Progress] 任务映射:', { task_id, deviceId, meetingId, meetingName })
 
     setDeviceSyncStates(prev => {
       const newStates = new Map(prev)
-      const deviceState = newStates.get(device_id) || {
-        deviceId: device_id,
+      const deviceState = newStates.get(deviceId) || {
+        deviceId: deviceId,
         tasks: new Map(),
         isActive: true
       }
 
-      const meeting = meetings.find(m => String(m.id) === meeting_id)
       const existingTask = deviceState.tasks.get(task_id)
 
       deviceState.tasks.set(task_id, {
         taskId: task_id,
-        meetingId: meeting_id,
-        meetingName: meeting?.name || existingTask?.meetingName || '未知会议',
+        meetingId: meetingId,
+        meetingName: meetingName,
         status: progress >= 100 ? 'done' : 'processing',
         progress,
         speed,
@@ -115,16 +168,44 @@ export default function MeetingSyncPage() {
         t => t.status === 'done' || t.status === 'failed'
       )
       deviceState.isActive = !allDone
+      
+      // 如果任务完成，从映射表中移除
+      if (progress >= 100) {
+        setTimeout(() => {
+          taskMappingRef.current.delete(task_id)
+          saveTaskMapping()
+          console.log('[Sync Progress] 任务完成，从映射表移除:', task_id)
+        }, 5000) // 5秒后清理
+      }
 
-      newStates.set(device_id, deviceState)
+      newStates.set(deviceId, deviceState)
+      console.log('[Sync Progress] 更新设备状态:', {
+        deviceId,
+        taskCount: deviceState.tasks.size,
+        isActive: deviceState.isActive,
+        progress
+      })
       return newStates
     })
-  }, [meetings])
+  }, [saveTaskMapping])
 
   // 订阅 WebSocket 同步进度消息
   useEffect(() => {
+    console.log('[Sync WebSocket] 订阅同步进度消息')
+    console.log('[Sync WebSocket] 当前连接状态:', wsService.getConnectionState())
+    
+    // 订阅所有消息用于调试
+    const unsubscribeAll = wsService.on('*', (msg) => {
+      if (msg.type === 'sync_progress') {
+        console.log('[Sync WebSocket] 收到 sync_progress 消息 (wildcard):', msg)
+      }
+    })
+    
     const unsubscribe = wsService.on('sync_progress', handleSyncProgress)
+    
     return () => {
+      console.log('[Sync WebSocket] 取消订阅同步进度消息')
+      unsubscribeAll()
       unsubscribe()
     }
   }, [handleSyncProgress])
@@ -201,6 +282,21 @@ export default function MeetingSyncPage() {
               device.serial_number
             )
             
+            console.log('[Sync] 创建同步任务成功:', {
+              meetingId: String(meeting.id),
+              deviceId: device.serial_number,
+              taskId: result.taskId,
+              response: result
+            })
+            
+            // 保存任务映射
+            taskMappingRef.current.set(result.taskId, {
+              deviceId: device.serial_number,
+              meetingId: String(meeting.id),
+              meetingName: meeting.name
+            })
+            console.log('[Sync] 保存任务映射:', taskMappingRef.current.get(result.taskId))
+            
             tasks.push({
               meetingId: String(meeting.id),
               deviceId: device.serial_number,
@@ -239,8 +335,14 @@ export default function MeetingSyncPage() {
         '同步已开始', 
         `已创建 ${tasks.length} 个同步任务，正在后台处理`
       )
+      
+      // 持久化任务映射
+      saveTaskMapping()
 
-      console.log('已创建的同步任务:', tasks)
+      console.log('[Sync] 已创建的同步任务:', tasks)
+      console.log('[Sync] 设备 serial_number 列表:', selectedDevices.map(d => d.serial_number))
+      console.log('[Sync] 当前 deviceSyncStates keys:', Array.from(deviceSyncStates.keys()))
+      console.log('[Sync] 任务映射表:', Array.from(taskMappingRef.current.entries()))
     } catch (error) {
       console.error('批量同步失败:', error)
       showError('同步失败', '创建同步任务时发生错误')
@@ -471,6 +573,15 @@ export default function MeetingSyncPage() {
                   const deviceTasks = deviceState ? Array.from(deviceState.tasks.values()) : []
                   // 只有在线设备可以勾选
                   const canSelect = isOnline
+                  
+                  // Debug: 检查设备同步状态
+                  if (deviceState) {
+                    console.log('[Device Render] 设备有同步状态:', {
+                      serial_number: device.serial_number,
+                      taskCount: deviceTasks.length,
+                      tasks: deviceTasks
+                    })
+                  }
                   
                   return (
                     <div key={device.serial_number} className="space-y-2">

@@ -56,12 +56,10 @@ export interface HeartbeatData {
 }
 
 /**
- * 同步进度消息数据
+ * 同步进度消息数据（后端实际返回）
  */
 export interface SyncProgressData {
   task_id: string
-  device_id: string
-  meeting_id: string
   progress: number
   speed: string
   eta: string
