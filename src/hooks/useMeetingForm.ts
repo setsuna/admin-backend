@@ -3,7 +3,7 @@
  * 支持创建和编辑两种模式
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMeetingDraft } from './useMeetingDraft'
 import { useMeetingAgenda } from './useMeetingAgenda'
@@ -212,9 +212,9 @@ export function useMeetingForm(
   }
   
   // 文件上传处理
-  const handleFileUpload = async (agendaId: string, files: File[]) => {
+  const handleFileUpload = useCallback(async (agendaId: string, files: File[]) => {
     await uploadFiles(agendaId, files, formData.securityLevel)
-  }
+  }, [uploadFiles, formData.securityLevel])
   
   // 投票管理 - 使用 Hook 提供的方法
   const addVote = async (agendaId: string, voteData: {

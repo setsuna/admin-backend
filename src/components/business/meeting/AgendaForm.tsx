@@ -88,7 +88,7 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
       if (supportedFiles.length > 0) {
         onFileUpload(agendaId, supportedFiles)
       }
-    }, [agendaId])
+    }, [agendaId, onFileUpload])
 
     const {
       getRootProps,
