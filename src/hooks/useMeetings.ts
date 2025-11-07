@@ -83,9 +83,7 @@ export function useMeetings(
     // 是否启用查询
     enabled,
     
-    // 数据保持新鲜的时间（5秒）
-    // 在配置文件中已设置全局默认值，这里可以覆盖
-    staleTime: 5000,
+    // 使用全局配置，不需要单独设置 staleTime
   })
 
   return {

@@ -63,16 +63,28 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
   const [customSecurityLevels, setCustomSecurityLevels] = useState<Map<string, string>>(new Map())
   const { securityLevels, isLoading } = useSecurityLevels()
   
+  // 密级层级定义
+  const securityLevelOrder: Record<string, number> = {
+    'unclassified': 0,
+    'internal': 1,
+    'confidential': 2,
+    'secret': 3,
+    'top_secret': 4
+  }
+
   // 判断密级是否可选
+  // 规则：
+  // - 内部会议：允许任何密级
+  // - 秘密会议：只允许秘密级及以上
+  // - 机密会议：只允许机密级及以上
   const isSecurityLevelDisabled = (level: string) => {
     if (!systemSecurityLevel) return false
     
-    // 如果系统密级是"秘密"，则不能选择"机密"和"绝密"
-    if (systemSecurityLevel === 'confidential') {
-      return level === 'secret' || level === 'top_secret'
-    }
+    const levelValue = securityLevelOrder[level] || 0
+    const meetingLevel = securityLevelOrder[systemSecurityLevel] || 0
     
-    return false
+    // 用户密级必须 >= 会议密级
+    return levelValue < meetingLevel
   }
   
   // 获取可用的密级选项（过滤掉被禁用的）
@@ -208,8 +220,10 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
           <div className="mb-4">
             <label className="block text-sm font-medium text-text-primary mb-2">
               默认密级
-              {systemSecurityLevel === 'confidential' && (
-                <span className="ml-2 text-xs text-text-tertiary">(系统为秘密级，限制机密及以上密级)</span>
+              {systemSecurityLevel && (
+                <span className="ml-2 text-xs text-text-tertiary">
+                  (会议为{systemSecurityLevel === 'confidential' ? '秘密' : '机密'}级，只允许{systemSecurityLevel === 'confidential' ? '秘密' : '机密'}级及以上人员)
+                </span>
               )}
             </label>
             {isLoading ? (
@@ -226,7 +240,7 @@ const TemporaryParticipantImporter: React.FC<TemporaryParticipantImporterProps> 
                           ? 'opacity-40 cursor-not-allowed' 
                           : 'cursor-pointer hover:bg-muted'
                       }`}
-                      title={disabled ? '超出系统密级限制' : ''}
+                      title={disabled ? `密级不足，${systemSecurityLevel === 'confidential' ? '秘密' : '机密'}会议要求${systemSecurityLevel === 'confidential' ? '秘密' : '机密'}级及以上人员` : ''}
                     >
                       <input
                         type="radio"

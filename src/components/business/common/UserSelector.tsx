@@ -88,16 +88,28 @@ const UserSelector: React.FC<UserSelectorProps> = ({
     setPage(1)
   }, [keyword, selectedDeptId])
 
-  // 判断用户密级是否超出系统限制
+  // 密级层级定义
+  const securityLevelOrder: Record<string, number> = {
+    'unclassified': 0,
+    'internal': 1,
+    'confidential': 2,
+    'secret': 3,
+    'top_secret': 4
+  }
+
+  // 判断用户密级是否满足会议要求
+  // 规则：
+  // - 内部会议：允许任何人参加
+  // - 秘密会议：只允许秘密级及以上的人参加
+  // - 机密会议：只允许机密级及以上的人参加
   const isUserSecurityExceeded = (userSecurityLevel: string) => {
     if (!systemSecurityLevel) return false
     
-    // 如果系统密级是"秘密"，则不能选择"机密"和"绝密"的用户
-    if (systemSecurityLevel === 'confidential') {
-      return userSecurityLevel === 'secret' || userSecurityLevel === 'top_secret'
-    }
+    const userLevel = securityLevelOrder[userSecurityLevel] || 0
+    const meetingLevel = securityLevelOrder[systemSecurityLevel] || 0
     
-    return false
+    // 用户密级必须 >= 会议密级
+    return userLevel < meetingLevel
   }
 
   const handleToggleUser = (user: User) => {
@@ -265,7 +277,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                       ${isExceeded ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
                       ${isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : ''}
                     `}
-                    title={isExceeded ? '超出系统密级限制，不可选择' : ''}
+                    title={isExceeded ? `该人员密级不足，${systemSecurityLevel === 'confidential' ? '秘密' : '机密'}会议要求${systemSecurityLevel === 'confidential' ? '秘密' : '机密'}级及以上人员` : ''}
                   >
                     <div className="flex items-center gap-3">
                       {/* 自定义 checkbox 样式 */}
