@@ -9,6 +9,7 @@ export type WSMessageType =
   | 'meeting_create'
   | 'meeting_update'
   | 'meeting_delete'
+  | 'sync_progress'
 
 /**
  * WebSocket 消息基础结构
@@ -52,6 +53,19 @@ export interface SystemNotifyData {
  */
 export interface HeartbeatData {
   serverTime: number
+}
+
+/**
+ * 同步进度消息数据
+ */
+export interface SyncProgressData {
+  task_id: string
+  device_id: string
+  meeting_id: string
+  progress: number
+  speed: string
+  eta: string
+  current_file?: string
 }
 
 /**

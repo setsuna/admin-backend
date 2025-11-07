@@ -7,17 +7,18 @@ import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { useNotifications } from '@/hooks/useNotifications'
-import { useSyncWebSocket } from '@/hooks/useSyncWebSocket'
 import { useApp } from '@/store'
 import { meetingApi } from '@/services/api/meeting.api'
 import { deviceApi } from '@/services'
 import { syncApi } from '@/services/api/sync.api'
+import { wsService } from '@/services/core/websocket.service'
 import type { 
   OnlineDevice, 
   SyncedMeeting, 
   SyncTask,
-  SyncProgressMessage,
-  DeviceSyncState
+  DeviceSyncState,
+  WSMessage,
+  SyncProgressData
 } from '@/types'
 import { DeviceDetailModal } from '@/components/business/sync/DeviceDetailModal'
 import { SyncHistoryModal } from '@/components/business/sync/SyncHistoryModal'
@@ -86,7 +87,7 @@ export default function MeetingSyncPage() {
   ])
 
   // WebSocket 进度处理
-  const handleSyncProgress = useCallback((message: SyncProgressMessage) => {
+  const handleSyncProgress = useCallback((message: WSMessage<SyncProgressData>) => {
     const { task_id, device_id, meeting_id, progress, speed, eta } = message.data
 
     setDeviceSyncStates(prev => {
@@ -121,11 +122,13 @@ export default function MeetingSyncPage() {
     })
   }, [meetings])
 
-  // 连接 WebSocket
-  useSyncWebSocket({
-    onProgress: handleSyncProgress,
-    enabled: true
-  })
+  // 订阅 WebSocket 同步进度消息
+  useEffect(() => {
+    const unsubscribe = wsService.on('sync_progress', handleSyncProgress)
+    return () => {
+      unsubscribe()
+    }
+  }, [handleSyncProgress])
 
   const handleMeetingSelect = (meetingId: string | number) => {
     const idStr = String(meetingId)
