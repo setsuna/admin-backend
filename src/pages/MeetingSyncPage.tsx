@@ -39,7 +39,6 @@ export default function MeetingSyncPage() {
   const { data: devicesData, isLoading: isDevicesLoading, refetch: refetchDevices } = useQuery({
     queryKey: ['online-devices'],
     queryFn: () => deviceApi.getOnlineDevices({ page: 1, size: 100 }),
-    refetchInterval: 30000, // 每30秒刷新一次
   })
 
   const devices: OnlineDevice[] = devicesData?.items || []
@@ -160,6 +159,14 @@ export default function MeetingSyncPage() {
       setSelectedDeviceIds([])
     } else {
       setSelectedDeviceIds(onlineDevices.map(d => d.serial_number))
+    }
+  }
+
+  const handleSelectAllMeetings = () => {
+    if (selectedMeetingIds.length === filteredMeetings.length) {
+      setSelectedMeetingIds([])
+    } else {
+      setSelectedMeetingIds(filteredMeetings.map(m => String(m.id)))
     }
   }
 
@@ -301,7 +308,18 @@ export default function MeetingSyncPage() {
 
   const selectedMeetingsSize = meetings
     .filter(m => selectedMeetingIds.includes(String(m.id)))
-    .reduce((sum, m) => sum + ((m as any).package_info?.package_size || 0), 0) / (1024 * 1024)
+    .reduce((sum, m) => sum + ((m as any).package_info?.package_size || 0), 0)
+
+  // 格式化文件大小
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0B'
+    const mb = bytes / (1024 * 1024)
+    if (mb < 0.1) {
+      const kb = bytes / 1024
+      return `${kb.toFixed(1)}KB`
+    }
+    return `${mb.toFixed(1)}MB`
+  }
 
   const selectedMeetingObjects = meetings.filter(m => selectedMeetingIds.includes(String(m.id)))
   const selectedDeviceObjects = devices.filter(d => selectedDeviceIds.includes(d.serial_number))
@@ -331,7 +349,16 @@ export default function MeetingSyncPage() {
         {/* Left Panel - Meeting List */}
         <Card className="flex flex-col overflow-hidden">
           <CardHeader className="pb-3">
-            <CardTitle className="mb-3">会议列表</CardTitle>
+            <div className="flex items-center justify-between mb-3">
+              <CardTitle>会议列表</CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSelectAllMeetings}
+              >
+                全选
+              </Button>
+            </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               <Input
@@ -367,43 +394,26 @@ export default function MeetingSyncPage() {
                 interactive
                 onClick={() => handleMeetingSelect(meeting.id)}
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-center gap-3">
                   <Checkbox
                     checked={selectedMeetingIds.includes(String(meeting.id))}
                     onChange={() => {}}
-                    className="mt-1"
                   />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant={getSecurityLevelVariant((meeting as any).security_level)}>
+                  <div className="flex-1 flex items-center justify-between gap-4 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <span className="font-medium truncate">{meeting.name}</span>
+                      <Badge variant={getSecurityLevelVariant((meeting as any).security_level)} className="shrink-0">
                         {getSecurityLevelText((meeting as any).security_level)}
                       </Badge>
-                      <Badge variant={(meeting as any).type === 'standard' ? 'default' : 'info'}>
+                      <Badge variant={(meeting as any).type === 'standard' ? 'default' : 'info'} className="shrink-0">
                         {(meeting as any).type === 'standard' ? '标准会议' : '平板会议'}
                       </Badge>
-                      <span className="font-medium truncate">{meeting.name}</span>
                     </div>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <div>
-                        {new Date((meeting as any).start_time).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })} | 
-                        {(meeting as any).package_info ? ` ${((meeting as any).package_info.package_size / (1024 * 1024)).toFixed(1)}MB` : ' 未打包'}
-                      </div>
+                    <div className="text-sm text-muted-foreground whitespace-nowrap shrink-0">
+                      {new Date((meeting as any).start_time).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })} | 
+                      {(meeting as any).package_info ? ` ${formatFileSize((meeting as any).package_info.package_size)}` : ' 未打包'}
                       {(meeting as any).package_info && (
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span>文件: {(meeting as any).package_info.file_count} 个</span>
-                          <span>投票: {(meeting as any).package_info.vote_count} 个</span>
-                        </div>
-                      )}
-                      {(meeting as any).package_info && (
-                        <div className="text-xs text-muted-foreground/70">
-                          打包时间: {new Date((meeting as any).package_info.packaged_at).toLocaleString('zh-CN', { 
-                            year: 'numeric', 
-                            month: '2-digit', 
-                            day: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </div>
+                        <> | 文件: {(meeting as any).package_info.file_count} 个 | 投票: {(meeting as any).package_info.vote_count} 个</>
                       )}
                     </div>
                   </div>
@@ -412,7 +422,7 @@ export default function MeetingSyncPage() {
             ))}
           </CardContent>
 
-          <div className="px-6 py-4 border-t bg-muted flex items-center justify-center">
+          <div className="px-6 py-4 border-t bg-muted flex items-center justify-start">
             <div className="text-sm text-muted-foreground">
               已选择: {selectedMeetingIds.length} 个会议
             </div>
@@ -526,9 +536,9 @@ export default function MeetingSyncPage() {
             </div>
           </CardContent>
 
-          <div className="px-6 py-4 border-t bg-muted flex items-center justify-center">
+          <div className="px-6 py-4 border-t bg-muted flex items-center justify-start">
             <div className="text-sm text-muted-foreground">
-              已选择: {selectedDeviceIds.length} 台设备 | 预计需要: {selectedMeetingsSize.toFixed(1)}MB
+              已选择: {selectedDeviceIds.length} 台设备 | 预计需要: {formatFileSize(selectedMeetingsSize * selectedDeviceIds.length)}
             </div>
           </div>
         </Card>
@@ -555,7 +565,7 @@ export default function MeetingSyncPage() {
         onConfirm={handleConfirmSync}
         selectedMeetings={selectedMeetingObjects}
         selectedDevices={selectedDeviceObjects}
-        totalSize={selectedMeetingsSize * selectedDeviceIds.length}
+        totalSize={selectedMeetingsSize}
       />
 
       {/* Device Detail Modal */}
