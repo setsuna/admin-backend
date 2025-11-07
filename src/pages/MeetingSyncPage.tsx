@@ -7,7 +7,6 @@ import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { useNotifications } from '@/hooks/useNotifications'
-import { useApp } from '@/store'
 import { meetingApi } from '@/services/api/meeting.api'
 import { deviceApi } from '@/services'
 import { syncApi } from '@/services/api/sync.api'
@@ -27,7 +26,6 @@ import { SyncConfirmDialog } from '@/components/business/sync/SyncConfirmDialog'
 
 export default function MeetingSyncPage() {
   const { showError, showSuccess } = useNotifications()
-  const { devices: deviceStatusMap } = useApp()
   
   // 获取打包会议列表
   const { data: meetings = [], isLoading } = useQuery({
@@ -51,10 +49,26 @@ export default function MeetingSyncPage() {
     return a.serial_number.localeCompare(b.serial_number)
   })
 
-  // 监听设备状态变化，自动刷新设备列表
+  // 监听设备上线/下线消息，自动刷新设备列表
   useEffect(() => {
-    refetchDevices()
-  }, [deviceStatusMap, refetchDevices])
+    console.log('[Device Status] 订阅设备上线/下线消息')
+    
+    const unsubscribeOnline = wsService.on('device_online', (message) => {
+      console.log('[Device Status] 收到设备上线消息:', message.data)
+      refetchDevices()
+    })
+    
+    const unsubscribeOffline = wsService.on('device_offline', (message) => {
+      console.log('[Device Status] 收到设备下线消息:', message.data)
+      refetchDevices()
+    })
+    
+    return () => {
+      console.log('[Device Status] 取消订阅设备上线/下线消息')
+      unsubscribeOnline()
+      unsubscribeOffline()
+    }
+  }, [refetchDevices])
 
   const [selectedMeetingIds, setSelectedMeetingIds] = useState<string[]>([])
   const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([])
@@ -151,8 +165,7 @@ export default function MeetingSyncPage() {
         isActive: true
       }
 
-      const existingTask = deviceState.tasks.get(task_id)
-
+    
       deviceState.tasks.set(task_id, {
         taskId: task_id,
         meetingId: meetingId,
