@@ -15,11 +15,9 @@ import { syncApi } from '@/services/api/sync.api'
 import type { 
   OnlineDevice, 
   SyncedMeeting, 
-  SyncOptions, 
   SyncTask,
   SyncProgressMessage,
-  DeviceSyncState,
-  SyncTaskProgress
+  DeviceSyncState
 } from '@/types'
 import { DeviceDetailModal } from '@/components/business/sync/DeviceDetailModal'
 import { SyncHistoryModal } from '@/components/business/sync/SyncHistoryModal'
@@ -63,13 +61,6 @@ export default function MeetingSyncPage() {
   const [searchMeeting, setSearchMeeting] = useState('')
   const [batchSyncEnabled, setBatchSyncEnabled] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
-  
-  const [syncOptions] = useState<SyncOptions>({
-    includeMaterials: true,
-    includeAgenda: true,
-    includeRecording: false,
-    overwriteExisting: false
-  })
 
   const [selectedDevice, setSelectedDevice] = useState<OnlineDevice | null>(null)
   const [deviceSyncedMeetings, setDeviceSyncedMeetings] = useState<SyncedMeeting[]>([])
@@ -147,7 +138,8 @@ export default function MeetingSyncPage() {
 
   const handleDeviceSelect = (deviceId: string) => {
     const device = devices.find(d => d.serial_number === deviceId)
-    if (device && device.status === -1) {
+    // 只能选择在线设备（status === 1）
+    if (!device || device.status !== 1) {
       return
     }
     
@@ -159,11 +151,12 @@ export default function MeetingSyncPage() {
   }
 
   const handleSelectAllDevices = () => {
-    const registeredDevices = devices.filter(d => d.status !== -1)
-    if (selectedDeviceIds.length === registeredDevices.length) {
+    // 只能全选在线设备（status === 1）
+    const onlineDevices = devices.filter(d => d.status === 1)
+    if (selectedDeviceIds.length === onlineDevices.length) {
       setSelectedDeviceIds([])
     } else {
-      setSelectedDeviceIds(registeredDevices.map(d => d.serial_number))
+      setSelectedDeviceIds(onlineDevices.map(d => d.serial_number))
     }
   }
 
@@ -463,6 +456,8 @@ export default function MeetingSyncPage() {
                   const statusVariant = isUnregistered ? 'warning' : isOnline ? 'success' : 'default'
                   const deviceState = deviceSyncStates.get(device.serial_number)
                   const deviceTasks = deviceState ? Array.from(deviceState.tasks.values()) : []
+                  // 只有在线设备可以勾选
+                  const canSelect = isOnline
                   
                   return (
                     <div key={device.serial_number} className="space-y-2">
@@ -478,7 +473,7 @@ export default function MeetingSyncPage() {
                           <Checkbox
                             checked={selectedDeviceIds.includes(device.serial_number)}
                             onChange={() => handleDeviceSelect(device.serial_number)}
-                            disabled={isUnregistered}
+                            disabled={!canSelect}
                           />
                           <div className="flex-1 flex items-center justify-between gap-4 min-w-0">
                             <div className="flex items-center gap-2 min-w-0">

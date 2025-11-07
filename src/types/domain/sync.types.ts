@@ -1,3 +1,45 @@
+// 在线设备信息
+export interface OnlineDevice {
+  serial_number: string
+  status: -1 | 0 | 1  // -1=未注册, 0=离线, 1=在线
+  status_name: string
+  last_login?: string
+  mount_path?: string
+}
+
+// 已同步会议
+export interface SyncedMeeting {
+  meetingId: string
+  title: string
+  securityLevel: string
+  size: number  // MB
+  fileCount: number
+  syncTime: string
+  meetingDate: string
+}
+
+// 同步选项
+export interface SyncOptions {
+  includeMaterials: boolean
+  includeAgenda: boolean
+  includeRecording: boolean
+  overwriteExisting: boolean
+}
+
+// 同步任务（用于历史记录）
+export interface SyncTask {
+  id: string
+  meetingId: string
+  meetingTitle: string
+  deviceIds: string[]
+  deviceNames: string[]
+  status: 'pending' | 'running' | 'completed' | 'failed'
+  completedCount: number
+  totalCount: number
+  createdAt: string
+  completedAt?: string
+}
+
 // 同步任务创建请求
 export interface CreateSyncTaskRequest {
   meetingId: string
