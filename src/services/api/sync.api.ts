@@ -1,9 +1,10 @@
 import { httpClient } from '../core/http.client'
 import type { 
-  CreateSyncTaskRequest, 
   SyncTaskResponse, 
   TaskProgress, 
-  TaskStatus 
+  TaskStatus,
+  BatchSyncResponse,
+  TaskStatusDetail
 } from '@/types'
 
 class SyncApiService {
@@ -47,6 +48,37 @@ class SyncApiService {
     return await httpClient.post<{ taskId: string; status: string }>(
       `${this.basePath}/tasks/${taskId}/acknowledge`,
       {}
+    )
+  }
+
+  /**
+   * 批量同步会议包到多个设备
+   */
+  async batchSyncMeetingPackage(
+    meetingIds: string[],
+    serialNumbers: string[],
+    metadata?: Record<string, any>
+  ): Promise<BatchSyncResponse> {
+    return await httpClient.post<BatchSyncResponse>(
+      `${this.basePath}/meeting-package/batch`,
+      {
+        meetingIds,
+        serialNumbers,
+        metadata
+      }
+    )
+  }
+
+  /**
+   * 获取同步任务状态
+   */
+  async getSyncTaskStatus(
+    taskId: string,
+    serialNumber: string
+  ): Promise<TaskStatusDetail> {
+    return await httpClient.get<TaskStatusDetail>(
+      `${this.basePath}/tasks/${taskId}/status`,
+      { serialNumber }
     )
   }
 }

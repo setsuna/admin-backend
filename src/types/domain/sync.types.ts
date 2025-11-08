@@ -62,18 +62,21 @@ export interface SyncTaskResponse {
   message?: string
 }
 
+// WebSocket 进度消息数据
+export interface SyncProgressData {
+  task_id: string
+  device_id?: string
+  meeting_id?: string
+  progress: number
+  speed?: string
+  eta?: string
+  current_file?: string
+}
+
 // WebSocket 进度消息
 export interface SyncProgressMessage {
   type: 'sync_progress'
-  data: {
-    task_id: string
-    device_id: string
-    meeting_id: string
-    progress: number
-    speed: string
-    eta: string
-    current_file?: string
-  }
+  data: SyncProgressData
   timestamp: number
 }
 
@@ -120,4 +123,51 @@ export interface SyncTaskProgress {
   eta?: string
   startTime?: string
   endTime?: string
+}
+
+// 批量同步请求
+export interface BatchSyncRequest {
+  meetingIds: string[]
+  serialNumbers: string[]
+  metadata?: Record<string, any>
+}
+
+// 批量同步响应
+export interface BatchSyncResponse {
+  totalRequests: number
+  successCount: number
+  failureCount: number
+  results: BatchSyncTaskResult[]
+  summary: {
+    meetingCount: number
+    deviceCount: number
+    successRate: number
+  }
+}
+
+// 批量同步单个任务结果
+export interface BatchSyncTaskResult {
+  meetingId: string
+  serialNumber: string
+  success: boolean
+  taskId?: string
+  errorCode?: number
+  errorMessage?: string
+  devicePath?: string
+  createdAt?: number
+}
+
+// 任务状态详情（用于 GetSyncTaskStatus）
+export interface TaskStatusDetail {
+  taskId: string
+  state: 'pending' | 'ready' | 'processing' | 'done' | 'failed' | 'acked' | 'archived'
+  message: string
+  progress: number
+  updatedAt: string
+  metadata?: {
+    meetingId?: string
+    packageId?: string
+    serialNumber?: string
+    [key: string]: any
+  }
 }

@@ -17,7 +17,8 @@ import type {
   SyncTask,
   DeviceSyncState,
   WSMessage,
-  SyncProgressData
+  SyncProgressData,
+  BatchSyncTaskResult
 } from '@/types'
 import { DeviceDetailModal } from '@/components/business/sync/DeviceDetailModal'
 import { SyncHistoryModal } from '@/components/business/sync/SyncHistoryModal'
@@ -281,84 +282,80 @@ export default function MeetingSyncPage() {
     setShowConfirmDialog(false)
 
     const selectedMeetings = meetings.filter(m => selectedMeetingIds.includes(String(m.id)))
-    const selectedDevices = devices.filter(d => selectedDeviceIds.includes(d.serial_number))
     
     try {
-      const tasks: Array<{ meetingId: string; deviceId: string; taskId: string }> = []
-
-      // 循环调用 API 创建同步任务
-      for (const meeting of selectedMeetings) {
-        for (const device of selectedDevices) {
-          try {
-            const result = await syncApi.createSyncTask(
-              String(meeting.id),
-              device.serial_number
-            )
-            
-            console.log('[Sync] 创建同步任务成功:', {
-              meetingId: String(meeting.id),
-              deviceId: device.serial_number,
-              taskId: result.taskId,
-              response: result
-            })
-            
-            // 保存任务映射
-            taskMappingRef.current.set(result.taskId, {
-              deviceId: device.serial_number,
-              meetingId: String(meeting.id),
-              meetingName: meeting.name
-            })
-            console.log('[Sync] 保存任务映射:', taskMappingRef.current.get(result.taskId))
-            
-            tasks.push({
-              meetingId: String(meeting.id),
-              deviceId: device.serial_number,
-              taskId: result.taskId
-            })
-
-            // 初始化设备同步状态
-            setDeviceSyncStates(prev => {
-              const newStates = new Map(prev)
-              const deviceState = newStates.get(device.serial_number) || {
-                deviceId: device.serial_number,
-                tasks: new Map(),
-                isActive: true
-              }
-
-              deviceState.tasks.set(result.taskId, {
-                taskId: result.taskId,
-                meetingId: String(meeting.id),
-                meetingName: meeting.name,
-                status: 'pending',
-                progress: 0
-              })
-
-              deviceState.isActive = true
-              newStates.set(device.serial_number, deviceState)
-              return newStates
-            })
-          } catch (error) {
-            console.error(`创建同步任务失败 [${meeting.name} -> ${device.serial_number}]:`, error)
-            showError('同步失败', `会议 "${meeting.name}" 同步到设备 "${device.serial_number}" 失败`)
-          }
+      // 🚀 使用批量接口：一次请求完成所有任务创建
+      const batchResult = await syncApi.batchSyncMeetingPackage(
+        selectedMeetingIds,
+        selectedDeviceIds,
+        {
+          operator: 'admin',
+          batch_id: `batch_${Date.now()}`
         }
-      }
-
-      showSuccess(
-        '同步已开始', 
-        `已创建 ${tasks.length} 个同步任务，正在后台处理`
       )
+      
+      console.log('[Batch Sync] 批量同步结果:', batchResult)
+      
+      // 批量处理成功的任务
+      const newTaskMappings = new Map<string, DeviceSyncState>()
+      
+      batchResult.results.forEach((result: BatchSyncTaskResult) => {
+        if (result.success && result.taskId) {
+          const meeting = selectedMeetings.find(m => String(m.id) === result.meetingId)
+          if (!meeting) return
+          
+          // 保存任务映射
+          taskMappingRef.current.set(result.taskId, {
+            deviceId: result.serialNumber,
+            meetingId: result.meetingId,
+            meetingName: meeting.name
+          })
+          
+          // 收集设备状态（按设备分组）
+          if (!newTaskMappings.has(result.serialNumber)) {
+            newTaskMappings.set(result.serialNumber, {
+              deviceId: result.serialNumber,
+              tasks: new Map(),
+              isActive: true
+            })
+          }
+          
+          newTaskMappings.get(result.serialNumber)!.tasks.set(result.taskId, {
+            taskId: result.taskId,
+            meetingId: result.meetingId,
+            meetingName: meeting.name,
+            status: 'pending',
+            progress: 0
+          })
+        } else if (!result.success) {
+          console.error(
+            `[Batch Sync] 任务失败 [${result.meetingId} -> ${result.serialNumber}]:`,
+            result.errorMessage
+          )
+        }
+      })
+      
+      // 一次性更新所有设备状态
+      setDeviceSyncStates(prev => {
+        const newStates = new Map(prev)
+        newTaskMappings.forEach((state, deviceId) => {
+          newStates.set(deviceId, state)
+        })
+        return newStates
+      })
       
       // 持久化任务映射
       saveTaskMapping()
-
-      console.log('[Sync] 已创建的同步任务:', tasks)
-      console.log('[Sync] 设备 serial_number 列表:', selectedDevices.map(d => d.serial_number))
-      console.log('[Sync] 当前 deviceSyncStates keys:', Array.from(deviceSyncStates.keys()))
-      console.log('[Sync] 任务映射表:', Array.from(taskMappingRef.current.entries()))
+      
+      console.log('[Batch Sync] 统计:', {
+        totalRequests: batchResult.totalRequests,
+        successCount: batchResult.successCount,
+        failureCount: batchResult.failureCount,
+        successRate: batchResult.summary.successRate.toFixed(2) + '%'
+      })
+      
     } catch (error) {
-      console.error('批量同步失败:', error)
-      showError('同步失败', '创建同步任务时发生错误')
+      console.error('[Batch Sync] 批量同步失败:', error)
     }
   }
 
