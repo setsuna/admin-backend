@@ -68,6 +68,14 @@ export function DeviceSyncProgress({ tasks, className = '' }: DeviceSyncProgress
               <span className="truncate max-w-[120px]" title={activeTask.meetingName}>
                 {activeTask.meetingName}
               </span>
+              {activeTask.status === 'failed' && activeTask.error && (
+                <>
+                  <span>•</span>
+                  <span className="text-red-500" title={activeTask.error}>
+                    失败
+                  </span>
+                </>
+              )}
             </>
           )}
         </div>
@@ -87,6 +95,9 @@ export function DeviceSyncProgress({ tasks, className = '' }: DeviceSyncProgress
               <span>•</span>
               <span>
                 {stats.completed}/{stats.total}
+                {stats.failed > 0 && (
+                  <span className="text-red-500 ml-1">(失败: {stats.failed})</span>
+                )}
               </span>
             </>
           )}

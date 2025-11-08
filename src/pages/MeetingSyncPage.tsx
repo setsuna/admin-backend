@@ -9,16 +9,15 @@ import { Checkbox } from '@/components/ui/Checkbox'
 import { useNotifications } from '@/hooks/useNotifications'
 import { meetingApi } from '@/services/api/meeting.api'
 import { deviceApi } from '@/services'
-import { syncApi } from '@/services/api/sync.api'
 import { wsService } from '@/services/core/websocket.service'
+import { sseService, type StartEventData, type ProgressEventData, type CompleteEventData } from '@/services/core/sse.service'
 import type { 
   OnlineDevice, 
   SyncedMeeting, 
   SyncTask,
   DeviceSyncState,
   WSMessage,
-  SyncProgressData,
-  BatchSyncTaskResult
+  SyncProgressData
 } from '@/types'
 import { DeviceDetailModal } from '@/components/business/sync/DeviceDetailModal'
 import { SyncHistoryModal } from '@/components/business/sync/SyncHistoryModal'
@@ -86,6 +85,16 @@ export default function MeetingSyncPage() {
   
   // 任务ID映射：taskId -> { deviceId, meetingId, meetingName }
   const taskMappingRef = useRef<Map<string, { deviceId: string; meetingId: string; meetingName: string }>>(new Map())
+  
+  // 全局进度状态
+  const [globalProgress, setGlobalProgress] = useState<{
+    isActive: boolean
+    current: number
+    total: number
+    percentage: number
+    successCount: number
+    failureCount: number
+  } | null>(null)
   
   // 从 localStorage 加载任务映射
   useEffect(() => {
@@ -203,7 +212,140 @@ export default function MeetingSyncPage() {
     })
   }, [saveTaskMapping])
 
-  // 订阅 WebSocket 同步进度消息
+  // SSE 事件处理器
+  useEffect(() => {
+    console.log('[SSE] 订阅SSE事件')
+    
+    // start 事件
+    const unsubscribeStart = sseService.on<StartEventData>('start', (event) => {
+      console.log('[SSE] 收到 start 事件:', event.data)
+      setGlobalProgress(prev => prev ? {
+        ...prev,
+        total: event.data.totalCount
+      } : null)
+      showSuccess('开始同步', `正在同步 ${event.data.meetingCount} 个会议到 ${event.data.deviceCount} 台设备`)
+    })
+    
+    // progress 事件
+    const unsubscribeProgress = sseService.on<ProgressEventData>('progress', (event) => {
+      console.log('[SSE] 收到 progress 事件:', event.data)
+      const { meetingId, serialNumber, success, current, total, percentage, taskId, errorMessage } = event.data
+      
+      // 更新全局进度
+      setGlobalProgress(prev => prev ? {
+        ...prev,
+        current,
+        total,
+        percentage,
+        successCount: prev.successCount + (success ? 1 : 0),
+        failureCount: prev.failureCount + (success ? 0 : 1)
+      } : null)
+      
+      // 查找会议名称
+      const meeting = meetings.find(m => String(m.id) === meetingId)
+      const meetingName = meeting?.name || `会议-${meetingId}`
+      
+      // 更新设备状态
+      setDeviceSyncStates(prev => {
+        const newStates = new Map(prev)
+        const deviceState = newStates.get(serialNumber) || {
+          deviceId: serialNumber,
+          tasks: new Map(),
+          isActive: true
+        }
+        
+        const taskKey = taskId || `${meetingId}-${serialNumber}`
+        
+        if (success) {
+          // 成功：标记为完成
+          deviceState.tasks.set(taskKey, {
+            taskId: taskKey,
+            meetingId,
+            meetingName,
+            status: 'done',
+            progress: 100
+          })
+          
+          // 保存任务映射
+          if (taskId) {
+            taskMappingRef.current.set(taskId, {
+              deviceId: serialNumber,
+              meetingId,
+              meetingName
+            })
+          }
+        } else {
+          // 失败：标记为失败
+          deviceState.tasks.set(taskKey, {
+            taskId: taskKey,
+            meetingId,
+            meetingName,
+            status: 'failed',
+            progress: 0,
+            error: errorMessage
+          })
+        }
+        
+        // 检查设备所有任务是否完成
+        const allDone = Array.from(deviceState.tasks.values()).every(
+          t => t.status === 'done' || t.status === 'failed'
+        )
+        deviceState.isActive = !allDone
+        
+        newStates.set(serialNumber, deviceState)
+        return newStates
+      })
+    })
+    
+    // complete 事件
+    const unsubscribeComplete = sseService.on<CompleteEventData>('complete', (event) => {
+      console.log('[SSE] 收到 complete 事件:', event.data)
+      const { successCount, failureCount, duration, summary } = event.data
+      
+      setGlobalProgress(prev => prev ? {
+        ...prev,
+        isActive: false
+      } : null)
+      
+      // 显示完成通知
+      if (failureCount === 0) {
+        showSuccess(
+          '同步完成',
+          `成功同步 ${successCount} 个任务，耗时 ${duration.toFixed(1)} 秒`
+        )
+      } else {
+        showError(
+          '同步完成（部分失败）',
+          `成功 ${successCount} 个，失败 ${failureCount} 个，成功率 ${summary.successRate.toFixed(1)}%`
+        )
+      }
+      
+      // 保存任务映射
+      saveTaskMapping()
+      
+      // 5秒后清空全局进度
+      setTimeout(() => {
+        setGlobalProgress(null)
+      }, 5000)
+    })
+    
+    // error 事件
+    const unsubscribeError = sseService.on('error', (event) => {
+      console.error('[SSE] 收到 error 事件:', event.data)
+      showError('同步错误', event.data.message || '同步过程中发生错误')
+      setGlobalProgress(prev => prev ? { ...prev, isActive: false } : null)
+    })
+    
+    return () => {
+      console.log('[SSE] 取消订阅SSE事件')
+      unsubscribeStart()
+      unsubscribeProgress()
+      unsubscribeComplete()
+      unsubscribeError()
+    }
+  }, [meetings, showSuccess, showError, saveTaskMapping])
+  
+  // 订阅 WebSocket 同步进度消息（保留作为备用）
   useEffect(() => {
     console.log('[Sync WebSocket] 订阅同步进度消息')
     console.log('[Sync WebSocket] 当前连接状态:', wsService.getConnectionState())
@@ -281,82 +423,34 @@ export default function MeetingSyncPage() {
   const handleConfirmSync = async () => {
     setShowConfirmDialog(false)
 
-    const selectedMeetings = meetings.filter(m => selectedMeetingIds.includes(String(m.id)))
+
+    // 清空之前的设备状态
+    setDeviceSyncStates(new Map())
     
-    try {
-      // 🚀 使用批量接口：一次请求完成所有任务创建
-      const batchResult = await syncApi.batchSyncMeetingPackage(
-        selectedMeetingIds,
-        selectedDeviceIds,
-        {
-          operator: 'admin',
-          batch_id: `batch_${Date.now()}`
-        }
-      )
-      
-      console.log('[Batch Sync] 批量同步结果:', batchResult)
-      
-      // 批量处理成功的任务
-      const newTaskMappings = new Map<string, DeviceSyncState>()
-      
-      batchResult.results.forEach((result: BatchSyncTaskResult) => {
-        if (result.success && result.taskId) {
-          const meeting = selectedMeetings.find(m => String(m.id) === result.meetingId)
-          if (!meeting) return
-          
-          // 保存任务映射
-          taskMappingRef.current.set(result.taskId, {
-            deviceId: result.serialNumber,
-            meetingId: result.meetingId,
-            meetingName: meeting.name
-          })
-          
-          // 收集设备状态（按设备分组）
-          if (!newTaskMappings.has(result.serialNumber)) {
-            newTaskMappings.set(result.serialNumber, {
-              deviceId: result.serialNumber,
-              tasks: new Map(),
-              isActive: true
-            })
-          }
-          
-          newTaskMappings.get(result.serialNumber)!.tasks.set(result.taskId, {
-            taskId: result.taskId,
-            meetingId: result.meetingId,
-            meetingName: meeting.name,
-            status: 'pending',
-            progress: 0
-          })
-        } else if (!result.success) {
-          console.error(
-            `[Batch Sync] 任务失败 [${result.meetingId} -> ${result.serialNumber}]:`,
-            result.errorMessage
-          )
-        }
-      })
-      
-      // 一次性更新所有设备状态
-      setDeviceSyncStates(prev => {
-        const newStates = new Map(prev)
-        newTaskMappings.forEach((state, deviceId) => {
-          newStates.set(deviceId, state)
-        })
-        return newStates
-      })
-      
-      // 持久化任务映射
-      saveTaskMapping()
-      
-      console.log('[Batch Sync] 统计:', {
-        totalRequests: batchResult.totalRequests,
-        successCount: batchResult.successCount,
-        failureCount: batchResult.failureCount,
-        successRate: batchResult.summary.successRate.toFixed(2) + '%'
-      })
-      
-    } catch (error) {
-      console.error('[Batch Sync] 批量同步失败:', error)
-    }
+    // 初始化全局进度
+    setGlobalProgress({
+      isActive: true,
+      current: 0,
+      total: 0,
+      percentage: 0,
+      successCount: 0,
+      failureCount: 0
+    })
+    
+    // 使用SSE方式批量同步
+    console.log('[SSE Sync] 开始批量同步:', {
+      meetingIds: selectedMeetingIds,
+      deviceIds: selectedDeviceIds
+    })
+    
+    sseService.startBatchSync(
+      selectedMeetingIds,
+      selectedDeviceIds,
+      {
+        operator: 'admin',
+        batch_id: `batch_${Date.now()}`
+      }
+    )
   }
 
   const handleDeviceDoubleClick = (device: OnlineDevice) => {
@@ -437,21 +531,47 @@ export default function MeetingSyncPage() {
   return (
     <div className="p-6 h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">会议文件同步到设备</h1>
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold">会议文件同步到设备</h1>
         <div className="flex items-center gap-4">
           <Checkbox
             checked={batchSyncEnabled}
             onChange={(e) => setBatchSyncEnabled(e.target.checked)}
             label={`批量同步模式${batchSyncEnabled ? ` (监听 ${selectedMeetingIds.length} 个会议)` : ''}`}
           />
-          <Button 
-            variant="outline"
-            onClick={() => setShowHistory(true)}
-          >
-            历史记录
-          </Button>
+            <Button 
+              variant="outline"
+              onClick={() => setShowHistory(true)}
+            >
+              历史记录
+            </Button>
+          </div>
         </div>
+        
+        {/* 全局进度条 */}
+        {globalProgress && globalProgress.isActive && (
+          <Card className="p-4 bg-primary/5 border-primary/20">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">同步进度</span>
+                <span className="text-muted-foreground">
+                  {globalProgress.current}/{globalProgress.total} 任务完成 ({globalProgress.percentage.toFixed(1)}%)
+                </span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                <div 
+                  className="bg-primary h-full transition-all duration-300 ease-out"
+                  style={{ width: `${globalProgress.percentage}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>成功: {globalProgress.successCount}</span>
+                <span>失败: {globalProgress.failureCount}</span>
+              </div>
+            </div>
+          </Card>
+        )}
       </div>
 
       {/* Main Content */}

@@ -123,6 +123,7 @@ export interface SyncTaskProgress {
   eta?: string
   startTime?: string
   endTime?: string
+  error?: string  // 失败时的错误信息
 }
 
 // 批量同步请求

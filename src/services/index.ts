@@ -7,6 +7,7 @@
 // 核心服务导出
 // ========================================
 export { httpClient } from './core/http.client'
+export { sseService } from './core/sse.service'
 
 // 延迟导入其他核心服务，避免初始化问题
 export * from './core/auth.service'
