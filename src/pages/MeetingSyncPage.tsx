@@ -405,11 +405,9 @@ export default function MeetingSyncPage() {
 
   const getSecurityLevelText = (level: string) => {
     const texts: Record<string, string> = {
-      top_secret: '绝密',
-      secret: '机密',
-      confidential: '秘密',
-      internal: '内部',
-      public: '公开'
+      secret: '秘密',
+      confidential: '机密',
+      internal: '内部'
     }
     return texts[level] || '内部'
   }
