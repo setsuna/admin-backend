@@ -28,19 +28,24 @@ export function useNotifications() {
   }
   
   const showSuccess = (title: string, message?: string, options?: NotificationOptions) => {
-    addNotification({ type: 'success', title, message: message || '', ...options })
+    addNotification({ type: 'success', title, message: message || '', ...options }, false)
   }
   
   const showError = (title: string, message?: string, options?: NotificationOptions) => {
-    addNotification({ type: 'error', title, message: message || '', ...options })
+    addNotification({ type: 'error', title, message: message || '', ...options }, false)
   }
   
   const showWarning = (title: string, message?: string, options?: NotificationOptions) => {
-    addNotification({ type: 'warning', title, message: message || '', ...options })
+    addNotification({ type: 'warning', title, message: message || '', ...options }, false)
   }
   
   const showInfo = (title: string, message?: string, options?: NotificationOptions) => {
-    addNotification({ type: 'info', title, message: message || '', ...options })
+    addNotification({ type: 'info', title, message: message || '', ...options }, false)
+  }
+  
+  // Socket消息专用（进入历史）
+  const showSocketMessage = (title: string, message?: string, options?: NotificationOptions) => {
+    addNotification({ type: 'info', title, message: message || '', ...options }, true)
   }
   
   // 🆕 API错误专用通知方法
@@ -171,6 +176,8 @@ export function useNotifications() {
     showError,
     showWarning,
     showInfo,
+    // Socket消息（进入历史）
+    showSocketMessage,
     // 🆕 新增专用方法
     showApiError,
     showValidationErrors,

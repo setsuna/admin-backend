@@ -33,7 +33,7 @@ export interface UISlice {
   
   // Toast 通知系统（自动消失的提示框）
   notifications: Notification[]
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>, showInHistory?: boolean) => void
   removeNotification: (id: string) => void
   clearNotifications: () => void
   

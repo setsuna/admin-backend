@@ -37,7 +37,7 @@ export const createUISlice: StateCreator<
   notificationHistory: [],
   unreadCount: 0,
   
-  addNotification: (notification) => {
+  addNotification: (notification, showInHistory = false) => {
     const notificationId = Math.random().toString(36).substring(2)
     const newNotification: ExtendedNotification = {
       ...notification,
@@ -47,13 +47,21 @@ export const createUISlice: StateCreator<
     }
     
     // 添加到 Toast 列表（用于显示）
-    set((state) => ({
-      notifications: [...state.notifications, newNotification],
-      notificationHistory: [...state.notificationHistory, newNotification],
-      unreadCount: state.unreadCount + 1,
-    }))
+    set((state) => {
+      const updates: any = {
+        notifications: [...state.notifications, newNotification],
+      }
+      
+      // 只有 showInHistory=true 时才加入历史（用于Socket消息等重要通知）
+      if (showInHistory) {
+        updates.notificationHistory = [...state.notificationHistory, newNotification]
+        updates.unreadCount = state.unreadCount + 1
+      }
+      
+      return updates
+    })
     
-    // Toast 自动消失（但保留在历史中）
+    // Toast 自动消失
     if (!newNotification.persistent && notification.duration !== 0) {
       setTimeout(() => {
         set((state) => ({
