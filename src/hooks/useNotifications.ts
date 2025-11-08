@@ -1,18 +1,20 @@
-import { useUI } from '@/store'
+import { useStore } from '@/store'
 import type { ValidationError } from '@/types/api/response.types'
 import { ERROR_CODES, getErrorMessage, isRetryableError, needsAutoLogin } from '@/config'
 
 /**
  * 通知管理Hook (重构后支持新错误码系统)
  * 提供通知的添加、移除和清理功能，以及专门的错误处理方法
+ * 
+ * 🚀 性能优化：只订阅方法，不订阅通知列表状态
+ * 适用于只需要显示通知的组件（大部分业务组件）
  */
 export function useNotifications() {
-  const { 
-    notifications, 
-    addNotification, 
-    removeNotification, 
-    clearNotifications 
-  } = useUI()
+  // ✅ 只获取方法，不订阅通知列表状态
+  const addNotification = useStore((state) => state.addNotification)
+  const removeNotification = useStore((state) => state.removeNotification)
+  const clearNotifications = useStore((state) => state.clearNotifications)
+  // ❌ 不订阅 notifications，避免不必要的重新渲染
   
   // 便捷方法
   interface NotificationOptions {
@@ -160,7 +162,7 @@ export function useNotifications() {
   }
   
   return {
-    notifications,
+    // ❌ 不返回 notifications，避免组件订阅状态
     addNotification,
     removeNotification,
     clearNotifications,
@@ -175,5 +177,27 @@ export function useNotifications() {
     showNetworkError,
     showMaintenanceNotice,
     showPermissionGuide,
+  }
+}
+
+/**
+ * 通知列表Hook
+ * 
+ * ⚠️ 此 Hook 会订阅通知列表状态，只在需要显示通知列表的组件中使用
+ * 例如：Header 中的通知下拉菜单、通知中心页面等
+ */
+export function useNotificationList() {
+  const notificationHistory = useStore((state) => state.notificationHistory)
+  const unreadCount = useStore((state) => state.unreadCount)
+  const markNotificationAsRead = useStore((state) => state.markNotificationAsRead)
+  const markAllAsRead = useStore((state) => state.markAllAsRead)
+  const clearNotificationHistory = useStore((state) => state.clearNotificationHistory)
+  
+  return {
+    notifications: notificationHistory,
+    unreadCount,
+    markNotificationAsRead,
+    markAllAsRead,
+    clearNotificationHistory,
   }
 }

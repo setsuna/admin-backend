@@ -1,16 +1,17 @@
 import { Bell, CheckCheck } from 'lucide-react'
-import { useUI } from '@/store'
+import { useNotificationList } from '@/hooks/useNotifications'
 import { Button } from '@/components/ui/Button'
 import { NotificationItem } from './NotificationItem'
 
 export function NotificationPanel() {
+  // ✅ 使用专门的通知列表 hook，只订阅通知相关状态
   const { 
-    notificationHistory,
+    notifications: notificationHistory,
     unreadCount,
     markNotificationAsRead, 
     markAllAsRead,
     clearNotificationHistory
-  } = useUI()
+  } = useNotificationList()
   
   // 只显示最近10条
   const recentNotifications = (notificationHistory || []).slice(-10).reverse()
