@@ -1,6 +1,6 @@
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react'
 import { cn } from '@/utils'
-import { useNotifications } from '@/hooks/useNotifications'
+import { useStore } from '@/store'
 import type { NotificationType } from '@/types'
 
 const notificationConfig = {
@@ -57,7 +57,9 @@ function NotificationItem({ id, type, title, message, onClose }: NotificationIte
 }
 
 export function NotificationContainer() {
-  const { notifications, removeNotification } = useNotifications()
+  // ✅ 直接订阅 notifications 状态（Toast 列表）
+  const notifications = useStore((state) => state.notifications)
+  const removeNotification = useStore((state) => state.removeNotification)
   
   if (notifications.length === 0) return null
   
