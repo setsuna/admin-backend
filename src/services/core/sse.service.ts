@@ -2,7 +2,7 @@ import { getConfig } from '@/config'
 import { authService } from './auth.service'
 
 export interface SSEEvent<T = any> {
-  type: 'start' | 'progress' | 'heartbeat' | 'complete' | 'error'
+  type: 'start' | 'task_created' | 'task_progress' | 'task_completed' | 'heartbeat' | 'complete' | 'error'
   data: T
 }
 

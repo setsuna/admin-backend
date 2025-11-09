@@ -1,28 +1,29 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Search, RefreshCw, Cable, Unplug } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/Card'
+import { Card, CardHeader } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Checkbox } from '@/components/ui/Checkbox'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
 import { useNotifications } from '@/hooks/useNotifications'
 import { meetingApi } from '@/services/api/meeting.api'
 import { deviceApi } from '@/services'
 import { wsService } from '@/services/core/websocket.service'
-import { sseService, type StartEventData, type ProgressEventData, type CompleteEventData } from '@/services/core/sse.service'
+import { sseService } from '@/services/core/sse.service'
+import { BatchSyncPanel } from '@/components/business/sync/BatchSyncPanel'
 import type { 
   OnlineDevice, 
-  SyncedMeeting, 
-  SyncTask,
-  DeviceSyncState,
-  WSMessage,
-  SyncProgressData
+  BatchSyncInfo,
+  BatchTaskInfo,
+  SSEStartEvent,
+  SSETaskCreatedEvent,
+  SSETaskProgressEvent,
+  SSETaskCompletedEvent,
+  SSECompleteEvent,
+  SSEErrorEvent
 } from '@/types'
-import { DeviceDetailModal } from '@/components/business/sync/DeviceDetailModal'
-import { SyncHistoryModal } from '@/components/business/sync/SyncHistoryModal'
-import { DeviceSyncProgress } from '@/components/business/sync/DeviceSyncProgress'
-import { SyncConfirmDialog } from '@/components/business/sync/SyncConfirmDialog'
 
 export default function MeetingSyncPage() {
   const { showError, showSuccess } = useNotifications()
@@ -51,20 +52,15 @@ export default function MeetingSyncPage() {
 
   // 监听设备上线/下线消息，自动刷新设备列表
   useEffect(() => {
-    console.log('[Device Status] 订阅设备上线/下线消息')
-    
-    const unsubscribeOnline = wsService.on('device_online', (message) => {
-      console.log('[Device Status] 收到设备上线消息:', message.data)
+    const unsubscribeOnline = wsService.on('device_online', () => {
       refetchDevices()
     })
     
-    const unsubscribeOffline = wsService.on('device_offline', (message) => {
-      console.log('[Device Status] 收到设备下线消息:', message.data)
+    const unsubscribeOffline = wsService.on('device_offline', () => {
       refetchDevices()
     })
     
     return () => {
-      console.log('[Device Status] 取消订阅设备上线/下线消息')
       unsubscribeOnline()
       unsubscribeOffline()
     }
@@ -73,241 +69,141 @@ export default function MeetingSyncPage() {
   const [selectedMeetingIds, setSelectedMeetingIds] = useState<string[]>([])
   const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([])
   const [searchMeeting, setSearchMeeting] = useState('')
-  const [batchSyncEnabled, setBatchSyncEnabled] = useState(false)
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
-
-  const [selectedDevice, setSelectedDevice] = useState<OnlineDevice | null>(null)
-  const [deviceSyncedMeetings, setDeviceSyncedMeetings] = useState<SyncedMeeting[]>([])
-  const [showHistory, setShowHistory] = useState(false)
-
-  // 设备同步状态管理
-  const [deviceSyncStates, setDeviceSyncStates] = useState<Map<string, DeviceSyncState>>(new Map())
   
-  // 任务ID映射：taskId -> { deviceId, meetingId, meetingName }
-  const taskMappingRef = useRef<Map<string, { deviceId: string; meetingId: string; meetingName: string }>>(new Map())
-  
-  // 全局进度状态
-  const [globalProgress, setGlobalProgress] = useState<{
-    isActive: boolean
-    current: number
-    total: number
-    percentage: number
-    successCount: number
-    failureCount: number
-  } | null>(null)
-  
-  // 从 localStorage 加载任务映射
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('sync_task_mapping')
-      if (saved) {
-        const entries = JSON.parse(saved) as Array<[string, { deviceId: string; meetingId: string; meetingName: string }]>
-        taskMappingRef.current = new Map(entries)
-        console.log('[Sync] 从 localStorage 加载任务映射:', taskMappingRef.current.size, '个任务')
-      }
-    } catch (error) {
-      console.error('[Sync] 加载任务映射失败:', error)
-    }
-  }, [])
-  
-  // 保存任务映射到 localStorage
-  const saveTaskMapping = useCallback(() => {
-    try {
-      const entries = Array.from(taskMappingRef.current.entries())
-      localStorage.setItem('sync_task_mapping', JSON.stringify(entries))
-      console.log('[Sync] 保存任务映射到 localStorage:', entries.length, '个任务')
-    } catch (error) {
-      console.error('[Sync] 保存任务映射失败:', error)
-    }
-  }, [])
-
-  // Debug: 监控 deviceSyncStates 变化
-  useEffect(() => {
-    if (deviceSyncStates.size > 0) {
-      console.log('[Sync State] deviceSyncStates 更新:', {
-        size: deviceSyncStates.size,
-        keys: Array.from(deviceSyncStates.keys()),
-        details: Array.from(deviceSyncStates.entries()).map(([key, state]) => ({
-          deviceId: key,
-          taskCount: state.tasks.size,
-          isActive: state.isActive
-        }))
-      })
-    }
-  }, [deviceSyncStates])
-
-  // Mock历史记录数据
-  const [syncTasks] = useState<SyncTask[]>([
-    {
-      id: '1',
-      meetingId: '1',
-      meetingTitle: '战略规划会议',
-      deviceIds: ['1', '2', '3', '4', '5'],
-      deviceNames: ['平板-001', '平板-002', '平板-003', '平板-004', '平板-005'],
-      status: 'completed',
-      completedCount: 5,
-      totalCount: 5,
-      createdAt: '2024-10-30T08:00:00Z',
-      completedAt: '2024-10-30T08:15:00Z'
-    },
-  ])
-
-  // WebSocket 进度处理
-  const handleSyncProgress = useCallback((message: WSMessage<SyncProgressData>) => {
-    console.log('[Sync Progress] 收到同步进度消息:', message.data)
-    const { task_id, progress, speed, eta } = message.data
-    
-    // 通过 taskId 查找对应的设备和会议信息
-    const taskInfo = taskMappingRef.current.get(task_id)
-    if (!taskInfo) {
-      console.warn('[Sync Progress] 未找到任务映射:', task_id)
-      return
-    }
-    
-    const { deviceId, meetingId, meetingName } = taskInfo
-    console.log('[Sync Progress] 任务映射:', { task_id, deviceId, meetingId, meetingName })
-
-    setDeviceSyncStates(prev => {
-      const newStates = new Map(prev)
-      const deviceState = newStates.get(deviceId) || {
-        deviceId: deviceId,
-        tasks: new Map(),
-        isActive: true
-      }
-
-    
-      deviceState.tasks.set(task_id, {
-        taskId: task_id,
-        meetingId: meetingId,
-        meetingName: meetingName,
-        status: progress >= 100 ? 'done' : 'processing',
-        progress,
-        speed,
-        eta
-      })
-
-      // 检查是否所有任务都完成
-      const allDone = Array.from(deviceState.tasks.values()).every(
-        t => t.status === 'done' || t.status === 'failed'
-      )
-      deviceState.isActive = !allDone
-      
-      // 如果任务完成，从映射表中移除
-      if (progress >= 100) {
-        setTimeout(() => {
-          taskMappingRef.current.delete(task_id)
-          saveTaskMapping()
-          console.log('[Sync Progress] 任务完成，从映射表移除:', task_id)
-        }, 5000) // 5秒后清理
-      }
-
-      newStates.set(deviceId, deviceState)
-      console.log('[Sync Progress] 更新设备状态:', {
-        deviceId,
-        taskCount: deviceState.tasks.size,
-        isActive: deviceState.isActive,
-        progress
-      })
-      return newStates
-    })
-  }, [saveTaskMapping])
+  // 批次任务信息
+  const [currentBatch, setCurrentBatch] = useState<BatchSyncInfo | null>(null)
 
   // SSE 事件处理器
   useEffect(() => {
-    console.log('[SSE] 订阅SSE事件')
-    
     // start 事件
-    const unsubscribeStart = sseService.on<StartEventData>('start', (event) => {
-      console.log('[SSE] 收到 start 事件:', event.data)
-      setGlobalProgress(prev => prev ? {
-        ...prev,
-        total: event.data.totalCount
-      } : null)
+    const unsubscribeStart = sseService.on<SSEStartEvent['data']>('start', (event) => {
+      const batchId = `batch_${Date.now()}`
+      setCurrentBatch({
+        batchId,
+        totalCount: event.data.totalCount,
+        meetingCount: event.data.meetingCount,
+        deviceCount: event.data.deviceCount,
+        createdCount: 0,
+        successCount: 0,
+        failureCount: 0,
+        tasks: new Map(),
+        startTime: Date.now(),
+        status: 'creating'
+      })
       showSuccess('开始同步', `正在同步 ${event.data.meetingCount} 个会议到 ${event.data.deviceCount} 台设备`)
     })
     
-    // progress 事件
-    const unsubscribeProgress = sseService.on<ProgressEventData>('progress', (event) => {
-      console.log('[SSE] 收到 progress 事件:', event.data)
-      const { meetingId, serialNumber, success, current, total, percentage, taskId, errorMessage } = event.data
-      
-      // 更新全局进度
-      setGlobalProgress(prev => prev ? {
-        ...prev,
-        current,
-        total,
-        percentage,
-        successCount: prev.successCount + (success ? 1 : 0),
-        failureCount: prev.failureCount + (success ? 0 : 1)
-      } : null)
-      
-      // 查找会议名称
-      const meeting = meetings.find(m => String(m.id) === meetingId)
-      const meetingName = meeting?.name || `会议-${meetingId}`
-      
-      // 更新设备状态
-      setDeviceSyncStates(prev => {
-        const newStates = new Map(prev)
-        const deviceState = newStates.get(serialNumber) || {
-          deviceId: serialNumber,
-          tasks: new Map(),
-          isActive: true
+    // task_created 事件
+    const unsubscribeTaskCreated = sseService.on<SSETaskCreatedEvent['data']>('task_created', (event) => {
+      setCurrentBatch(prev => {
+        if (!prev) return null
+        
+        const meeting = meetings.find(m => String(m.id) === event.data.meetingId)
+        const meetingName = meeting?.name || `会议-${event.data.meetingId}`
+        
+        const taskId = event.data.taskId || `${event.data.meetingId}-${event.data.serialNumber}`
+        const newTask: BatchTaskInfo = {
+          taskId,
+          meetingId: event.data.meetingId,
+          meetingName,
+          serialNumber: event.data.serialNumber,
+          createStatus: event.data.success ? 'success' : 'failed',
+          createError: event.data.errorMessage,
+          packageSize: event.data.packageSize,
+          fileCount: event.data.fileCount,
+          createdAt: event.data.createdAt,
+          copyStatus: 'idle',
+          progressPercent: 0,
+          copiedBytes: 0,
+          totalBytes: 0,
+          speed: '',
+          speedBytes: 0,
+          eta: '',
+          etaSeconds: 0,
+          currentFile: ''
         }
         
-        const taskKey = taskId || `${meetingId}-${serialNumber}`
+        const newTasks = new Map(prev.tasks)
+        newTasks.set(taskId, newTask)
         
-        if (success) {
-          // 成功：标记为完成
-          deviceState.tasks.set(taskKey, {
-            taskId: taskKey,
-            meetingId,
-            meetingName,
-            status: 'done',
-            progress: 100
-          })
-          
-          // 保存任务映射
-          if (taskId) {
-            taskMappingRef.current.set(taskId, {
-              deviceId: serialNumber,
-              meetingId,
-              meetingName
-            })
-          }
-        } else {
-          // 失败：标记为失败
-          deviceState.tasks.set(taskKey, {
-            taskId: taskKey,
-            meetingId,
-            meetingName,
-            status: 'failed',
-            progress: 0,
-            error: errorMessage
-          })
+        return {
+          ...prev,
+          createdCount: event.data.current,
+          successCount: prev.successCount + (event.data.success ? 1 : 0),
+          failureCount: prev.failureCount + (event.data.success ? 0 : 1),
+          tasks: newTasks,
+          status: event.data.current === prev.totalCount ? 'syncing' : 'creating'
+        }
+      })
+    })
+    
+    // task_progress 事件
+    const unsubscribeTaskProgress = sseService.on<SSETaskProgressEvent['data']>('task_progress', (event) => {
+      setCurrentBatch(prev => {
+        if (!prev) return null
+        
+        const task = prev.tasks.get(event.data.taskId)
+        if (!task) return prev
+        
+        const updatedTask: BatchTaskInfo = {
+          ...task,
+          copyStatus: 'copying',
+          progressPercent: event.data.progressPercent,
+          copiedBytes: event.data.copiedBytes,
+          totalBytes: event.data.totalBytes,
+          speed: event.data.speed,
+          speedBytes: event.data.speedBytes,
+          eta: event.data.eta,
+          etaSeconds: event.data.etaSeconds,
+          currentFile: event.data.currentFile
         }
         
-        // 检查设备所有任务是否完成
-        const allDone = Array.from(deviceState.tasks.values()).every(
-          t => t.status === 'done' || t.status === 'failed'
-        )
-        deviceState.isActive = !allDone
+        const newTasks = new Map(prev.tasks)
+        newTasks.set(event.data.taskId, updatedTask)
         
-        newStates.set(serialNumber, deviceState)
-        return newStates
+        return {
+          ...prev,
+          tasks: newTasks
+        }
+      })
+    })
+    
+    // task_completed 事件
+    const unsubscribeTaskCompleted = sseService.on<SSETaskCompletedEvent['data']>('task_completed', (event) => {
+      setCurrentBatch(prev => {
+        if (!prev) return null
+        
+        const task = prev.tasks.get(event.data.taskId)
+        if (!task) return prev
+        
+        const updatedTask: BatchTaskInfo = {
+          ...task,
+          copyStatus: 'completed',
+          progressPercent: 100
+        }
+        
+        const newTasks = new Map(prev.tasks)
+        newTasks.set(event.data.taskId, updatedTask)
+        
+        return {
+          ...prev,
+          tasks: newTasks
+        }
       })
     })
     
     // complete 事件
-    const unsubscribeComplete = sseService.on<CompleteEventData>('complete', (event) => {
-      console.log('[SSE] 收到 complete 事件:', event.data)
+    const unsubscribeComplete = sseService.on<SSECompleteEvent['data']>('complete', (event) => {
+      setCurrentBatch(prev => {
+        if (!prev) return null
+        return {
+          ...prev,
+          status: 'completed'
+        }
+      })
+      
       const { successCount, failureCount, duration, summary } = event.data
       
-      setGlobalProgress(prev => prev ? {
-        ...prev,
-        isActive: false
-      } : null)
-      
-      // 显示完成通知
       if (failureCount === 0) {
         showSuccess(
           '同步完成',
@@ -319,52 +215,23 @@ export default function MeetingSyncPage() {
           `成功 ${successCount} 个，失败 ${failureCount} 个，成功率 ${summary.successRate.toFixed(1)}%`
         )
       }
-      
-      // 保存任务映射
-      saveTaskMapping()
-      
-      // 5秒后清空全局进度
-      setTimeout(() => {
-        setGlobalProgress(null)
-      }, 5000)
     })
     
     // error 事件
-    const unsubscribeError = sseService.on('error', (event) => {
-      console.error('[SSE] 收到 error 事件:', event.data)
+    const unsubscribeError = sseService.on<SSEErrorEvent['data']>('error', (event) => {
       showError('同步错误', event.data.message || '同步过程中发生错误')
-      setGlobalProgress(prev => prev ? { ...prev, isActive: false } : null)
+      setCurrentBatch(prev => prev ? { ...prev, status: 'completed' } : null)
     })
     
     return () => {
-      console.log('[SSE] 取消订阅SSE事件')
       unsubscribeStart()
-      unsubscribeProgress()
+      unsubscribeTaskCreated()
+      unsubscribeTaskProgress()
+      unsubscribeTaskCompleted()
       unsubscribeComplete()
       unsubscribeError()
     }
-  }, [meetings, showSuccess, showError, saveTaskMapping])
-  
-  // 订阅 WebSocket 同步进度消息（保留作为备用）
-  useEffect(() => {
-    console.log('[Sync WebSocket] 订阅同步进度消息')
-    console.log('[Sync WebSocket] 当前连接状态:', wsService.getConnectionState())
-    
-    // 订阅所有消息用于调试
-    const unsubscribeAll = wsService.on('*', (msg) => {
-      if (msg.type === 'sync_progress') {
-        console.log('[Sync WebSocket] 收到 sync_progress 消息 (wildcard):', msg)
-      }
-    })
-    
-    const unsubscribe = wsService.on('sync_progress', handleSyncProgress)
-    
-    return () => {
-      console.log('[Sync WebSocket] 取消订阅同步进度消息')
-      unsubscribeAll()
-      unsubscribe()
-    }
-  }, [handleSyncProgress])
+  }, [meetings, showSuccess, showError])
 
   const handleMeetingSelect = (meetingId: string | number) => {
     const idStr = String(meetingId)
@@ -407,7 +274,7 @@ export default function MeetingSyncPage() {
     }
   }
 
-  const handleStartSync = () => {
+  const handleStartSync = useCallback(() => {
     if (selectedMeetingIds.length === 0) {
       showError('请选择会议', '请至少选择一个会议进行同步')
       return
@@ -417,32 +284,6 @@ export default function MeetingSyncPage() {
       return
     }
     
-    setShowConfirmDialog(true)
-  }
-
-  const handleConfirmSync = async () => {
-    setShowConfirmDialog(false)
-
-
-    // 清空之前的设备状态
-    setDeviceSyncStates(new Map())
-    
-    // 初始化全局进度
-    setGlobalProgress({
-      isActive: true,
-      current: 0,
-      total: 0,
-      percentage: 0,
-      successCount: 0,
-      failureCount: 0
-    })
-    
-    // 使用SSE方式批量同步
-    console.log('[SSE Sync] 开始批量同步:', {
-      meetingIds: selectedMeetingIds,
-      deviceIds: selectedDeviceIds
-    })
-    
     sseService.startBatchSync(
       selectedMeetingIds,
       selectedDeviceIds,
@@ -451,40 +292,7 @@ export default function MeetingSyncPage() {
         batch_id: `batch_${Date.now()}`
       }
     )
-  }
-
-  const handleDeviceDoubleClick = (device: OnlineDevice) => {
-    // Mock数据 - 实际应该从API获取该设备的已同步会议
-    const mockSyncedMeetings: SyncedMeeting[] = device.status === 1 ? [
-      {
-        meetingId: '1',
-        title: '战略规划会议',
-        securityLevel: 'top_secret',
-        size: 125,
-        fileCount: 3,
-        syncTime: '2024-10-30T08:00:00Z',
-        meetingDate: '2024-10-25'
-      }
-    ] : []
-    
-    setSelectedDevice(device)
-    setDeviceSyncedMeetings(mockSyncedMeetings)
-  }
-
-  const handleDeleteMeeting = (meetingId: string) => {
-    console.log('删除会议:', meetingId, '从设备:', selectedDevice?.serial_number)
-    setDeviceSyncedMeetings(prev => prev.filter(m => m.meetingId !== meetingId))
-  }
-
-  const handleDeleteAllMeetings = () => {
-    console.log('清空设备所有会议:', selectedDevice?.serial_number)
-    setDeviceSyncedMeetings([])
-  }
-
-  const handleResyncMeeting = (meetingId: string) => {
-    console.log('重新同步会议:', meetingId, '到设备:', selectedDevice?.serial_number)
-    showSuccess('重新同步', '已加入同步队列')
-  }
+  }, [selectedMeetingIds, selectedDeviceIds, showError])
 
   const getSecurityLevelVariant = (level: string): 'success' | 'warning' | 'error' | 'default' => {
     const variantMap: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
@@ -525,307 +333,204 @@ export default function MeetingSyncPage() {
     return `${mb.toFixed(1)}MB`
   }
 
-  const selectedMeetingObjects = meetings.filter(m => selectedMeetingIds.includes(String(m.id)))
-  const selectedDeviceObjects = devices.filter(d => selectedDeviceIds.includes(d.serial_number))
-
   return (
     <div className="p-6 h-full flex flex-col">
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">会议文件同步到设备</h1>
-        <div className="flex items-center gap-4">
-          <Checkbox
-            checked={batchSyncEnabled}
-            onChange={(e) => setBatchSyncEnabled(e.target.checked)}
-            label={`批量同步模式${batchSyncEnabled ? ` (监听 ${selectedMeetingIds.length} 个会议)` : ''}`}
-          />
-            <Button 
-              variant="outline"
-              onClick={() => setShowHistory(true)}
-            >
-              历史记录
-            </Button>
-          </div>
-        </div>
-        
-        {/* 全局进度条 */}
-        {globalProgress && globalProgress.isActive && (
-          <Card className="p-4 bg-primary/5 border-primary/20">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium">同步进度</span>
-                <span className="text-muted-foreground">
-                  {globalProgress.current}/{globalProgress.total} 任务完成 ({globalProgress.percentage.toFixed(1)}%)
-                </span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                <div 
-                  className="bg-primary h-full transition-all duration-300 ease-out"
-                  style={{ width: `${globalProgress.percentage}%` }}
-                />
-              </div>
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>成功: {globalProgress.successCount}</span>
-                <span>失败: {globalProgress.failureCount}</span>
-              </div>
-            </div>
-          </Card>
-        )}
+        <h1 className="text-2xl font-bold">会议文件同步到设备</h1>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 grid grid-cols-2 gap-6 overflow-hidden">
-        {/* Left Panel - Meeting List */}
+      <div className="flex-1 grid grid-cols-[2fr_3fr] gap-6 overflow-hidden">
+        {/* Left Panel - Selection */}
         <Card className="flex flex-col overflow-hidden">
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between mb-3">
-              <CardTitle>会议列表</CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSelectAllMeetings}
-              >
-                全选
-              </Button>
-            </div>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <Input
-                type="text"
-                placeholder="搜索会议..."
-                value={searchMeeting}
-                onChange={(e) => setSearchMeeting(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </CardHeader>
+            <Tabs defaultValue="meetings" className="w-full">
+              <TabsList className="w-full">
+                <TabsTrigger value="meetings" className="flex-1">
+                  会议列表 ({selectedMeetingIds.length})
+                </TabsTrigger>
+                <TabsTrigger value="devices" className="flex-1">
+                  设备列表 ({selectedDeviceIds.length})
+                </TabsTrigger>
+              </TabsList>
 
-          <CardContent className="flex-1 overflow-y-auto space-y-3">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="text-sm text-muted-foreground">加载中...</div>
-              </div>
-            ) : filteredMeetings.length === 0 ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="text-sm text-muted-foreground">
-                  {searchMeeting ? '没有找到匹配的会议' : '暂无打包会议'}
-                </div>
-              </div>
-            ) : filteredMeetings.map((meeting) => (
-              <Card
-                key={meeting.id}
-                className={`p-4 cursor-pointer transition-all ${
-                  selectedMeetingIds.includes(String(meeting.id))
-                    ? 'border-primary bg-primary/5'
-                    : ''
-                }`}
-                hover="border"
-                interactive
-                onClick={() => handleMeetingSelect(meeting.id)}
-              >
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    checked={selectedMeetingIds.includes(String(meeting.id))}
-                    onChange={() => {}}
-                  />
-                  <div className="flex-1 flex items-center justify-between gap-4 min-w-0">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <span className="font-medium truncate">{meeting.name}</span>
-                      <Badge variant={getSecurityLevelVariant((meeting as any).security_level)} className="shrink-0">
-                        {getSecurityLevelText((meeting as any).security_level)}
-                      </Badge>
-                      <Badge variant={(meeting as any).type === 'standard' ? 'default' : 'info'} className="shrink-0">
-                        {(meeting as any).type === 'standard' ? '标准会议' : '平板会议'}
-                      </Badge>
-                    </div>
-                    <div className="text-sm text-muted-foreground whitespace-nowrap shrink-0">
-                      {new Date((meeting as any).start_time).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })} | 
-                      {(meeting as any).package_info ? ` ${formatFileSize((meeting as any).package_info.package_size)}` : ' 未打包'}
-                      {(meeting as any).package_info && (
-                        <> | 文件: {(meeting as any).package_info.file_count} 个 | 投票: {(meeting as any).package_info.vote_count} 个</>
-                      )}
-                    </div>
+              {/* Meetings Tab */}
+              <TabsContent value="meetings" className="mt-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                    <Input
+                      type="text"
+                      placeholder="搜索会议..."
+                      value={searchMeeting}
+                      onChange={(e) => setSearchMeeting(e.target.value)}
+                      className="pl-10"
+                    />
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSelectAllMeetings}
+                    className="ml-2"
+                  >
+                    全选
+                  </Button>
                 </div>
-              </Card>
-            ))}
-          </CardContent>
 
-          <div className="px-6 py-4 border-t bg-muted flex items-center justify-start">
-            <div className="text-sm text-muted-foreground">
-              已选择: {selectedMeetingIds.length} 个会议
-            </div>
-          </div>
-        </Card>
-
-        {/* Right Panel - Device List */}
-        <Card className="flex flex-col overflow-hidden">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle>设备列表</CardTitle>
-              <div className="flex gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => refetchDevices()}
-                  disabled={isDevicesLoading}
-                >
-                  <RefreshCw className={`w-4 h-4 ${isDevicesLoading ? 'animate-spin' : ''}`} />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleSelectAllDevices}
-                >
-                  全选
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-
-          <CardContent className="flex-1 overflow-y-auto">
-            <div className="grid grid-cols-1 gap-3">
-              {sortedDevices.length === 0 ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="text-sm text-muted-foreground">
-                    {isDevicesLoading ? '加载中...' : '暂无设备'}
-                  </div>
-                </div>
-              ) : (
-                sortedDevices.map((device) => {
-                  const isUnregistered = device.status === -1
-                  const isOnline = device.status === 1
-                  const statusVariant = isUnregistered ? 'warning' : isOnline ? 'success' : 'default'
-                  const deviceState = deviceSyncStates.get(device.serial_number)
-                  const deviceTasks = deviceState ? Array.from(deviceState.tasks.values()) : []
-                  // 只有在线设备可以勾选
-                  const canSelect = isOnline
-                  
-                  // Debug: 检查设备同步状态
-                  if (deviceState) {
-                    console.log('[Device Render] 设备有同步状态:', {
-                      serial_number: device.serial_number,
-                      taskCount: deviceTasks.length,
-                      tasks: deviceTasks
-                    })
-                  }
-                  
-                  return (
-                    <div key={device.serial_number} className="space-y-2">
-                      <Card
-                        className={`p-4 transition-all ${
-                          selectedDeviceIds.includes(device.serial_number)
-                            ? 'border-primary bg-primary/5'
-                            : ''
-                        }`}
-                        hover="border"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Checkbox
-                            checked={selectedDeviceIds.includes(device.serial_number)}
-                            onChange={() => handleDeviceSelect(device.serial_number)}
-                            disabled={!canSelect}
-                          />
-                          <div className="flex-1 flex items-center justify-between gap-4 min-w-0">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="font-medium truncate">{device.serial_number}</span>
-                              <Badge variant={statusVariant} className="flex items-center gap-1">
-                                {isOnline && <Cable className="w-3 h-3" />}
-                                {device.status === 0 && <Unplug className="w-3 h-3" />}
-                                {device.status_name}
-                              </Badge>
-                            </div>
-                            <div className="text-sm text-muted-foreground whitespace-nowrap">
-                              最后在线时间：{device.last_login 
-                                ? new Date(device.last_login).toLocaleString('zh-CN', {
-                                    month: '2-digit',
-                                    day: '2-digit',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })
-                                : '-/- --:--'
-                              }
-                            </div>
-                            {!isUnregistered && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeviceDoubleClick(device)}
-                                className="whitespace-nowrap"
-                              >
-                                查看详情
-                              </Button>
-                            )}
+                <div className="h-[calc(100vh-340px)] overflow-y-auto space-y-2">
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-sm text-muted-foreground">加载中...</div>
+                    </div>
+                  ) : filteredMeetings.length === 0 ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-sm text-muted-foreground">
+                        {searchMeeting ? '没有找到匹配的会议' : '暂无打包会议'}
+                      </div>
+                    </div>
+                  ) : filteredMeetings.map((meeting) => (
+                    <Card
+                      key={meeting.id}
+                      className={`p-3 cursor-pointer transition-all ${
+                        selectedMeetingIds.includes(String(meeting.id))
+                          ? 'border-primary bg-primary/5'
+                          : ''
+                      }`}
+                      hover="border"
+                      interactive
+                      onClick={() => handleMeetingSelect(meeting.id)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          checked={selectedMeetingIds.includes(String(meeting.id))}
+                          onChange={() => {}}
+                        />
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm truncate">{meeting.name}</span>
+                            <Badge variant={getSecurityLevelVariant((meeting as any).security_level)} className="shrink-0">
+                              {getSecurityLevelText((meeting as any).security_level)}
+                            </Badge>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date((meeting as any).start_time).toLocaleDateString('zh-CN')} | 
+                            {(meeting as any).package_info ? ` ${formatFileSize((meeting as any).package_info.package_size)}` : ' 未打包'}
                           </div>
                         </div>
-                      </Card>
-                      
-                      {/* 设备进度条 */}
-                      {deviceTasks.length > 0 && (
-                        <DeviceSyncProgress 
-                          tasks={deviceTasks}
-                          className="px-4"
-                        />
-                      )}
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+
+                <div className="pt-3 border-t text-sm text-muted-foreground">
+                  已选择: {selectedMeetingIds.length} 个会议
+                </div>
+              </TabsContent>
+
+              {/* Devices Tab */}
+              <TabsContent value="devices" className="mt-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">在线设备</span>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => refetchDevices()}
+                      disabled={isDevicesLoading}
+                    >
+                      <RefreshCw className={`w-4 h-4 ${isDevicesLoading ? 'animate-spin' : ''}`} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSelectAllDevices}
+                    >
+                      全选
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="h-[calc(100vh-340px)] overflow-y-auto space-y-2">
+                  {sortedDevices.length === 0 ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-sm text-muted-foreground">
+                        {isDevicesLoading ? '加载中...' : '暂无设备'}
+                      </div>
                     </div>
-                  )
-                })
-              )}
-            </div>
-          </CardContent>
+                  ) : (
+                    sortedDevices.map((device) => {
+                      const isUnregistered = device.status === -1
+                      const isOnline = device.status === 1
+                      const statusVariant = isUnregistered ? 'warning' : isOnline ? 'success' : 'default'
+                      const canSelect = isOnline
+                      
+                      return (
+                        <Card
+                          key={device.serial_number}
+                          className={`p-3 transition-all ${
+                            selectedDeviceIds.includes(device.serial_number)
+                              ? 'border-primary bg-primary/5'
+                              : ''
+                          } ${!canSelect ? 'opacity-50' : 'cursor-pointer'}`}
+                          hover={canSelect ? 'border' : undefined}
+                          onClick={() => canSelect && handleDeviceSelect(device.serial_number)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Checkbox
+                              checked={selectedDeviceIds.includes(device.serial_number)}
+                              onChange={() => {}}
+                              disabled={!canSelect}
+                            />
+                            <div className="flex-1 min-w-0 space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-sm truncate">{device.serial_number}</span>
+                                <Badge variant={statusVariant} className="flex items-center gap-1 shrink-0">
+                                  {isOnline && <Cable className="w-3 h-3" />}
+                                  {device.status === 0 && <Unplug className="w-3 h-3" />}
+                                  {device.status_name}
+                                </Badge>
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                最后在线: {device.last_login 
+                                  ? new Date(device.last_login).toLocaleString('zh-CN', {
+                                      month: '2-digit',
+                                      day: '2-digit',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })
+                                  : '-'
+                                }
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      )
+                    })
+                  )}
+                </div>
 
-          <div className="px-6 py-4 border-t bg-muted flex items-center justify-start">
-            <div className="text-sm text-muted-foreground">
-              已选择: {selectedDeviceIds.length} 台设备 | 预计需要: {formatFileSize(selectedMeetingsSize * selectedDeviceIds.length)}
-            </div>
-          </div>
-        </Card>
-      </div>
+                <div className="pt-3 border-t text-sm text-muted-foreground">
+                  已选择: {selectedDeviceIds.length} 台设备 | 预计需要: {formatFileSize(selectedMeetingsSize * selectedDeviceIds.length)}
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardHeader>
 
-      {/* Sync Actions */}
-      <div className="mt-6 border-t pt-6">
-        <div className="flex items-center justify-between">
-          <div className="flex gap-3">
+          <div className="px-6 py-4 border-t">
             <Button
               onClick={handleStartSync}
               disabled={selectedMeetingIds.length === 0 || selectedDeviceIds.length === 0}
+              className="w-full"
             >
               开始同步
             </Button>
           </div>
-        </div>
+        </Card>
+
+        {/* Right Panel - Batch Sync Status */}
+        <BatchSyncPanel batchInfo={currentBatch} />
       </div>
-
-      {/* Sync Confirm Dialog */}
-      <SyncConfirmDialog
-        isOpen={showConfirmDialog}
-        onClose={() => setShowConfirmDialog(false)}
-        onConfirm={handleConfirmSync}
-        selectedMeetings={selectedMeetingObjects}
-        selectedDevices={selectedDeviceObjects}
-        totalSize={selectedMeetingsSize}
-      />
-
-      {/* Device Detail Modal */}
-      <DeviceDetailModal
-        device={selectedDevice}
-        syncedMeetings={deviceSyncedMeetings}
-        onClose={() => {
-          setSelectedDevice(null)
-          setDeviceSyncedMeetings([])
-        }}
-        onDelete={handleDeleteMeeting}
-        onDeleteAll={handleDeleteAllMeetings}
-        onResync={handleResyncMeeting}
-      />
-
-      {/* Sync History Modal */}
-      <SyncHistoryModal
-        isOpen={showHistory}
-        onClose={() => setShowHistory(false)}
-        tasks={syncTasks}
-      />
     </div>
   )
 }

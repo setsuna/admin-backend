@@ -172,3 +172,134 @@ export interface TaskStatusDetail {
     [key: string]: any
   }
 }
+
+// ========== 批次同步新类型 ==========
+
+// 批次信息
+export interface BatchSyncInfo {
+  batchId: string
+  totalCount: number      // 总任务数
+  meetingCount: number    // 会议数量
+  deviceCount: number     // 设备数量
+  createdCount: number    // 已创建任务数
+  successCount: number    // 创建成功数
+  failureCount: number    // 创建失败数
+  tasks: Map<string, BatchTaskInfo>  // taskId -> TaskInfo
+  startTime: number
+  status: 'creating' | 'syncing' | 'completed'
+}
+
+// 单个批次任务信息
+export interface BatchTaskInfo {
+  taskId: string
+  meetingId: string
+  meetingName: string
+  serialNumber: string
+  
+  // 任务创建阶段
+  createStatus: 'pending' | 'success' | 'failed'
+  createError?: string
+  packageSize?: number
+  fileCount?: number
+  createdAt?: number
+  
+  // 文件拷贝阶段
+  copyStatus: 'idle' | 'copying' | 'completed' | 'failed'
+  progressPercent: number
+  copiedBytes: number
+  totalBytes: number
+  speed: string
+  speedBytes: number
+  eta: string
+  etaSeconds: number
+  currentFile: string
+}
+
+// SSE 事件类型
+export interface SSEStartEvent {
+  type: 'start'
+  data: {
+    totalCount: number
+    meetingCount: number
+    deviceCount: number
+  }
+}
+
+export interface SSETaskCreatedEvent {
+  type: 'task_created'
+  data: {
+    meetingId: string
+    serialNumber: string
+    success: boolean
+    current: number
+    total: number
+    percentage: number
+    // 成功时
+    taskId?: string
+    createdAt?: number
+    packageSize?: number
+    fileCount?: number
+    // 失败时
+    errorCode?: number
+    errorMessage?: string
+  }
+}
+
+export interface SSETaskProgressEvent {
+  type: 'task_progress'
+  data: {
+    taskId: string
+    meetingId: string
+    serialNumber: string
+    progressPercent: number
+    copiedBytes: number
+    totalBytes: number
+    speed: string
+    speedBytes: number
+    eta: string
+    etaSeconds: number
+    currentFile: string
+    timestamp: number
+  }
+}
+
+export interface SSETaskCompletedEvent {
+  type: 'task_completed'
+  data: {
+    taskId: string
+    meetingId: string
+    serialNumber: string
+    timestamp: number
+  }
+}
+
+export interface SSECompleteEvent {
+  type: 'complete'
+  data: {
+    totalCount: number
+    successCount: number
+    failureCount: number
+    duration: number
+    summary: {
+      meetingCount: number
+      deviceCount: number
+      successRate: number
+    }
+  }
+}
+
+export interface SSEErrorEvent {
+  type: 'error'
+  data: {
+    message: string
+    code?: number
+  }
+}
+
+export type SSEBatchSyncEvent = 
+  | SSEStartEvent 
+  | SSETaskCreatedEvent 
+  | SSETaskProgressEvent 
+  | SSETaskCompletedEvent 
+  | SSECompleteEvent 
+  | SSEErrorEvent
