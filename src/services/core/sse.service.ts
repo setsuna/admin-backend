@@ -1,4 +1,5 @@
 import { getConfig } from '@/config'
+import { authService } from './auth.service'
 
 export interface SSEEvent<T = any> {
   type: 'start' | 'progress' | 'heartbeat' | 'complete' | 'error'
@@ -47,92 +48,114 @@ export interface ErrorEventData {
 type EventHandler<T = any> = (event: SSEEvent<T>) => void
 
 class SSEService {
-  private eventSource: EventSource | null = null
+  private abortController: AbortController | null = null
   private handlers: Map<string, EventHandler[]> = new Map()
+  private isConnected: boolean = false
 
   /**
-   * 开始批量同步（SSE方式）
+   * 开始批量同步（SSE方式，使用POST）
    */
-  startBatchSync(
+  async startBatchSync(
     meetingIds: string[],
     serialNumbers: string[],
     metadata: Record<string, any> = {}
-  ): void {
+  ): Promise<void> {
     this.close()
 
     const config = getConfig()
-    const token = localStorage.getItem('token')
+    const token = authService.getToken()  // 使用authService获取token
     
-    // 构建完整的URL（处理相对路径情况）
+    // 构建完整的URL
     let baseURL = config.api.baseURL
     if (!baseURL.startsWith('http')) {
-      // 如果是相对路径，添加origin
       baseURL = window.location.origin + baseURL
     }
     
-    // 构建SSE URL
-    const url = new URL(`${baseURL}/mount/sync/meeting-package/batch`)
+    const url = `${baseURL}/mount/sync/meeting-package/batch`
     
-    // 添加查询参数
-    url.searchParams.set('meetingIds', meetingIds.join(','))
-    url.searchParams.set('serialNumbers', serialNumbers.join(','))
-    if (Object.keys(metadata).length > 0) {
-      url.searchParams.set('metadata', JSON.stringify(metadata))
-    }
-    if (token) {
-      url.searchParams.set('token', token)
-    }
-
-    console.log('[SSE] 连接URL:', url.toString())
-    this.eventSource = new EventSource(url.toString())
-
-    // 注册事件监听器
-    this.eventSource.addEventListener('start', (e) => {
-      this.handleEvent('start', e)
-    })
-
-    this.eventSource.addEventListener('progress', (e) => {
-      this.handleEvent('progress', e)
-    })
-
-    this.eventSource.addEventListener('heartbeat', (e) => {
-      this.handleEvent('heartbeat', e)
-    })
-
-    this.eventSource.addEventListener('complete', (e) => {
-      this.handleEvent('complete', e)
-      this.close()
-    })
-
-    this.eventSource.addEventListener('error', (e) => {
-      console.error('[SSE] 连接错误:', e)
-      const errorEvent: SSEEvent<ErrorEventData> = {
-        type: 'error',
-        data: { message: '连接错误' }
-      }
-      this.emit('error', errorEvent)
-      this.close()
-    })
-
-    this.eventSource.onerror = (error) => {
-      console.error('[SSE] onerror:', error)
-    }
-  }
-
-  /**
-   * 处理SSE事件
-   */
-  private handleEvent(type: string, event: MessageEvent): void {
+    // 创建AbortController用于取消请求
+    this.abortController = new AbortController()
+    
     try {
-      const data = JSON.parse(event.data)
-      const sseEvent: SSEEvent = {
-        type: type as any,
-        data
+      console.log('[SSE] 发起POST请求:', url, {
+        meetingIds,
+        serialNumbers,
+        metadata
+      })
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          meetingIds,
+          serialNumbers,
+          metadata
+        }),
+        signal: this.abortController.signal
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
-      console.log(`[SSE] 收到 ${type} 事件:`, sseEvent)
-      this.emit(type, sseEvent)
-    } catch (error) {
-      console.error(`[SSE] 解析 ${type} 事件失败:`, error, event.data)
+
+      if (!response.body) {
+        throw new Error('Response body is null')
+      }
+
+      this.isConnected = true
+      console.log('[SSE] 连接成功，开始读取流')
+
+      // SSE流式读取
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        
+        if (done) {
+          console.log('[SSE] 流读取完成')
+          break
+        }
+
+        buffer += decoder.decode(value, { stream: true })
+        const events = buffer.split('\n\n')
+        buffer = events.pop() || ''
+
+        for (const event of events) {
+          if (!event.trim()) continue
+          
+          // 解析 "data: {json}" 格式
+          const match = event.match(/^data: (.+)$/m)
+          if (match) {
+            try {
+              const data = JSON.parse(match[1])
+              console.log('[SSE] 收到事件:', data.type, data.data)
+              this.emit(data.type, data)
+            } catch (error) {
+              console.error('[SSE] 解析事件失败:', error, match[1])
+            }
+          }
+        }
+      }
+
+      this.isConnected = false
+      
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.log('[SSE] 连接已取消')
+      } else {
+        console.error('[SSE] 连接错误:', error)
+        const errorEvent: SSEEvent<ErrorEventData> = {
+          type: 'error',
+          data: { message: error.message || '连接错误' }
+        }
+        this.emit('error', errorEvent)
+      }
+      this.isConnected = false
     }
   }
 
@@ -171,18 +194,19 @@ class SSEService {
    * 关闭连接
    */
   close(): void {
-    if (this.eventSource) {
-      console.log('[SSE] 关闭连接')
-      this.eventSource.close()
-      this.eventSource = null
+    if (this.abortController) {
+      console.log('[SSE] 取消连接')
+      this.abortController.abort()
+      this.abortController = null
     }
+    this.isConnected = false
   }
 
   /**
    * 获取连接状态
    */
-  getState(): number {
-    return this.eventSource?.readyState ?? EventSource.CLOSED
+  getState(): boolean {
+    return this.isConnected
   }
 }
 
