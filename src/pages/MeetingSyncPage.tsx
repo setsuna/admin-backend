@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Search, RefreshCw, Cable, Unplug } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
@@ -72,8 +72,22 @@ export default function MeetingSyncPage() {
   
   // 批次任务信息
   const [currentBatch, setCurrentBatch] = useState<BatchSyncInfo | null>(null)
+  
+  // taskId 映射：用于单任务进度流事件补充信息
+  const taskInfoMapRef = useRef<Map<string, { meetingId: string; serialNumber: string }>>(new Map())
+  
+  // 稳定的回调引用
+  const showSuccessRef = useRef(showSuccess)
+  const showErrorRef = useRef(showError)
+  const meetingsRef = useRef(meetings)
+  
+  useEffect(() => {
+    showSuccessRef.current = showSuccess
+    showErrorRef.current = showError
+    meetingsRef.current = meetings
+  }, [showSuccess, showError, meetings])
 
-  // SSE 事件处理器
+  // SSE 事件处理器 - 只在组件挂载时订阅一次
   useEffect(() => {
     // start 事件
     const unsubscribeStart = sseService.on<SSEStartEvent['data']>('start', (event) => {
@@ -90,7 +104,7 @@ export default function MeetingSyncPage() {
         startTime: Date.now(),
         status: 'creating'
       })
-      showSuccess('开始同步', `正在同步 ${event.data.meetingCount} 个会议到 ${event.data.deviceCount} 台设备`)
+      showSuccessRef.current('开始同步', `正在同步 ${event.data.meetingCount} 个会议到 ${event.data.deviceCount} 台设备`)
     })
     
     // task_created 事件
@@ -98,7 +112,7 @@ export default function MeetingSyncPage() {
       setCurrentBatch(prev => {
         if (!prev) return null
         
-        const meeting = meetings.find(m => String(m.id) === event.data.meetingId)
+        const meeting = meetingsRef.current.find(m => String(m.id) === event.data.meetingId)
         const meetingName = meeting?.name || `会议-${event.data.meetingId}`
         
         const taskId = event.data.taskId || `${event.data.meetingId}-${event.data.serialNumber}`
@@ -135,6 +149,15 @@ export default function MeetingSyncPage() {
           status: event.data.current === prev.totalCount ? 'syncing' : 'creating'
         }
       })
+      
+      // 如果任务创建成功，订阅该任务的进度流
+      if (event.data.success && event.data.taskId) {
+        taskInfoMapRef.current.set(event.data.taskId, {
+          meetingId: event.data.meetingId,
+          serialNumber: event.data.serialNumber
+        })
+        sseService.subscribeTaskProgress(event.data.taskId, event.data.serialNumber)
+      }
     })
     
     // task_progress 事件
@@ -142,24 +165,37 @@ export default function MeetingSyncPage() {
       setCurrentBatch(prev => {
         if (!prev) return null
         
-        const task = prev.tasks.get(event.data.taskId)
+        // 如果事件数据没有 meetingId/serialNumber，从映射表中获取
+        let taskId = event.data.taskId
+        let meetingId = event.data.meetingId
+        let serialNumber = event.data.serialNumber
+        
+        if (!meetingId || !serialNumber) {
+          const taskInfo = taskInfoMapRef.current.get(taskId)
+          if (taskInfo) {
+            meetingId = taskInfo.meetingId
+            serialNumber = taskInfo.serialNumber
+          }
+        }
+        
+        const task = prev.tasks.get(taskId)
         if (!task) return prev
         
         const updatedTask: BatchTaskInfo = {
           ...task,
           copyStatus: 'copying',
-          progressPercent: event.data.progressPercent,
-          copiedBytes: event.data.copiedBytes,
-          totalBytes: event.data.totalBytes,
-          speed: event.data.speed,
-          speedBytes: event.data.speedBytes,
-          eta: event.data.eta,
-          etaSeconds: event.data.etaSeconds,
-          currentFile: event.data.currentFile
+          progressPercent: event.data.progressPercent || 0,
+          copiedBytes: event.data.copiedBytes || 0,
+          totalBytes: event.data.totalBytes || 0,
+          speed: event.data.speed || '',
+          speedBytes: event.data.speedBytes || 0,
+          eta: event.data.eta || '',
+          etaSeconds: event.data.etaSeconds || 0,
+          currentFile: event.data.currentFile || ''
         }
         
         const newTasks = new Map(prev.tasks)
-        newTasks.set(event.data.taskId, updatedTask)
+        newTasks.set(taskId, updatedTask)
         
         return {
           ...prev,
@@ -185,6 +221,9 @@ export default function MeetingSyncPage() {
         const newTasks = new Map(prev.tasks)
         newTasks.set(event.data.taskId, updatedTask)
         
+        // 清理映射表
+        taskInfoMapRef.current.delete(event.data.taskId)
+        
         return {
           ...prev,
           tasks: newTasks
@@ -205,12 +244,12 @@ export default function MeetingSyncPage() {
       const { successCount, failureCount, duration, summary } = event.data
       
       if (failureCount === 0) {
-        showSuccess(
+        showSuccessRef.current(
           '同步完成',
           `成功同步 ${successCount} 个任务，耗时 ${duration.toFixed(1)} 秒`
         )
       } else {
-        showError(
+        showErrorRef.current(
           '同步完成（部分失败）',
           `成功 ${successCount} 个，失败 ${failureCount} 个，成功率 ${summary.successRate.toFixed(1)}%`
         )
@@ -219,7 +258,7 @@ export default function MeetingSyncPage() {
     
     // error 事件
     const unsubscribeError = sseService.on<SSEErrorEvent['data']>('error', (event) => {
-      showError('同步错误', event.data.message || '同步过程中发生错误')
+      showErrorRef.current('同步错误', event.data.message || '同步过程中发生错误')
       setCurrentBatch(prev => prev ? { ...prev, status: 'completed' } : null)
     })
     
@@ -230,8 +269,9 @@ export default function MeetingSyncPage() {
       unsubscribeTaskCompleted()
       unsubscribeComplete()
       unsubscribeError()
+      sseService.close()
     }
-  }, [meetings, showSuccess, showError])
+  }, []) // 空依赖，只在挂载时执行一次
 
   const handleMeetingSelect = (meetingId: string | number) => {
     const idStr = String(meetingId)

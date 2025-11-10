@@ -51,6 +51,7 @@ class SSEService {
   private abortController: AbortController | null = null
   private handlers: Map<string, EventHandler[]> = new Map()
   private isConnected: boolean = false
+  private taskAbortControllers: Map<string, AbortController> = new Map()
 
   /**
    * 开始批量同步（SSE方式，使用POST）
@@ -191,6 +192,100 @@ class SSEService {
   }
 
   /**
+   * 订阅单个任务的进度流
+   */
+  async subscribeTaskProgress(
+    taskId: string,
+    serialNumber: string
+  ): Promise<void> {
+    const config = getConfig()
+    const token = authService.getToken()
+    
+    let baseURL = config.api.baseURL
+    if (!baseURL.startsWith('http')) {
+      baseURL = window.location.origin + baseURL
+    }
+    
+    const url = `${baseURL}/mount/sync/tasks/${taskId}/progress/stream?serialNumber=${serialNumber}`
+    
+    const controller = new AbortController()
+    this.taskAbortControllers.set(taskId, controller)
+    
+    try {
+      console.log('[SSE Task] 订阅任务进度:', taskId, serialNumber)
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        signal: controller.signal
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      if (!response.body) {
+        throw new Error('Response body is null')
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        
+        if (done) {
+          console.log('[SSE Task] 任务进度流结束:', taskId)
+          break
+        }
+
+        buffer += decoder.decode(value, { stream: true })
+        const events = buffer.split('\n\n')
+        buffer = events.pop() || ''
+
+        for (const event of events) {
+          if (!event.trim()) continue
+          
+          const match = event.match(/^data: (.+)$/m)
+          if (match) {
+            try {
+              const data = JSON.parse(match[1])
+              console.log('[SSE Task] 收到任务进度:', taskId, data)
+              this.emit(data.type || 'task_progress', data)
+            } catch (error) {
+              console.error('[SSE Task] 解析事件失败:', error, match[1])
+            }
+          }
+        }
+      }
+      
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.log('[SSE Task] 任务进度订阅已取消:', taskId)
+      } else {
+        console.error('[SSE Task] 任务进度订阅错误:', taskId, error)
+      }
+    } finally {
+      this.taskAbortControllers.delete(taskId)
+    }
+  }
+
+  /**
+   * 取消单个任务的进度订阅
+   */
+  unsubscribeTaskProgress(taskId: string): void {
+    const controller = this.taskAbortControllers.get(taskId)
+    if (controller) {
+      console.log('[SSE Task] 取消任务进度订阅:', taskId)
+      controller.abort()
+      this.taskAbortControllers.delete(taskId)
+    }
+  }
+
+  /**
    * 关闭连接
    */
   close(): void {
@@ -199,6 +294,14 @@ class SSEService {
       this.abortController.abort()
       this.abortController = null
     }
+    
+    // 取消所有任务进度订阅
+    this.taskAbortControllers.forEach((controller, taskId) => {
+      console.log('[SSE] 取消任务进度订阅:', taskId)
+      controller.abort()
+    })
+    this.taskAbortControllers.clear()
+    
     this.isConnected = false
   }
 
