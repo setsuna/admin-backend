@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Search, RefreshCw, Cable, Unplug } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
@@ -43,12 +43,14 @@ export default function MeetingSyncPage() {
   const devices: OnlineDevice[] = devicesData?.items || []
 
   // 设备排序：在线状态优先显示在最上面
-  const sortedDevices = [...devices].sort((a, b) => {
-    if (a.status !== b.status) {
-      return b.status - a.status
-    }
-    return a.serial_number.localeCompare(b.serial_number)
-  })
+  const sortedDevices = useMemo(() => {
+    return [...devices].sort((a, b) => {
+      if (a.status !== b.status) {
+        return b.status - a.status
+      }
+      return a.serial_number.localeCompare(b.serial_number)
+    })
+  }, [devices])
 
   // 监听设备上线/下线消息，自动刷新设备列表
   useEffect(() => {
@@ -254,14 +256,21 @@ export default function MeetingSyncPage() {
           `成功 ${successCount} 个，失败 ${failureCount} 个，成功率 ${summary.successRate.toFixed(1)}%`
         )
       }
+      
+      // ✅ 在收到 complete 事件时才关闭连接
+      sseService.close()
     })
     
     // error 事件
     const unsubscribeError = sseService.on<SSEErrorEvent['data']>('error', (event) => {
       showErrorRef.current('同步错误', event.data.message || '同步过程中发生错误')
       setCurrentBatch(prev => prev ? { ...prev, status: 'completed' } : null)
+      
+      // ✅ 在错误时关闭连接
+      sseService.close()
     })
     
+    // ⚠️ 清理函数：只取消订阅，不关闭 SSE 连接
     return () => {
       unsubscribeStart()
       unsubscribeTaskCreated()
@@ -269,7 +278,7 @@ export default function MeetingSyncPage() {
       unsubscribeTaskCompleted()
       unsubscribeComplete()
       unsubscribeError()
-      sseService.close()
+      // ❌ 不在这里关闭连接！让 complete/error 事件或用户手动关闭
     }
   }, []) // 空依赖，只在挂载时执行一次
 
@@ -315,6 +324,12 @@ export default function MeetingSyncPage() {
   }
 
   const handleStartSync = useCallback(() => {
+    // 防止重复提交：如果已经有正在进行的任务，不允许再次同步
+    if (currentBatch && (currentBatch.status === 'creating' || currentBatch.status === 'syncing')) {
+      showError('同步进行中', '请等待当前同步任务完成')
+      return
+    }
+    
     if (selectedMeetingIds.length === 0) {
       showError('请选择会议', '请至少选择一个会议进行同步')
       return
@@ -332,7 +347,13 @@ export default function MeetingSyncPage() {
         batch_id: `batch_${Date.now()}`
       }
     )
-  }, [selectedMeetingIds, selectedDeviceIds, showError])
+  }, [selectedMeetingIds, selectedDeviceIds, currentBatch, showError])
+
+  const handleStopSync = useCallback(() => {
+    sseService.close()
+    setCurrentBatch(prev => prev ? { ...prev, status: 'completed' } : null)
+    showSuccess('已停止', '同步任务已手动停止')
+  }, [showSuccess])
 
   const getSecurityLevelVariant = (level: string): 'success' | 'warning' | 'error' | 'default' => {
     const variantMap: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
@@ -354,13 +375,17 @@ export default function MeetingSyncPage() {
     return texts[level] || '内部'
   }
 
-  const filteredMeetings = meetings.filter(meeting => 
-    meeting.name.toLowerCase().includes(searchMeeting.toLowerCase())
-  )
+  const filteredMeetings = useMemo(() => {
+    return meetings.filter(meeting => 
+      meeting.name.toLowerCase().includes(searchMeeting.toLowerCase())
+    )
+  }, [meetings, searchMeeting])
 
-  const selectedMeetingsSize = meetings
-    .filter(m => selectedMeetingIds.includes(String(m.id)))
-    .reduce((sum, m) => sum + ((m as any).package_info?.package_size || 0), 0)
+  const selectedMeetingsSize = useMemo(() => {
+    return meetings
+      .filter(m => selectedMeetingIds.includes(String(m.id)))
+      .reduce((sum, m) => sum + ((m as any).package_info?.package_size || 0), 0)
+  }, [meetings, selectedMeetingIds])
 
   // 格式化文件大小
   const formatFileSize = (bytes: number): string => {
@@ -558,13 +583,23 @@ export default function MeetingSyncPage() {
           </CardHeader>
 
           <div className="px-6 py-4 border-t">
-            <Button
-              onClick={handleStartSync}
-              disabled={selectedMeetingIds.length === 0 || selectedDeviceIds.length === 0}
-              className="w-full"
-            >
-              开始同步
-            </Button>
+            {currentBatch && (currentBatch.status === 'creating' || currentBatch.status === 'syncing') ? (
+              <Button
+                onClick={handleStopSync}
+                variant="destructive"
+                className="w-full"
+              >
+                停止同步
+              </Button>
+            ) : (
+              <Button
+                onClick={handleStartSync}
+                disabled={selectedMeetingIds.length === 0 || selectedDeviceIds.length === 0}
+                className="w-full"
+              >
+                开始同步
+              </Button>
+            )}
           </div>
         </Card>
 

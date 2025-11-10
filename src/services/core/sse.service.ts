@@ -187,7 +187,14 @@ class SSEService {
   private emit<T = any>(eventType: string, event: SSEEvent<T>): void {
     const handlers = this.handlers.get(eventType)
     if (handlers) {
-      handlers.forEach(handler => handler(event))
+      handlers.forEach(handler => {
+        try {
+          handler(event)
+        } catch (error) {
+          console.error(`[SSE] 事件处理器执行失败 [${eventType}]:`, error)
+          // 不抛出异常，避免中断SSE连接
+        }
+      })
     }
   }
 
@@ -290,7 +297,7 @@ class SSEService {
    */
   close(): void {
     if (this.abortController) {
-      console.log('[SSE] 取消连接')
+      console.log('[SSE] 关闭主连接')
       this.abortController.abort()
       this.abortController = null
     }
