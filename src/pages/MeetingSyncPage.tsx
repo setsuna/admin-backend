@@ -334,14 +334,14 @@ export default function MeetingSyncPage() {
   }
 
   return (
-    <div className="p-6 h-full flex flex-col">
+    <div className="p-6 h-[calc(100vh-4rem)] flex flex-col">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-4">
         <h1 className="text-2xl font-bold">会议文件同步到设备</h1>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 grid grid-cols-[2fr_3fr] gap-6 overflow-hidden">
+      <div className="flex-1 grid grid-cols-[2fr_3fr] gap-4 overflow-hidden">
         {/* Left Panel - Selection */}
         <Card className="flex flex-col overflow-hidden">
           <CardHeader className="pb-3">
@@ -378,7 +378,7 @@ export default function MeetingSyncPage() {
                   </Button>
                 </div>
 
-                <div className="h-[calc(100vh-340px)] overflow-y-auto space-y-2">
+                <div className="h-[calc(100vh-400px)] overflow-y-auto space-y-2">
                   {isLoading ? (
                     <div className="flex items-center justify-center py-8">
                       <div className="text-sm text-muted-foreground">加载中...</div>
@@ -451,7 +451,7 @@ export default function MeetingSyncPage() {
                   </div>
                 </div>
 
-                <div className="h-[calc(100vh-340px)] overflow-y-auto space-y-2">
+                <div className="h-[calc(100vh-400px)] overflow-y-auto space-y-2">
                   {sortedDevices.length === 0 ? (
                     <div className="flex items-center justify-center py-8">
                       <div className="text-sm text-muted-foreground">
