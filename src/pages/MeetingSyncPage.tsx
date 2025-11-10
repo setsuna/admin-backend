@@ -233,32 +233,24 @@ export default function MeetingSyncPage() {
       })
     })
     
-    // complete 事件
+    // complete 事件 - 表示所有任务创建完成（不是执行完成）
     const unsubscribeComplete = sseService.on<SSECompleteEvent['data']>('complete', (event) => {
       setCurrentBatch(prev => {
         if (!prev) return null
         return {
           ...prev,
-          status: 'completed'
+          status: 'syncing' // 任务创建完成，进入同步阶段
         }
       })
       
-      const { successCount, failureCount, duration, summary } = event.data
+      // 仅显示创建阶段的统计信息
+      showSuccessRef.current(
+        '任务创建完成',
+        `已创建 ${event.data.successCount} 个任务，等待后台执行...`
+      )
       
-      if (failureCount === 0) {
-        showSuccessRef.current(
-          '同步完成',
-          `成功同步 ${successCount} 个任务，耗时 ${duration.toFixed(1)} 秒`
-        )
-      } else {
-        showErrorRef.current(
-          '同步完成（部分失败）',
-          `成功 ${successCount} 个，失败 ${failureCount} 个，成功率 ${summary.successRate.toFixed(1)}%`
-        )
-      }
-      
-      // ✅ 在收到 complete 事件时才关闭连接
-      sseService.close()
+      // ❌ 不要关闭连接！任务还在执行中
+      // 让每个任务的进度流自己管理生命周期
     })
     
     // error 事件
