@@ -62,24 +62,6 @@ export interface SyncTaskResponse {
   message?: string
 }
 
-// WebSocket 进度消息数据
-export interface SyncProgressData {
-  task_id: string
-  device_id?: string
-  meeting_id?: string
-  progress: number
-  speed?: string
-  eta?: string
-  current_file?: string
-}
-
-// WebSocket 进度消息
-export interface SyncProgressMessage {
-  type: 'sync_progress'
-  data: SyncProgressData
-  timestamp: number
-}
-
 // 任务进度信息
 export interface TaskProgress {
   task_id: string
