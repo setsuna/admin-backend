@@ -2,7 +2,7 @@ import { Outlet } from 'react-router-dom'
 import { AppSidebar } from './AppSidebar'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { usePermission } from '@/hooks/usePermission'
-import { useWebSocket } from '@/hooks/useWebSocket'
+import { useWSConnection } from '@/services/websocket'
 import { Separator } from '@/components/ui/Separator'
 import { Bell, Volume2, VolumeX } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -24,7 +24,7 @@ export function MainLayout() {
   const location = useLocation()
   
   // 初始化 WebSocket 连接
-  useWebSocket()
+  useWSConnection()
   
   // 同步音效状态到 soundManager
   useEffect(() => {
