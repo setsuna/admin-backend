@@ -1,7 +1,57 @@
-MeetingSyncPage.tsx:326 [MeetingSyncPage] 初始化批量任务信息
-MeetingSyncPage.tsx:341 [MeetingSyncPage] 开始设置轮询，间隔 2000ms
-MeetingSyncPage.tsx:348 [MeetingSyncPage] 立即执行第一次轮询
-MeetingSyncPage.tsx:137 [MeetingSyncPage] 轮询批量任务状态: batch_20251111_130514_e11713fe
-MeetingSyncPage.tsx:141 [MeetingSyncPage] 批量任务状态: {batchId: 'batch_20251111_130514_e11713fe', createdAt: 1762837514, createdCount: 0, duration: 0.014907166, status: 'pending', …}batchId: "batch_20251111_130514_e11713fe"createdAt: 1762837514createdCount: 0duration: 0.014907166status: "pending"statusCounts: {completed: 0, failed: 0, pending: 0, running: 0}totalCount: 2updatedAt: 1762837514[[Prototype]]: Object
-MeetingSyncPage.tsx:142 [MeetingSyncPage] 子任务列表: {batchId: 'batch_20251111_130514_e11713fe', tasks: Array(0)}
-MeetingSyncPage.tsx:182 [MeetingSyncPage] 转换后的tasksMap: []
+Notification.tsx:39 [Toast] 🔘 点击关闭按钮 (ID: foznw7uxzj7, 时间: 14:54:44) SyntheticBaseEvent {_reactName: 'onClick', _targetInst: null, type: 'click', nativeEvent: PointerEvent, target: svg.lucide.lucide-x.h-4.w-4, …}
+ui.slice.ts:76 [Store] 🗑️ removeNotification 被调用 (ID: foznw7uxzj7, 时间: 14:54:44)
+ui.slice.ts:81 [Store] ✅ notifications 更新: 1 -> 0 (移除了 1 个)
+MainLayout.tsx:31 [MainLayout] 👤 user 选择器执行 {id: 'e0d54e7a-807d-43bb-bcf8-aab40dd0c0ea', username: 'user', email: 'user@example.com', role: 'user', avatar: '', …}
+MainLayout.tsx:35 [MainLayout] 🧹 clearAuth 选择器执行
+MainLayout.tsx:39 [MainLayout] 📋 menuConfig 选择器执行 {userId: 'e0d54e7a-807d-43bb-bcf8-aab40dd0c0ea', userPermissions: Array(7), menus: Array(3), createdAt: '2025-11-04T11:25:03+08:00', updatedAt: '2025-11-04T11:25:03+08:00'}
+MainLayout.tsx:43 [MainLayout] 🔊 soundEnabled 选择器执行 true
+MainLayout.tsx:47 [MainLayout] 🔈 toggleSound 选择器执行
+MainLayout.tsx:51 [MainLayout] 🔔 unreadCount 选择器执行 0
+ui.slice.ts:84 [Store] ✅ removeNotification 执行完成
+Notification.tsx:41 [Toast] ✅ onClose 执行完成 (ID: foznw7uxzj7)
+MainLayout.tsx:27 [MainLayout] 🎨 渲染 #6 (实例ID: 2, 时间: 14:54:44)
+MainLayout.tsx:31 [MainLayout] 👤 user 选择器执行 {id: 'e0d54e7a-807d-43bb-bcf8-aab40dd0c0ea', username: 'user', email: 'user@example.com', role: 'user', avatar: '', …}
+MainLayout.tsx:35 [MainLayout] 🧹 clearAuth 选择器执行
+MainLayout.tsx:39 [MainLayout] 📋 menuConfig 选择器执行 {userId: 'e0d54e7a-807d-43bb-bcf8-aab40dd0c0ea', userPermissions: Array(7), menus: Array(3), createdAt: '2025-11-04T11:25:03+08:00', updatedAt: '2025-11-04T11:25:03+08:00'}
+MainLayout.tsx:43 [MainLayout] 🔊 soundEnabled 选择器执行 true
+MainLayout.tsx:47 [MainLayout] 🔈 toggleSound 选择器执行
+MainLayout.tsx:51 [MainLayout] 🔔 unreadCount 选择器执行 0
+MainLayout.tsx:27 [MainLayout] 🎨 渲染 #7 (实例ID: 2, 时间: 14:54:44)
+MainLayout.tsx:31 [MainLayout] 👤 user 选择器执行 {id: 'e0d54e7a-807d-43bb-bcf8-aab40dd0c0ea', username: 'user', email: 'user@example.com', role: 'user', avatar: '', …}
+MainLayout.tsx:35 [MainLayout] 🧹 clearAuth 选择器执行
+MainLayout.tsx:39 [MainLayout] 📋 menuConfig 选择器执行 {userId: 'e0d54e7a-807d-43bb-bcf8-aab40dd0c0ea', userPermissions: Array(7), menus: Array(3), createdAt: '2025-11-04T11:25:03+08:00', updatedAt: '2025-11-04T11:25:03+08:00'}
+MainLayout.tsx:43 [MainLayout] 🔊 soundEnabled 选择器执行 true
+MainLayout.tsx:47 [MainLayout] 🔈 toggleSound 选择器执行
+MainLayout.tsx:51 [MainLayout] 🔔 unreadCount 选择器执行 0
+Dashboard.tsx:14 [Dashboard] 🎨 渲染 #1 (实例ID: 3, 时间: 14:54:44)
+Dashboard.tsx:14 [Dashboard] 🎨 渲染 #1 (实例ID: 4, 时间: 14:54:44)
+Dashboard.tsx:21 [Dashboard] ❌ 组件卸载 (实例ID: 2, 时间: 14:54:44)
+Dashboard.tsx:18 [Dashboard] ✅ 组件挂载 (实例ID: 4, 时间: 14:54:44)
+Dashboard.tsx:21 [Dashboard] ❌ 组件卸载 (实例ID: 4, 时间: 14:54:44)
+Dashboard.tsx:18 [Dashboard] ✅ 组件挂载 (实例ID: 4, 时间: 14:54:44)
+MainLayout.tsx:31 [MainLayout] 👤 user 选择器执行 {id: 'e0d54e7a-807d-43bb-bcf8-aab40dd0c0ea', username: 'user', email: 'user@example.com', role: 'user', avatar: '', …}
+MainLayout.tsx:35 [MainLayout] 🧹 clearAuth 选择器执行
+MainLayout.tsx:39 [MainLayout] 📋 menuConfig 选择器执行 {userId: 'e0d54e7a-807d-43bb-bcf8-aab40dd0c0ea', userPermissions: Array(7), menus: Array(3), createdAt: '2025-11-04T11:25:03+08:00', updatedAt: '2025-11-04T11:25:03+08:00'}
+MainLayout.tsx:43 [MainLayout] 🔊 soundEnabled 选择器执行 true
+MainLayout.tsx:47 [MainLayout] 🔈 toggleSound 选择器执行
+MainLayout.tsx:51 [MainLayout] 🔔 unreadCount 选择器执行 0
+MainLayout.tsx:27 [MainLayout] 🎨 渲染 #8 (实例ID: 2, 时间: 14:54:46)
+MainLayout.tsx:31 [MainLayout] 👤 user 选择器执行 {id: 'e0d54e7a-807d-43bb-bcf8-aab40dd0c0ea', username: 'user', email: 'user@example.com', role: 'user', avatar: '', …}
+MainLayout.tsx:35 [MainLayout] 🧹 clearAuth 选择器执行
+MainLayout.tsx:39 [MainLayout] 📋 menuConfig 选择器执行 {userId: 'e0d54e7a-807d-43bb-bcf8-aab40dd0c0ea', userPermissions: Array(7), menus: Array(3), createdAt: '2025-11-04T11:25:03+08:00', updatedAt: '2025-11-04T11:25:03+08:00'}
+MainLayout.tsx:43 [MainLayout] 🔊 soundEnabled 选择器执行 true
+MainLayout.tsx:47 [MainLayout] 🔈 toggleSound 选择器执行
+MainLayout.tsx:51 [MainLayout] 🔔 unreadCount 选择器执行 0
+MainLayout.tsx:27 [MainLayout] 🎨 渲染 #9 (实例ID: 2, 时间: 14:54:46)
+MainLayout.tsx:31 [MainLayout] 👤 user 选择器执行 {id: 'e0d54e7a-807d-43bb-bcf8-aab40dd0c0ea', username: 'user', email: 'user@example.com', role: 'user', avatar: '', …}
+MainLayout.tsx:35 [MainLayout] 🧹 clearAuth 选择器执行
+MainLayout.tsx:39 [MainLayout] 📋 menuConfig 选择器执行 {userId: 'e0d54e7a-807d-43bb-bcf8-aab40dd0c0ea', userPermissions: Array(7), menus: Array(3), createdAt: '2025-11-04T11:25:03+08:00', updatedAt: '2025-11-04T11:25:03+08:00'}
+MainLayout.tsx:43 [MainLayout] 🔊 soundEnabled 选择器执行 true
+MainLayout.tsx:47 [MainLayout] 🔈 toggleSound 选择器执行
+MainLayout.tsx:51 [MainLayout] 🔔 unreadCount 选择器执行 0
+Dashboard.tsx:14 [Dashboard] 🎨 渲染 #1 (实例ID: 5, 时间: 14:54:46)
+Dashboard.tsx:14 [Dashboard] 🎨 渲染 #1 (实例ID: 6, 时间: 14:54:46)
+Dashboard.tsx:21 [Dashboard] ❌ 组件卸载 (实例ID: 4, 时间: 14:54:46)
+Dashboard.tsx:18 [Dashboard] ✅ 组件挂载 (实例ID: 6, 时间: 14:54:46)
+Dashboard.tsx:21 [Dashboard] ❌ 组件卸载 (实例ID: 6, 时间: 14:54:46)
+Dashboard.tsx:18 [Dashboard] ✅ 组件挂载 (实例ID: 6, 时间: 14:54:46)

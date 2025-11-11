@@ -59,6 +59,17 @@ export default function MeetingSyncPage() {
   // 已订阅的任务ID集合
   const subscribedTasksRef = useRef<Set<string>>(new Set())
   
+  // 缓存上一次的 statusCounts，用于判断是否需要查询详细 tasks
+  const lastStatusCountsRef = useRef<{
+    completed: number
+    failed: number
+    pending: number
+    running: number
+  } | null>(null)
+  
+  // 轮询配置（可调整）
+  const POLL_INTERVAL = 5000 // 5秒轮询一次（原来是2秒，现在延长）
+  
   // 稳定的回调引用
   const showSuccessRef = useRef(showSuccess)
   const showErrorRef = useRef(showError)
@@ -71,12 +82,21 @@ export default function MeetingSyncPage() {
   }, [showSuccess, showError, meetings])
 
   // 订阅任务进度流（SSE）
+  // 根据后端文档，事件类型为: connected, progress, complete
   useEffect(() => {
-    const unsubscribeProgress = sseService.on('task_progress', (event: any) => {
+    // 监听连接成功事件
+    const unsubscribeConnected = sseService.on('connected', (event: any) => {
+      // 连接成功
+    })
+    
+    // 监听进度更新事件（后端事件类型: progress）
+    const unsubscribeProgress = sseService.on('progress', (event: any) => {
       setCurrentBatch(prev => {
         if (!prev) return null
         
-        const task = prev.tasks.get(event.data.taskId)
+        const taskId = event.data.taskId
+        const task = prev.tasks.get(taskId)
+        
         if (!task) return prev
         
         const updatedTask: BatchTaskInfo = {
@@ -93,7 +113,7 @@ export default function MeetingSyncPage() {
         }
         
         const newTasks = new Map(prev.tasks)
-        newTasks.set(event.data.taskId, updatedTask)
+        newTasks.set(taskId, updatedTask)
         
         return {
           ...prev,
@@ -102,11 +122,14 @@ export default function MeetingSyncPage() {
       })
     })
     
-    const unsubscribeCompleted = sseService.on('task_completed', (event: any) => {
+    // 监听完成事件（后端事件类型: complete）
+    const unsubscribeComplete = sseService.on('complete', (event: any) => {
       setCurrentBatch(prev => {
         if (!prev) return null
         
-        const task = prev.tasks.get(event.data.taskId)
+        const taskId = event.data.taskId
+        const task = prev.tasks.get(taskId)
+        
         if (!task) return prev
         
         const updatedTask: BatchTaskInfo = {
@@ -116,7 +139,7 @@ export default function MeetingSyncPage() {
         }
         
         const newTasks = new Map(prev.tasks)
-        newTasks.set(event.data.taskId, updatedTask)
+        newTasks.set(taskId, updatedTask)
         
         return {
           ...prev,
@@ -126,8 +149,9 @@ export default function MeetingSyncPage() {
     })
     
     return () => {
+      unsubscribeConnected()
       unsubscribeProgress()
-      unsubscribeCompleted()
+      unsubscribeComplete()
     }
   }, [])
 
@@ -135,6 +159,44 @@ export default function MeetingSyncPage() {
   const pollBatchStatus = useCallback(async (batchId: string) => {
     try {
       const status = await syncApi.getBatchStatus(batchId)
+      
+      // 🎯 优化点1: 检查 statusCounts 是否发生变化
+      const currentStatusCounts = status.statusCounts
+      const lastStatusCounts = lastStatusCountsRef.current
+      
+      const hasStatusChanged = !lastStatusCounts || 
+        currentStatusCounts.completed !== lastStatusCounts.completed ||
+        currentStatusCounts.failed !== lastStatusCounts.failed ||
+        currentStatusCounts.running !== lastStatusCounts.running ||
+        currentStatusCounts.pending !== lastStatusCounts.pending
+      
+      if (!hasStatusChanged) {
+        // 只更新汇总信息，不查询详细 tasks
+        setCurrentBatch(prev => {
+          if (!prev) return null
+          return {
+            ...prev,
+            successCount: status.statusCounts.completed,
+            failureCount: status.statusCounts.failed,
+            status: status.status === 'completed' || status.status === 'partial_failed' ? 'completed' :
+                    status.createdCount < status.totalCount ? 'creating' : 'syncing'
+          }
+        })
+        
+        // 检查是否完成
+        if (status.status === 'completed' || status.status === 'partial_failed') {
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current)
+            pollingIntervalRef.current = null
+          }
+        }
+        
+        return // 🎯 提前返回，不查询 tasks
+      }
+      
+      // statusCounts 发生了变化，更新缓存并查询详细 tasks
+      lastStatusCountsRef.current = { ...currentStatusCounts }
+      
       const tasks = await syncApi.getBatchTasks(batchId)
       
       // 转换为前端使用的数据结构
@@ -169,7 +231,6 @@ export default function MeetingSyncPage() {
         
         // 如果任务正在运行且还没订阅，订阅其进度流
         if (task.status === 'running' && task.taskId && !subscribedTasksRef.current.has(task.taskId)) {
-          console.log('[MeetingSyncPage] 订阅任务进度流:', task.taskId, task.serialNumber)
           subscribedTasksRef.current.add(task.taskId)
           sseService.subscribeTaskProgress(task.taskId, task.serialNumber)
         }
@@ -189,17 +250,12 @@ export default function MeetingSyncPage() {
                 status.createdCount < status.totalCount ? 'creating' : 'syncing'
       })
       
-      // 如果任务已完成，停止轮询
+      // 检查任务是否完成
       if (status.status === 'completed' || status.status === 'partial_failed') {
         if (pollingIntervalRef.current) {
           clearInterval(pollingIntervalRef.current)
           pollingIntervalRef.current = null
         }
-        
-        showSuccessRef.current(
-          '同步完成',
-          `成功: ${status.statusCounts.completed}/${status.totalCount}, 失败: ${status.statusCounts.failed}`
-        )
       }
     } catch (error) {
       console.error('轮询批量任务状态失败:', error)
@@ -212,6 +268,8 @@ export default function MeetingSyncPage() {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current)
       }
+      // 清理缓存
+      lastStatusCountsRef.current = null
       // 清理所有SSE订阅
       subscribedTasksRef.current.forEach(taskId => {
         sseService.unsubscribeTaskProgress(taskId)
@@ -264,16 +322,13 @@ export default function MeetingSyncPage() {
   const handleStartSync = useCallback(async () => {
     // 防止重复提交：如果已经有正在进行的任务，不允许再次同步
     if (currentBatch && (currentBatch.status === 'creating' || currentBatch.status === 'syncing')) {
-      showError('同步进行中', '请等待当前同步任务完成')
       return
     }
     
     if (selectedMeetingIds.length === 0) {
-      showError('请选择会议', '请至少选择一个会议进行同步')
       return
     }
     if (selectedDeviceIds.length === 0) {
-      showError('请选择设备', '请至少选择一个设备进行同步')
       return
     }
     
@@ -288,7 +343,7 @@ export default function MeetingSyncPage() {
         }
       })
       
-      showSuccess('任务已创建', `批量任务ID: ${response.batchId}，后台正在处理...`)
+      // 任务已创建，开始轮询
       
       // 初始化批量任务信息
       setCurrentBatch({
@@ -304,16 +359,16 @@ export default function MeetingSyncPage() {
         status: 'creating'
       })
       
-      // 开始轮询状态（每2秒）
+      // 开始轮询状态（每5秒）
       pollingIntervalRef.current = setInterval(() => {
         pollBatchStatus(response.batchId)
-      }, 2000)
+      }, POLL_INTERVAL)
       
       // 立即执行一次轮询
       pollBatchStatus(response.batchId)
       
     } catch (error: any) {
-      showError('创建任务失败', error.message || '无法创建批量同步任务')
+      console.error('创建批量同步任务失败:', error)
     }
   }, [selectedMeetingIds, selectedDeviceIds, currentBatch, showError, showSuccess, pollBatchStatus])
 
@@ -324,6 +379,9 @@ export default function MeetingSyncPage() {
       pollingIntervalRef.current = null
     }
     
+    // 清理缓存
+    lastStatusCountsRef.current = null
+    
     // 清理所有SSE订阅
     subscribedTasksRef.current.forEach(taskId => {
       sseService.unsubscribeTaskProgress(taskId)
@@ -331,8 +389,7 @@ export default function MeetingSyncPage() {
     subscribedTasksRef.current.clear()
     
     setCurrentBatch(prev => prev ? { ...prev, status: 'completed' } : null)
-    showSuccess('已停止', '同步任务已手动停止（后台任务将继续执行）')
-  }, [showSuccess])
+  }, [])
 
   const getSecurityLevelVariant = (level: string): 'success' | 'warning' | 'error' | 'default' => {
     const variantMap: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
