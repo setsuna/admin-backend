@@ -9,7 +9,8 @@ export * from './common/base.types'
 export * from './common/ui.types'
 
 // ========== WebSocket 类型 ==========
-export * from './common/websocket.types'
+// WebSocket 类型已迁移到 @/services/websocket/types.ts
+// 如需使用，请从 '@/services/websocket' 导入
 
 // ========== 域类型 ==========
 export * from './domain/meeting.types'

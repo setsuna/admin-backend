@@ -56,14 +56,14 @@ export interface HeartbeatData {
 }
 
 /**
- * 同步进度消息数据（后端实际返回）
+ * 同步进度消息数据
  */
 export interface SyncProgressData {
-  task_id: string
+  taskId: string        // 转换为 camelCase
   progress: number
   speed: string
   eta: string
-  current_file?: string
+  currentFile?: string  // 转换为 camelCase
 }
 
 /**
@@ -79,4 +79,22 @@ export interface WSConfig {
   reconnectInterval?: number
   maxReconnectAttempts?: number
   heartbeatInterval?: number
+}
+
+/**
+ * 消息处理器类型
+ */
+export type MessageHandler<T = any> = (message: WSMessage<T>) => void | Promise<void>
+
+/**
+ * 状态监听器类型
+ */
+export type StateListener = (state: WSConnectionState) => void
+
+/**
+ * 消息处理器注册接口
+ */
+export interface MessageHandlerRegistry {
+  register<T = any>(type: WSMessageType | '*', handler: MessageHandler<T>): () => void
+  unregister(type: WSMessageType | '*', handler: MessageHandler): void
 }

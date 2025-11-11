@@ -40,8 +40,13 @@ export { dictService } from './dict'
 export { meetingService } from './meeting'
 export { permissionService } from './permission'
 export { deviceService } from './device'
-export { websocketService } from './websocket'
 export { logService } from './log'
+
+// ========================================
+// WebSocket 服务导出 (新架构)
+// ========================================
+export { wsClient, useWSConnection, useWSSubscription, useWSState } from './websocket'
+export type { WSMessage, WSMessageType, WSConnectionState } from './websocket'
 
 // ========================================
 // 类型导出

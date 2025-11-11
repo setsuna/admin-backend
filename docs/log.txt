@@ -1,51 +1,7 @@
-[开始同步] {meetingIds: Array(3), deviceIds: Array(2), totalTasks: 6}
-sse.service.ts:304 [SSE] 关闭主连接
-sse.service.ts:311 [SSE] 取消任务进度订阅: task_20251110_164522_378ed71d
-sse.service.ts:311 [SSE] 取消任务进度订阅: task_20251110_164523_69fdf51a
-sse.service.ts:311 [SSE] 取消任务进度订阅: task_20251110_164524_a20a023f
-sse.service.ts:311 [SSE] 取消任务进度订阅: task_20251110_164524_7b362ee4
-sse.service.ts:311 [SSE] 取消任务进度订阅: task_20251110_164525_17af1147
-sse.service.ts:311 [SSE] 取消任务进度订阅: task_20251110_164527_6a97b4f0
-sse.service.ts:81 [SSE] 发起POST请求: http://localhost:3000/api/v1/mount/sync/meeting-package/batch {meetingIds: Array(3), serialNumbers: Array(2), metadata: {…}}
-sse.service.ts:278 [SSE Task] 任务进度订阅已取消: task_20251110_164522_378ed71d
-sse.service.ts:278 [SSE Task] 任务进度订阅已取消: task_20251110_164523_69fdf51a
-sse.service.ts:278 [SSE Task] 任务进度订阅已取消: task_20251110_164524_a20a023f
-sse.service.ts:278 [SSE Task] 任务进度订阅已取消: task_20251110_164524_7b362ee4
-sse.service.ts:278 [SSE Task] 任务进度订阅已取消: task_20251110_164525_17af1147
-sse.service.ts:278 [SSE Task] 任务进度订阅已取消: task_20251110_164527_6a97b4f0
-sse.service.ts:112 [SSE] 连接成功，开始读取流
-sse.service.ts:139 [SSE] 收到事件: start {deviceCount: 2, meetingCount: 3, totalCount: 6}
-MeetingSyncPage.tsx?t=1762764203664:315 [组件] MeetingSyncPage 卸载，取消 SSE 事件订阅
-MeetingSyncPage.tsx?t=1762764203664:110 [组件] MeetingSyncPage 挂载，订阅 SSE 事件
-MeetingSyncPage.tsx?t=1762764203664:315 [组件] MeetingSyncPage 卸载，取消 SSE 事件订阅
-MeetingSyncPage.tsx?t=1762764203664:110 [组件] MeetingSyncPage 挂载，订阅 SSE 事件
-MeetingSyncPage.tsx?t=1762764203664:315 [组件] MeetingSyncPage 卸载，取消 SSE 事件订阅
-MeetingSyncPage.tsx:132 [组件] MeetingSyncPage 挂载，订阅 SSE 事件
-MeetingSyncPage.tsx:408 [组件] MeetingSyncPage 卸载，取消 SSE 事件订阅
-MeetingSyncPage.tsx:132 [组件] MeetingSyncPage 挂载，订阅 SSE 事件
-MeetingSyncPage.tsx:408 [组件] MeetingSyncPage 卸载，取消 SSE 事件订阅
-MeetingSyncPage.tsx:132 [组件] MeetingSyncPage 挂载，订阅 SSE 事件
-sse.service.ts:139 [SSE] 收到事件: task_created {createdAt: 1762764582, current: 1, fileCount: 1, meetingId: '80d07d85-f6b7-4b1f-b442-ace9ff3508c7', packageSize: 296147, …}
-sse.service.ts:226 [SSE Task] 订阅任务进度: task_20251110_164942_6c201275 WST300LX1000600
-sse.service.ts:267 [SSE Task] 收到任务进度: task_20251110_164942_6c201275 {data: {…}, type: 'connected'}
-sse.service.ts:139 [SSE] 收到事件: task_created {createdAt: 1762764583, current: 2, fileCount: 1, meetingId: '80d07d85-f6b7-4b1f-b442-ace9ff3508c7', packageSize: 296147, …}
-sse.service.ts:226 [SSE Task] 订阅任务进度: task_20251110_164943_be5ee76e WST300LX1000560
-sse.service.ts:267 [SSE Task] 收到任务进度: task_20251110_164943_be5ee76e {data: {…}, type: 'connected'}
-PerformanceMonitor.tsx:113 💾 Memory: 47.1MB / 4095.8MB
-sse.service.ts:139 [SSE] 收到事件: task_created {createdAt: 1762764584, current: 3, fileCount: 2, meetingId: 'db081078-fe5e-47d0-b6aa-77bffa8f3ade', packageSize: 165905, …}
-sse.service.ts:226 [SSE Task] 订阅任务进度: task_20251110_164944_87b73d46 WST300LX1000600
-sse.service.ts:267 [SSE Task] 收到任务进度: task_20251110_164944_87b73d46 {data: {…}, type: 'connected'}
-sse.service.ts:139 [SSE] 收到事件: task_created {createdAt: 1762764585, current: 4, fileCount: 2, meetingId: 'db081078-fe5e-47d0-b6aa-77bffa8f3ade', packageSize: 165905, …}
-sse.service.ts:226 [SSE Task] 订阅任务进度: task_20251110_164945_5650bd81 WST300LX1000560
-sse.service.ts:267 [SSE Task] 收到任务进度: task_20251110_164945_5650bd81 {data: {…}, type: 'connected'}
-MeetingSyncPage.tsx:408 [组件] MeetingSyncPage 卸载，取消 SSE 事件订阅
-MeetingSyncPage.tsx:132 [组件] MeetingSyncPage 挂载，订阅 SSE 事件
-MeetingSyncPage.tsx:408 [组件] MeetingSyncPage 卸载，取消 SSE 事件订阅
-MeetingSyncPage.tsx:132 [组件] MeetingSyncPage 挂载，订阅 SSE 事件
-sse.service.ts:139 [SSE] 收到事件: task_created {createdAt: 1762764586, current: 5, fileCount: 1, meetingId: '2eff6014-1938-4c30-bcab-1c0f8c93c349', packageSize: 18597, …}
-sse.service.ts:226 [SSE Task] 订阅任务进度: task_20251110_164946_866e95ad WST300LX1000600
-5PerformanceMonitor.tsx:113 💾 Memory: 47.0MB / 4095.8MB
-6PerformanceMonitor.tsx:113 💾 Memory: 46.3MB / 4095.8MB
-PerformanceMonitor.tsx:113 💾 Memory: 46.4MB / 4095.8MB
-sse.service.ts:293 [SSE Task] 取消任务进度订阅: task_20251110_164946_866e95ad
-sse.service.ts:278 [SSE Task] 任务进度订阅已取消: task_20251110_164946_866e95ad
+MeetingSyncPage.tsx:326 [MeetingSyncPage] 初始化批量任务信息
+MeetingSyncPage.tsx:341 [MeetingSyncPage] 开始设置轮询，间隔 2000ms
+MeetingSyncPage.tsx:348 [MeetingSyncPage] 立即执行第一次轮询
+MeetingSyncPage.tsx:137 [MeetingSyncPage] 轮询批量任务状态: batch_20251111_130514_e11713fe
+MeetingSyncPage.tsx:141 [MeetingSyncPage] 批量任务状态: {batchId: 'batch_20251111_130514_e11713fe', createdAt: 1762837514, createdCount: 0, duration: 0.014907166, status: 'pending', …}batchId: "batch_20251111_130514_e11713fe"createdAt: 1762837514createdCount: 0duration: 0.014907166status: "pending"statusCounts: {completed: 0, failed: 0, pending: 0, running: 0}totalCount: 2updatedAt: 1762837514[[Prototype]]: Object
+MeetingSyncPage.tsx:142 [MeetingSyncPage] 子任务列表: {batchId: 'batch_20251111_130514_e11713fe', tasks: Array(0)}
+MeetingSyncPage.tsx:182 [MeetingSyncPage] 转换后的tasksMap: []
