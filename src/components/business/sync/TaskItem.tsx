@@ -1,9 +1,11 @@
-import { CheckCircle2, XCircle, Loader2, Clock } from 'lucide-react'
+import { CheckCircle2, XCircle, Loader2, Clock, Eye } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
 import type { BatchTaskInfo } from '@/types'
 
 interface TaskItemProps {
   task: BatchTaskInfo
+  onViewDetail?: (task: BatchTaskInfo) => void
 }
 
 const formatBytes = (bytes: number): string => {
@@ -14,7 +16,7 @@ const formatBytes = (bytes: number): string => {
   return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`
 }
 
-export function TaskItem({ task }: TaskItemProps) {
+export function TaskItem({ task, onViewDetail }: TaskItemProps) {
   const getStatusIcon = () => {
     if (task.createStatus === 'failed') {
       return <XCircle className="w-5 h-5 text-destructive shrink-0" />
@@ -40,6 +42,9 @@ export function TaskItem({ task }: TaskItemProps) {
     return '处理中'
   }
 
+  // 只有成功创建的任务才能查看详情
+  const canViewDetail = task.createStatus === 'success' && task.taskId
+
   return (
     <Card className="p-3">
       <div className="flex items-start gap-3">
@@ -57,9 +62,24 @@ export function TaskItem({ task }: TaskItemProps) {
                 {task.serialNumber}
               </span>
             </div>
-            <span className="text-xs text-muted-foreground whitespace-nowrap">
-              {getStatusText()}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {getStatusText()}
+              </span>
+              {canViewDetail && onViewDetail && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onViewDetail(task)
+                  }}
+                >
+                  <Eye className="w-3 h-3" />
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* 创建失败信息 */}

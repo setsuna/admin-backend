@@ -285,3 +285,68 @@ export type SSEBatchSyncEvent =
   | SSETaskCompletedEvent 
   | SSECompleteEvent 
   | SSEErrorEvent
+
+// ========== 新的批量同步API类型 ==========
+
+// 创建批量任务请求
+export interface CreateBatchSyncRequest {
+  meetingIds: string[]
+  serialNumbers: string[]
+  metadata?: Record<string, any>
+}
+
+// 创建批量任务响应
+export interface CreateBatchSyncResponse {
+  batchId: string
+  totalCount: number
+  status: string
+  createdAt: number
+}
+
+// 批量任务状态
+export interface BatchTaskStatus {
+  batchId: string
+  status: 'pending' | 'running' | 'completed' | 'partial_failed'
+  totalCount: number
+  createdCount: number
+  statusCounts: {
+    pending: number
+    running: number
+    completed: number
+    failed: number
+  }
+  createdAt: number
+  updatedAt: number
+  duration: number
+}
+
+// 子任务信息（从API返回）
+export interface SubTaskInfo {
+  taskId?: string
+  meetingId: string
+  serialNumber: string
+  status: 'pending' | 'running' | 'completed' | 'failed'
+  createdAt?: string
+  completedAt?: string
+  packageSize?: number
+  fileCount?: number
+  errorCode?: number
+  errorMessage?: string
+}
+
+// 批量任务的所有子任务响应
+export interface BatchTasksResponse {
+  batchId: string
+  tasks: SubTaskInfo[]
+}
+
+// 批量任务列表响应
+export interface BatchTaskListResponse {
+  tasks: Array<{
+    batchId: string
+    status: string
+    totalCount: number
+    createdAt: string
+  }>
+  total: number
+}

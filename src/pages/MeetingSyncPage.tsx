@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Search, RefreshCw, Cable, Unplug } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
@@ -9,20 +9,14 @@ import { Checkbox } from '@/components/ui/Checkbox'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
 import { useNotifications } from '@/hooks/useNotifications'
 import { meetingApi } from '@/services/api/meeting.api'
-import { deviceApi } from '@/services'
-import { wsService } from '@/services/core/websocket.service'
-import { sseService } from '@/services/core/sse.service'
+import { deviceApi, sseService } from '@/services'
+import { syncApi } from '@/services/api/sync.api'
 import { BatchSyncPanel } from '@/components/business/sync/BatchSyncPanel'
 import type { 
-  OnlineDevice, 
+  OnlineDevice,
+  SubTaskInfo,
   BatchSyncInfo,
-  BatchTaskInfo,
-  SSEStartEvent,
-  SSETaskCreatedEvent,
-  SSETaskProgressEvent,
-  SSETaskCompletedEvent,
-  SSECompleteEvent,
-  SSEErrorEvent
+  BatchTaskInfo
 } from '@/types'
 
 export default function MeetingSyncPage() {
@@ -52,31 +46,18 @@ export default function MeetingSyncPage() {
     })
   }, [devices])
 
-  // 监听设备上线/下线消息，自动刷新设备列表
-  useEffect(() => {
-    const unsubscribeOnline = wsService.on('device_online', () => {
-      refetchDevices()
-    })
-    
-    const unsubscribeOffline = wsService.on('device_offline', () => {
-      refetchDevices()
-    })
-    
-    return () => {
-      unsubscribeOnline()
-      unsubscribeOffline()
-    }
-  }, [refetchDevices])
-
   const [selectedMeetingIds, setSelectedMeetingIds] = useState<string[]>([])
   const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([])
   const [searchMeeting, setSearchMeeting] = useState('')
   
-  // 批次任务信息
+  // 批量任务信息
   const [currentBatch, setCurrentBatch] = useState<BatchSyncInfo | null>(null)
   
-  // taskId 映射：用于单任务进度流事件补充信息
-  const taskInfoMapRef = useRef<Map<string, { meetingId: string; serialNumber: string }>>(new Map())
+  // 轮询定时器
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  
+  // 已订阅的任务ID集合
+  const subscribedTasksRef = useRef<Set<string>>(new Set())
   
   // 稳定的回调引用
   const showSuccessRef = useRef(showSuccess)
@@ -89,98 +70,13 @@ export default function MeetingSyncPage() {
     meetingsRef.current = meetings
   }, [showSuccess, showError, meetings])
 
-  // SSE 事件处理器 - 只在组件挂载时订阅一次
+  // 订阅任务进度流（SSE）
   useEffect(() => {
-    // start 事件
-    const unsubscribeStart = sseService.on<SSEStartEvent['data']>('start', (event) => {
-      const batchId = `batch_${Date.now()}`
-      setCurrentBatch({
-        batchId,
-        totalCount: event.data.totalCount,
-        meetingCount: event.data.meetingCount,
-        deviceCount: event.data.deviceCount,
-        createdCount: 0,
-        successCount: 0,
-        failureCount: 0,
-        tasks: new Map(),
-        startTime: Date.now(),
-        status: 'creating'
-      })
-      showSuccessRef.current('开始同步', `正在同步 ${event.data.meetingCount} 个会议到 ${event.data.deviceCount} 台设备`)
-    })
-    
-    // task_created 事件
-    const unsubscribeTaskCreated = sseService.on<SSETaskCreatedEvent['data']>('task_created', (event) => {
+    const unsubscribeProgress = sseService.on('task_progress', (event: any) => {
       setCurrentBatch(prev => {
         if (!prev) return null
         
-        const meeting = meetingsRef.current.find(m => String(m.id) === event.data.meetingId)
-        const meetingName = meeting?.name || `会议-${event.data.meetingId}`
-        
-        const taskId = event.data.taskId || `${event.data.meetingId}-${event.data.serialNumber}`
-        const newTask: BatchTaskInfo = {
-          taskId,
-          meetingId: event.data.meetingId,
-          meetingName,
-          serialNumber: event.data.serialNumber,
-          createStatus: event.data.success ? 'success' : 'failed',
-          createError: event.data.errorMessage,
-          packageSize: event.data.packageSize,
-          fileCount: event.data.fileCount,
-          createdAt: event.data.createdAt,
-          copyStatus: 'idle',
-          progressPercent: 0,
-          copiedBytes: 0,
-          totalBytes: 0,
-          speed: '',
-          speedBytes: 0,
-          eta: '',
-          etaSeconds: 0,
-          currentFile: ''
-        }
-        
-        const newTasks = new Map(prev.tasks)
-        newTasks.set(taskId, newTask)
-        
-        return {
-          ...prev,
-          createdCount: event.data.current,
-          successCount: prev.successCount + (event.data.success ? 1 : 0),
-          failureCount: prev.failureCount + (event.data.success ? 0 : 1),
-          tasks: newTasks,
-          status: event.data.current === prev.totalCount ? 'syncing' : 'creating'
-        }
-      })
-      
-      // 如果任务创建成功，订阅该任务的进度流
-      if (event.data.success && event.data.taskId) {
-        taskInfoMapRef.current.set(event.data.taskId, {
-          meetingId: event.data.meetingId,
-          serialNumber: event.data.serialNumber
-        })
-        sseService.subscribeTaskProgress(event.data.taskId, event.data.serialNumber)
-      }
-    })
-    
-    // task_progress 事件
-    const unsubscribeTaskProgress = sseService.on<SSETaskProgressEvent['data']>('task_progress', (event) => {
-      setCurrentBatch(prev => {
-        if (!prev) return null
-        
-        // 如果事件数据没有 meetingId/serialNumber，从映射表中获取
-        let taskId = event.data.taskId
-        let meetingId = event.data.meetingId
-        let serialNumber = event.data.serialNumber
-        
-        if (!meetingId || !serialNumber) {
-          const taskInfo = taskInfoMapRef.current.get(taskId)
-          if (taskInfo) {
-            meetingId = taskInfo.meetingId
-            serialNumber = taskInfo.serialNumber
-          }
-        }
-        
-        const task = prev.tasks.get(taskId)
+        const task = prev.tasks.get(event.data.taskId)
         if (!task) return prev
         
         const updatedTask: BatchTaskInfo = {
@@ -197,7 +93,7 @@ export default function MeetingSyncPage() {
         }
         
         const newTasks = new Map(prev.tasks)
-        newTasks.set(taskId, updatedTask)
+        newTasks.set(event.data.taskId, updatedTask)
         
         return {
           ...prev,
@@ -206,8 +102,7 @@ export default function MeetingSyncPage() {
       })
     })
     
-    // task_completed 事件
-    const unsubscribeTaskCompleted = sseService.on<SSETaskCompletedEvent['data']>('task_completed', (event) => {
+    const unsubscribeCompleted = sseService.on('task_completed', (event: any) => {
       setCurrentBatch(prev => {
         if (!prev) return null
         
@@ -223,9 +118,6 @@ export default function MeetingSyncPage() {
         const newTasks = new Map(prev.tasks)
         newTasks.set(event.data.taskId, updatedTask)
         
-        // 清理映射表
-        taskInfoMapRef.current.delete(event.data.taskId)
-        
         return {
           ...prev,
           tasks: newTasks
@@ -233,46 +125,100 @@ export default function MeetingSyncPage() {
       })
     })
     
-    // complete 事件 - 表示所有任务创建完成（不是执行完成）
-    const unsubscribeComplete = sseService.on<SSECompleteEvent['data']>('complete', (event) => {
-      setCurrentBatch(prev => {
-        if (!prev) return null
-        return {
-          ...prev,
-          status: 'syncing' // 任务创建完成，进入同步阶段
+    return () => {
+      unsubscribeProgress()
+      unsubscribeCompleted()
+    }
+  }, [])
+
+  // 轮询批量任务状态
+  const pollBatchStatus = useCallback(async (batchId: string) => {
+    try {
+      const status = await syncApi.getBatchStatus(batchId)
+      const tasks = await syncApi.getBatchTasks(batchId)
+      
+      // 转换为前端使用的数据结构
+      const tasksMap = new Map<string, BatchTaskInfo>()
+      tasks.tasks.forEach((task: SubTaskInfo) => {
+        const meeting = meetingsRef.current.find(m => String(m.id) === task.meetingId)
+        const meetingName = meeting?.name || `会议-${task.meetingId}`
+        
+        const taskId = task.taskId || `${task.meetingId}-${task.serialNumber}`
+        tasksMap.set(taskId, {
+          taskId,
+          meetingId: task.meetingId,
+          meetingName,
+          serialNumber: task.serialNumber,
+          createStatus: task.status === 'failed' ? 'failed' : 'success',
+          createError: task.errorMessage,
+          packageSize: task.packageSize,
+          fileCount: task.fileCount,
+          createdAt: task.createdAt ? new Date(task.createdAt).getTime() : undefined,
+          copyStatus: task.status === 'completed' ? 'completed' : 
+                      task.status === 'running' ? 'copying' :
+                      task.status === 'failed' ? 'failed' : 'idle',
+          progressPercent: task.status === 'completed' ? 100 : 0,
+          copiedBytes: 0,
+          totalBytes: 0,
+          speed: '',
+          speedBytes: 0,
+          eta: '',
+          etaSeconds: 0,
+          currentFile: ''
+        })
+        
+        // 如果任务正在运行且还没订阅，订阅其进度流
+        if (task.status === 'running' && task.taskId && !subscribedTasksRef.current.has(task.taskId)) {
+          console.log('[MeetingSyncPage] 订阅任务进度流:', task.taskId, task.serialNumber)
+          subscribedTasksRef.current.add(task.taskId)
+          sseService.subscribeTaskProgress(task.taskId, task.serialNumber)
         }
       })
       
-      // 仅显示创建阶段的统计信息
-      showSuccessRef.current(
-        '任务创建完成',
-        `已创建 ${event.data.successCount} 个任务，等待后台执行...`
-      )
+      setCurrentBatch({
+        batchId: status.batchId,
+        totalCount: status.totalCount,
+        meetingCount: selectedMeetingIds.length,
+        deviceCount: selectedDeviceIds.length,
+        createdCount: status.createdCount,
+        successCount: status.statusCounts.completed,
+        failureCount: status.statusCounts.failed,
+        tasks: tasksMap,
+        startTime: status.createdAt * 1000,
+        status: status.status === 'completed' || status.status === 'partial_failed' ? 'completed' :
+                status.createdCount < status.totalCount ? 'creating' : 'syncing'
+      })
       
-      // ❌ 不要关闭连接！任务还在执行中
-      // 让每个任务的进度流自己管理生命周期
-    })
-    
-    // error 事件
-    const unsubscribeError = sseService.on<SSEErrorEvent['data']>('error', (event) => {
-      showErrorRef.current('同步错误', event.data.message || '同步过程中发生错误')
-      setCurrentBatch(prev => prev ? { ...prev, status: 'completed' } : null)
-      
-      // ✅ 在错误时关闭连接
-      sseService.close()
-    })
-    
-    // ⚠️ 清理函数：只取消订阅，不关闭 SSE 连接
-    return () => {
-      unsubscribeStart()
-      unsubscribeTaskCreated()
-      unsubscribeTaskProgress()
-      unsubscribeTaskCompleted()
-      unsubscribeComplete()
-      unsubscribeError()
-      // ❌ 不在这里关闭连接！让 complete/error 事件或用户手动关闭
+      // 如果任务已完成，停止轮询
+      if (status.status === 'completed' || status.status === 'partial_failed') {
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current)
+          pollingIntervalRef.current = null
+        }
+        
+        showSuccessRef.current(
+          '同步完成',
+          `成功: ${status.statusCounts.completed}/${status.totalCount}, 失败: ${status.statusCounts.failed}`
+        )
+      }
+    } catch (error) {
+      console.error('轮询批量任务状态失败:', error)
     }
-  }, []) // 空依赖，只在挂载时执行一次
+  }, [selectedMeetingIds.length, selectedDeviceIds.length])
+
+  // 清理轮询和SSE订阅
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+      }
+      // 清理所有SSE订阅
+      subscribedTasksRef.current.forEach(taskId => {
+        sseService.unsubscribeTaskProgress(taskId)
+      })
+      subscribedTasksRef.current.clear()
+    }
+  }, [])
 
   const handleMeetingSelect = (meetingId: string | number) => {
     const idStr = String(meetingId)
@@ -315,7 +261,7 @@ export default function MeetingSyncPage() {
     }
   }
 
-  const handleStartSync = useCallback(() => {
+  const handleStartSync = useCallback(async () => {
     // 防止重复提交：如果已经有正在进行的任务，不允许再次同步
     if (currentBatch && (currentBatch.status === 'creating' || currentBatch.status === 'syncing')) {
       showError('同步进行中', '请等待当前同步任务完成')
@@ -331,20 +277,61 @@ export default function MeetingSyncPage() {
       return
     }
     
-    sseService.startBatchSync(
-      selectedMeetingIds,
-      selectedDeviceIds,
-      {
-        operator: 'admin',
-        batch_id: `batch_${Date.now()}`
-      }
-    )
-  }, [selectedMeetingIds, selectedDeviceIds, currentBatch, showError])
+    try {
+      // 创建批量同步任务（立即返回）
+      const response = await syncApi.createBatchSync({
+        meetingIds: selectedMeetingIds,
+        serialNumbers: selectedDeviceIds,
+        metadata: {
+          operator: 'admin',
+          timestamp: Date.now()
+        }
+      })
+      
+      showSuccess('任务已创建', `批量任务ID: ${response.batchId}，后台正在处理...`)
+      
+      // 初始化批量任务信息
+      setCurrentBatch({
+        batchId: response.batchId,
+        totalCount: response.totalCount,
+        meetingCount: selectedMeetingIds.length,
+        deviceCount: selectedDeviceIds.length,
+        createdCount: 0,
+        successCount: 0,
+        failureCount: 0,
+        tasks: new Map(),
+        startTime: response.createdAt * 1000,
+        status: 'creating'
+      })
+      
+      // 开始轮询状态（每2秒）
+      pollingIntervalRef.current = setInterval(() => {
+        pollBatchStatus(response.batchId)
+      }, 2000)
+      
+      // 立即执行一次轮询
+      pollBatchStatus(response.batchId)
+      
+    } catch (error: any) {
+      showError('创建任务失败', error.message || '无法创建批量同步任务')
+    }
+  }, [selectedMeetingIds, selectedDeviceIds, currentBatch, showError, showSuccess, pollBatchStatus])
 
   const handleStopSync = useCallback(() => {
-    sseService.close()
+    // 清除轮询
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+      pollingIntervalRef.current = null
+    }
+    
+    // 清理所有SSE订阅
+    subscribedTasksRef.current.forEach(taskId => {
+      sseService.unsubscribeTaskProgress(taskId)
+    })
+    subscribedTasksRef.current.clear()
+    
     setCurrentBatch(prev => prev ? { ...prev, status: 'completed' } : null)
-    showSuccess('已停止', '同步任务已手动停止')
+    showSuccess('已停止', '同步任务已手动停止（后台任务将继续执行）')
   }, [showSuccess])
 
   const getSecurityLevelVariant = (level: string): 'success' | 'warning' | 'error' | 'default' => {
@@ -581,7 +568,7 @@ export default function MeetingSyncPage() {
                 variant="destructive"
                 className="w-full"
               >
-                停止同步
+                停止监控
               </Button>
             ) : (
               <Button

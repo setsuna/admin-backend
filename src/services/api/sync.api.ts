@@ -4,7 +4,12 @@ import type {
   TaskProgress, 
   TaskStatus,
   BatchSyncResponse,
-  TaskStatusDetail
+  TaskStatusDetail,
+  CreateBatchSyncRequest,
+  CreateBatchSyncResponse,
+  BatchTaskStatus,
+  BatchTasksResponse,
+  BatchTaskListResponse
 } from '@/types'
 
 class SyncApiService {
@@ -79,6 +84,47 @@ class SyncApiService {
     return await httpClient.get<TaskStatusDetail>(
       `${this.basePath}/tasks/${taskId}/status`,
       { serialNumber }
+    )
+  }
+
+  // ========== 新的批量同步API ==========
+
+  /**
+   * 创建批量同步任务（异步，立即返回）
+   */
+  async createBatchSync(
+    request: CreateBatchSyncRequest
+  ): Promise<CreateBatchSyncResponse> {
+    return await httpClient.post<CreateBatchSyncResponse>(
+      `${this.basePath}/batch`,
+      request
+    )
+  }
+
+  /**
+   * 获取批量任务状态
+   */
+  async getBatchStatus(batchId: string): Promise<BatchTaskStatus> {
+    return await httpClient.get<BatchTaskStatus>(
+      `${this.basePath}/batch/${batchId}/status`
+    )
+  }
+
+  /**
+   * 获取批量任务的所有子任务
+   */
+  async getBatchTasks(batchId: string): Promise<BatchTasksResponse> {
+    return await httpClient.get<BatchTasksResponse>(
+      `${this.basePath}/batch/${batchId}/tasks`
+    )
+  }
+
+  /**
+   * 列出所有批量任务
+   */
+  async listBatchTasks(): Promise<BatchTaskListResponse> {
+    return await httpClient.get<BatchTaskListResponse>(
+      `${this.basePath}/batch`
     )
   }
 }
