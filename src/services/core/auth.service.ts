@@ -6,6 +6,7 @@ import { httpClient } from './http.client'
 import { getConfig, API_PATHS } from '@/config'
 import type { User } from '@/types'
 import type { LoginResponse } from '@/types/api/response.types'
+import { useStore } from '@/store'
 
 export interface LoginRequest {
   username: string
@@ -107,13 +108,7 @@ class AuthService {
       console.warn('Logout API warning:', error)
     } finally {
       this.clearStorage()
-      // 🔧 修复：同步清空 Zustand Store，避免循环调用
-      try {
-        const { useStore } = await import('@/store')
-        useStore.getState().clearAuth()
-      } catch (err) {
-        console.warn('Failed to clear auth store:', err)
-      }
+      useStore.getState().clearAuth()
     }
   }
 

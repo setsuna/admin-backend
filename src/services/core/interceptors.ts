@@ -205,17 +205,10 @@ async function handleApiError(
 async function handleAuthError(code: number, backendMessage: string, _userMessage?: string, _requestId?: string) {
   // 需要自动跳转登录的错误码
   if (needsAutoLogin(code)) {
-    // 🔧 修复：先同步清空 store 状态，防止组件重渲染时再次请求
-    try {
-      const { useStore } = await import('@/store')
-      useStore.getState().clearAuth()
-    } catch (err) {
-      console.warn('Failed to clear auth store:', err)
-    }
-    
-    // 然后执行 logout 逻辑（清空 localStorage 等）
+    // 先清空 store 状态
+    useStore.getState().clearAuth()
+    // 然后执行 logout 逻辑
     await auth.logout()
-    
     // 最后跳转登录页
     window.location.href = '/login'
     return
@@ -268,30 +261,23 @@ function handleGeneralError(code: number, backendMessage: string, _userMessage: 
  * 🔧 修复：授权错误处理 - 使用后端原始消息 + 自动显示授权对话框
  */
 function handleAuthorizationError(code: number, backendMessage: string, _userMessage?: string, fullData?: any) {
-  // 🆕 检测授权验证失败且需要授权码 (code: 6001, need_license: true)
+  // 检测授权验证失败且需要授权码
   if (code === ERROR_CODES.AUTHORIZATION_CODE_INVALID) {
-    try {
-      const { showAuthError } = useStore.getState()
-      
-      // 显示授权错误对话框，附带后端返回的完整授权信息
-      showAuthError({
-        message: backendMessage || '系统授权验证失败',
-        code: code,
-        mode: 'error',
-        allowClose: false, // 授权失败不允许关闭
-        showCurrentStatus: false,
-        errorDetails: backendMessage,
-        // 🆕 传递后端返回的授权相关数据
-        applicationCode: fullData?.applicationCode,
-        errorCode: fullData?.error_code,
-        errorMessage: fullData?.error_message,
-        needLicense: fullData?.need_license
-      })
-    } catch (err) {
-      console.error('Failed to show auth error dialog:', err)
-      // 降级处理：显示普通错误提示
-      errorHandler.handleError(new Error(backendMessage + '，请联系系统管理员'), 'PERMISSION_DENIED')
-    }
+    const { showAuthError } = useStore.getState()
+    
+    // 显示授权错误对话框
+    showAuthError({
+      message: backendMessage || '系统授权验证失败',
+      code: code,
+      mode: 'error',
+      allowClose: false,
+      showCurrentStatus: false,
+      errorDetails: backendMessage,
+      applicationCode: fullData?.applicationCode,
+      errorCode: fullData?.error_code,
+      errorMessage: fullData?.error_message,
+      needLicense: fullData?.need_license
+    })
     return
   }
   
