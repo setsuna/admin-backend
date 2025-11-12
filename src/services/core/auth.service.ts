@@ -84,9 +84,15 @@ class AuthService {
       console.log('[认证服务] 登录成功')
       return loginResult
       
-    } catch (error) {
-      console.error('[认证服务] 登录失败:', error)
-      // 🔧 修复：直接抛出错误，让上层处理。错误信息已在拦截器中处理
+    } catch (error: any) {
+      console.error('[认证服务] 登录失败:', {
+        message: error.message,
+        isNetworkError: error.isNetworkError,
+        code: error.code
+      })
+      
+      // 🔧 修复：直接抛出错误，让上层处理
+      // 网络错误已在拦截器中显示通知，不会阻塞UI
       throw error
     }
   }

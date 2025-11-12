@@ -85,7 +85,7 @@ export default function MeetingSyncPage() {
   // 根据后端文档，事件类型为: connected, progress, complete
   useEffect(() => {
     // 监听连接成功事件
-    const unsubscribeConnected = sseService.on('connected', (event: any) => {
+    const unsubscribeConnected = sseService.on('connected', (_event: any) => {
       // 连接成功
     })
     

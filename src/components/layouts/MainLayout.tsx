@@ -4,12 +4,10 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/s
 import { usePermission } from '@/hooks/usePermission'
 import { useWSConnection } from '@/services/websocket'
 import { Separator } from '@/components/ui/Separator'
-import { Bell, Volume2, VolumeX } from 'lucide-react'
+import { Volume2, VolumeX } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import { useAuth, useUI } from '@/store'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover'
-import { NotificationPanel } from '@/components/business/notification/NotificationPanel'
 import { authService } from '@/services/core/auth.service'
 import { soundManager } from '@/utils/sound'
 import { useLocation } from 'react-router-dom'
@@ -20,7 +18,7 @@ export function MainLayout() {
   // 初始化权限数据和 WebSocket
   const { menuConfig } = usePermission()
   const { user, clearAuth } = useAuth()
-  const { soundEnabled, toggleSound, unreadCount } = useUI()
+  const { soundEnabled, toggleSound } = useUI()
   const location = useLocation()
   
   // 初始化 WebSocket 连接
@@ -69,23 +67,6 @@ export function MainLayout() {
             
             {/* 右侧操作区 */}
             <div className="flex items-center gap-2">
-              {/* 通知 */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative">
-                    <Bell className="h-4 w-4" />
-                    {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 flex items-center justify-center h-5 w-5 text-xs rounded-full bg-destructive text-destructive-foreground">
-                        {unreadCount > 99 ? '99+' : unreadCount}
-                      </span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 p-0" align="end">
-                  <NotificationPanel />
-                </PopoverContent>
-              </Popover>
-              
               {/* 音效开关 */}
               <Button 
                 variant="ghost" 

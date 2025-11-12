@@ -1,11 +1,9 @@
-import { Bell, LogOut } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { cn } from '@/utils'
-import { useAuth, useStore } from '@/store'
+import { useAuth } from '@/store'
 import { Button } from '@/components/ui/Button'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/Popover'
-import { NotificationPanel } from '@/components/business/notification/NotificationPanel'
 import { authService } from '@/services/core/auth.service'
 
 interface HeaderProps {
@@ -14,8 +12,6 @@ interface HeaderProps {
 
 export function Header({ className }: HeaderProps) {
   const { user, clearAuth } = useAuth()
-  // 只订阅 unreadCount，避免不必要的重新渲染
-  const unreadCount = useStore((state) => state.unreadCount)
   const location = useLocation()
   
   const handleLogout = async () => {
@@ -85,23 +81,6 @@ export function Header({ className }: HeaderProps) {
       
       {/* 右侧操作区 */}
       <div className="flex items-center gap-2">
-        {/* 通知 */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-4 w-4" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="p-0 w-80" align="end">
-            <NotificationPanel />
-          </PopoverContent>
-        </Popover>
-        
         {/* 主题切换 */}
         <ThemeSwitcher />
         

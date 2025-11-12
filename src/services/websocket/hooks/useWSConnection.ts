@@ -54,13 +54,13 @@ export function useWSConnection() {
         updateDeviceStatus(serialNumber, status)
       },
       onNotification: (notification) => {
-        addNotification(notification, true) // showInHistory = true
+        addNotification(notification)
       }
     })
 
     notificationHandler.setCallbacks({
       onNotification: (notification) => {
-        addNotification(notification, true) // showInHistory = true
+        addNotification(notification)
       }
     })
 

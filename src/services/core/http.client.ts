@@ -61,6 +61,12 @@ export class HttpClient {
       const response = await this.instance.post(url, data, config)
       return response.data?.data || response.data
     } catch (error: any) {
+      // 🔧 修复：网络错误不影响后续请求，直接抛出
+      console.error('[HTTP客户端] POST请求失败:', {
+        url,
+        isNetworkError: error.isNetworkError,
+        message: error.message
+      })
       throw error
     }
   }

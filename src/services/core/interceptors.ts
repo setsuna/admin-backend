@@ -133,14 +133,33 @@ export const errorInterceptor = async (error: AxiosError<ApiResponse>): Promise<
     return Promise.reject(httpError)
   }
   
-  // 处理网络错误和请求配置错误
+  // 🔧 修复：处理网络错误和请求配置错误
   else if (request) {
+    console.warn('[HTTP客户端] 网络连接失败:', {
+      url: config?.url,
+      method: config?.method,
+      requestId,
+      message: error.message
+    })
+    
+    // 显示网络错误通知（但不阻塞UI）
     errorHandler.handleError(new Error('网络连接失败，请检查网络设置'), 'NETWORK_ERROR')
-  } else {
+    
+    // 🔧 关键修复：使用增强的错误对象，确保错误信息完整
+    const networkError = new Error('网络连接失败')
+    ;(networkError as any).isNetworkError = true
+    ;(networkError as any).requestId = requestId
+    ;(networkError as any).config = config
+    ;(networkError as any).originalError = error
+    
+    return Promise.reject(networkError)
+  } 
+  // 请求配置错误
+  else {
+    console.error('[HTTP客户端] 请求配置错误:', error)
     errorHandler.handleError(new Error('请求配置错误'), 'CONFIG_ERROR')
+    return Promise.reject(error)
   }
-
-  return Promise.reject(error)
 }
 
 /**

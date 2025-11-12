@@ -57,8 +57,6 @@ export const useAuth = () => useStore((state) => ({
 export const useUI = () => useStore((state) => ({
   theme: state.theme,
   notifications: state.notifications,
-  notificationHistory: state.notificationHistory,
-  unreadCount: state.unreadCount,
   globalLoading: state.globalLoading,
   soundEnabled: state.soundEnabled,
   soundVolume: state.soundVolume,
@@ -66,9 +64,6 @@ export const useUI = () => useStore((state) => ({
   addNotification: state.addNotification,
   removeNotification: state.removeNotification,
   clearNotifications: state.clearNotifications,
-  markNotificationAsRead: state.markNotificationAsRead,
-  markAllAsRead: state.markAllAsRead,
-  clearNotificationHistory: state.clearNotificationHistory,
   setGlobalLoading: state.setGlobalLoading,
   setSoundEnabled: state.setSoundEnabled,
   setSoundVolume: state.setSoundVolume,

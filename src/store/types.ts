@@ -31,19 +31,11 @@ export interface UISlice {
   theme: Theme
   setTheme: (theme: Theme) => void
   
-  // Toast 通知系统（自动消失的提示框）
+  // Toast 通知系统
   notifications: Notification[]
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>, showInHistory?: boolean) => void
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void
   removeNotification: (id: string) => void
   clearNotifications: () => void
-  
-  // 通知历史（持久保存的通知面板）
-  notificationHistory: Notification[]
-  unreadCount: number
-  markNotificationAsRead: (id: string) => void
-  markAllAsRead: () => void
-  clearNotificationHistory: () => void
-  clearNotificationsByType?: (type: string) => void  // 🆕 添加按类型清除方法
   
   // 音效系统
   soundEnabled: boolean
