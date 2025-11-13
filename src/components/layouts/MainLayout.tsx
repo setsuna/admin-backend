@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/Separator'
 import { Volume2, VolumeX } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
-import { useAuth, useUI } from '@/store'
+import { useStore } from '@/store'
 import { authService } from '@/services/core/auth.service'
 import { soundManager } from '@/utils/sound'
 import { useLocation } from 'react-router-dom'
@@ -17,8 +17,11 @@ import { useEffect } from 'react'
 export function MainLayout() {
   // 初始化权限数据和 WebSocket
   const { menuConfig } = usePermission()
-  const { user, clearAuth } = useAuth()
-  const { soundEnabled, toggleSound } = useUI()
+  const user = useStore((state) => state.user)
+  const clearAuth = useStore((state) => state.clearAuth)
+  // 只订阅需要的状态，避免不必要的重渲染
+  const soundEnabled = useStore((state) => state.soundEnabled)
+  const toggleSound = useStore((state) => state.toggleSound)
   const location = useLocation()
   
   // 初始化 WebSocket 连接
