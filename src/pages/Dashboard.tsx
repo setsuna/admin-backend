@@ -1,7 +1,9 @@
 import { Calendar, FileText, RefreshCw, AlertCircle, TrendingUp, Clock, CheckCircle } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
+import { memo } from 'react'
 
-const Dashboard = () => {
+// ✅ 使用 memo 包装，避免父组件重渲染导致的不必要重渲染
+const Dashboard = memo(function Dashboard() {
   // Mock数据 - 后续替换为真实API
   const meetingStats = {
     total: 156,
@@ -238,6 +240,6 @@ const Dashboard = () => {
       )}
     </div>
   )
-}
+})  // ✅ memo 的闭合
 
 export default Dashboard

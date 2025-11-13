@@ -1,8 +1,8 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { MainLayout } from '@/components/layouts'
 import { Loading } from '@/components/ui/Loading'
-import { useGlobalStore } from '@/store'
+import { useStore } from '@/store'
 import { useMenuPermission } from '@/hooks/usePermission'
 import { generateRoutesFromMenus } from '@/utils/routeGenerator'
 
@@ -17,7 +17,8 @@ function LazyWrapper({ children }: { children: React.ReactNode }) {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useGlobalStore()
+  // ✅ 直接订阅 user，避免 useGlobalStore() 返回新对象
+  const user = useStore((state) => state.user)
   
   if (!user) {
     return <Navigate to="/login" replace />
@@ -27,7 +28,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useGlobalStore()
+  // ✅ 直接订阅 user
+  const user = useStore((state) => state.user)
   
   if (user) {
     return <Navigate to="/" replace />
@@ -56,9 +58,43 @@ const staticRoutes = createBrowserRouter([
 
 // 动态路由提供者组件
 export function DynamicRouter() {
-  const { user } = useGlobalStore()
+  // ✅ 直接订阅 user，避免不必要的重渲染
+  const user = useStore((state) => state.user)
   const { menus, isLoading } = useMenuPermission()
 
+  // ✅ 将 useMemo 移到所有条件判断之前，确保 Hook 调用顺序一致
+  const router = useMemo(() => {
+    // 生成动态路由
+    const dynamicRoutes = generateRoutesFromMenus(menus)
+    
+    return createBrowserRouter([
+      {
+        path: '/login',
+        element: (
+          <PublicRoute>
+            <LazyWrapper>
+              <LoginPage />
+            </LazyWrapper>
+          </PublicRoute>
+        ),
+      },
+      {
+        path: '/',
+        element: (
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        ),
+        children: dynamicRoutes,
+      },
+      {
+        path: '*',
+        element: <Navigate to="/" replace />,
+      },
+    ])
+  }, [menus])  // ✅ 只依赖 menus
+
+  // ✅ 条件判断放在所有 Hooks 之后
   // 未登录时使用静态路由
   if (!user) {
     return <RouterProvider router={staticRoutes} />
@@ -68,35 +104,6 @@ export function DynamicRouter() {
   if (isLoading) {
     return <Loading />
   }
-
-  // 生成动态路由
-  const dynamicRoutes = generateRoutesFromMenus(menus)
-  
-  const router = createBrowserRouter([
-    {
-      path: '/login',
-      element: (
-        <PublicRoute>
-          <LazyWrapper>
-            <LoginPage />
-          </LazyWrapper>
-        </PublicRoute>
-      ),
-    },
-    {
-      path: '/',
-      element: (
-        <ProtectedRoute>
-          <MainLayout />
-        </ProtectedRoute>
-      ),
-      children: dynamicRoutes,
-    },
-    {
-      path: '*',
-      element: <Navigate to="/" replace />,
-    },
-  ])
 
   return <RouterProvider router={router} />
 }

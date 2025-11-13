@@ -1,20 +1,23 @@
 import { LogOut } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { cn } from '@/utils'
-import { useAuth } from '@/store'
+import { useStore } from '@/store'
 import { Button } from '@/components/ui/Button'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import { authService } from '@/services/core/auth.service'
+import { useMemo, useCallback } from 'react'
 
 interface HeaderProps {
   className?: string
 }
 
 export function Header({ className }: HeaderProps) {
-  const { user, clearAuth } = useAuth()
+  // ✅ 直接使用选择器，避免 useAuth() 返回新对象
+  const user = useStore((state) => state.user)
+  const clearAuth = useStore((state) => state.clearAuth)
   const location = useLocation()
   
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       // 🔧 调用认证服务清理 token 和 localStorage
       await authService.logout()
@@ -26,10 +29,10 @@ export function Header({ className }: HeaderProps) {
       // 跳转到登录页
       window.location.href = '/login'
     }
-  }
+  }, [clearAuth])
   
-  // 根据路径获取面包屑导航
-  const getBreadcrumb = () => {
+  // 根据路径获取面包屑导航 - 使用 useMemo 缓存
+  const breadcrumb = useMemo(() => {
     const path = location.pathname
     const pathMap: Record<string, { module: string; parent?: string; page: string }> = {
       '/': { module: '工作台', page: '仪表板' },
@@ -56,8 +59,9 @@ export function Header({ className }: HeaderProps) {
       return { module: '会议管理', parent: '会议列表', page: '编辑会议' }
     }
     
-    return pathMap[path] || { module: '工作台', page: '仪表板' }
-  }
+    const result = pathMap[path] || { module: '工作台', page: '仪表板' }
+    return result
+  }, [location.pathname])
   
   return (
     <header className={cn(
@@ -67,15 +71,15 @@ export function Header({ className }: HeaderProps) {
       {/* 面包屑导航 */}
       <div className="flex items-center gap-2">
         <nav className="flex items-center space-x-1 text-sm text-muted-foreground">
-          <span>{getBreadcrumb().module}</span>
+          <span>{breadcrumb.module}</span>
           <span>/</span>
-          {getBreadcrumb().parent && (
+          {breadcrumb.parent && (
             <>
-              <span>{getBreadcrumb().parent}</span>
+              <span>{breadcrumb.parent}</span>
               <span>/</span>
             </>
           )}
-          <span className="text-foreground">{getBreadcrumb().page}</span>
+          <span className="text-foreground">{breadcrumb.page}</span>
         </nav>
       </div>
       

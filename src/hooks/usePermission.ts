@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useAuth } from '@/store'
+import { useStore } from '@/store'
 import { permissionApi } from '@/services/permission'
 import type { MenuItem } from '@/types'
 
@@ -9,16 +9,15 @@ import type { MenuItem } from '@/types'
  * 统一管理用户权限和菜单配置
  */
 export function usePermission() {
-  const {
-    user,
-    permissions,
-    menuConfig,
-    setPermissions,
-    setMenuConfig,
-    hasPermission,
-    hasAnyPermission,
-    clearAuth
-  } = useAuth()
+  // ✅ 直接使用 useStore 选择器，避免 useAuth() 返回新对象导致重渲染
+  const user = useStore((state) => state.user)
+  const permissions = useStore((state) => state.permissions)
+  const menuConfig = useStore((state) => state.menuConfig)
+  const setPermissions = useStore((state) => state.setPermissions)
+  const setMenuConfig = useStore((state) => state.setMenuConfig)
+  const hasPermission = useStore((state) => state.hasPermission)
+  const hasAnyPermission = useStore((state) => state.hasAnyPermission)
+  const clearAuth = useStore((state) => state.clearAuth)
 
   // 获取用户菜单配置
   const { data: userMenuConfig, isLoading, isSuccess } = useQuery({

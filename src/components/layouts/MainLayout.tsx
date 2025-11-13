@@ -1,38 +1,36 @@
 import { Outlet } from 'react-router-dom'
 import { AppSidebar } from './AppSidebar'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
-import { usePermission } from '@/hooks/usePermission'
-import { useWSConnection } from '@/services/websocket'
 import { Separator } from '@/components/ui/Separator'
-import { Volume2, VolumeX } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
+import { SoundToggle } from './SoundToggle'
+import { SoundEffectManager } from './SoundEffectManager'
+import { PermissionInitializer } from './PermissionInitializer'
+import { WebSocketInitializer } from './WebSocketInitializer'
 import { useStore } from '@/store'
 import { authService } from '@/services/core/auth.service'
-import { soundManager } from '@/utils/sound'
 import { useLocation } from 'react-router-dom'
 import { getBreadcrumbFromMenu } from '@/utils/breadcrumb'
-import { useEffect } from 'react'
+import { useMemo, useCallback, memo } from 'react'
+import { shallow } from 'zustand/shallow'
 
-export function MainLayout() {
-  // 初始化权限数据和 WebSocket
-  const { menuConfig } = usePermission()
-  const user = useStore((state) => state.user)
-  const clearAuth = useStore((state) => state.clearAuth)
-  // 只订阅需要的状态，避免不必要的重渲染
-  const soundEnabled = useStore((state) => state.soundEnabled)
-  const toggleSound = useStore((state) => state.toggleSound)
+// ✅ 将选择器提取到组件外部，避免每次渲染创建新函数
+const selectMainLayoutState = (state: any) => ({
+  menuConfig: state.menuConfig,
+  user: state.user,
+  clearAuth: state.clearAuth,
+})
+
+// ✅ 使用 React.memo 包装，阻止父组件重渲染导致的不必要重渲染
+export const MainLayout = memo(function MainLayout() {
+  // ✅ 使用单个选择器 + shallow 比较
+  const { menuConfig, user, clearAuth } = useStore(selectMainLayoutState, shallow)
   const location = useLocation()
   
-  // 初始化 WebSocket 连接
-  useWSConnection()
+  // ✅ 移除 useWSConnection 调用，改用独立组件
   
-  // 同步音效状态到 soundManager
-  useEffect(() => {
-    soundManager.setEnabled(soundEnabled)
-  }, [soundEnabled])
-  
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await authService.logout()
     } catch (error) {
@@ -41,13 +39,24 @@ export function MainLayout() {
       clearAuth()
       window.location.href = '/login'
     }
-  }
+  }, [clearAuth])
   
-  // 从菜单配置动态生成面包屑
-  const breadcrumb = getBreadcrumbFromMenu(location.pathname, menuConfig)
+  // 从菜单配置动态生成面包屑 - 使用 useMemo 缓存结果
+  const breadcrumb = useMemo(() => 
+    getBreadcrumbFromMenu(location.pathname, menuConfig)
+  , [location.pathname, menuConfig])
   
   return (
     <SidebarProvider defaultOpen>
+      {/* 音效管理器 - 负责同步状态到 soundManager */}
+      <SoundEffectManager />
+      
+      {/* 权限初始化器 - 负责加载和设置权限配置 */}
+      <PermissionInitializer />
+      
+      {/* WebSocket 初始化器 - 负责初始化 WebSocket 连接 */}
+      <WebSocketInitializer />
+      
       <AppSidebar />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-3 bg-background p-4 sm:gap-4">
@@ -70,19 +79,8 @@ export function MainLayout() {
             
             {/* 右侧操作区 */}
             <div className="flex items-center gap-2">
-              {/* 音效开关 */}
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={toggleSound}
-                title={soundEnabled ? '关闭音效' : '开启音效'}
-              >
-                {soundEnabled ? (
-                  <Volume2 className="h-4 w-4" />
-                ) : (
-                  <VolumeX className="h-4 w-4" />
-                )}
-              </Button>
+              {/* 音效开关 - 使用独立组件，避免父组件重渲染 */}
+              <SoundToggle />
               
               {/* 主题切换 */}
               <ThemeSwitcher />
@@ -130,4 +128,4 @@ export function MainLayout() {
       </SidebarInset>
     </SidebarProvider>
   )
-}
+})  // ✅ memo 的闭合

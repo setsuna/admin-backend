@@ -25,10 +25,17 @@ import { deviceHandler, notificationHandler, meetingHandler } from '../handlers'
  * ```
  */
 export function useWSConnection() {
-  // ✅ 只订阅方法，不订阅状态
-  const user = useStore((state) => state.user)
-  const addNotification = useStore((state) => state.addNotification)
-  const updateDeviceStatus = useStore((state) => state.updateDeviceStatus)
+  // ✅ 使用 ref 存储回调函数，避免依赖变化
+  const userRef = useRef(useStore.getState().user)
+  const addNotificationRef = useRef(useStore.getState().addNotification)
+  const updateDeviceStatusRef = useRef(useStore.getState().updateDeviceStatus)
+  
+  // 同步最新的回调函数
+  useEffect(() => {
+    userRef.current = useStore.getState().user
+    addNotificationRef.current = useStore.getState().addNotification
+    updateDeviceStatusRef.current = useStore.getState().updateDeviceStatus
+  })
   
   const hasInitializedRef = useRef(false)
 
@@ -37,7 +44,7 @@ export function useWSConnection() {
     if (hasInitializedRef.current) return
     
     const token = localStorage.getItem('access_token')
-    if (!token || !user) {
+    if (!token || !userRef.current) {
       console.log('[WS] No token or user, skipping connection')
       return
     }
@@ -48,19 +55,19 @@ export function useWSConnection() {
     // 初始化音频
     soundManager.initialize()
 
-    // 配置处理器回调
+    // 配置处理器回调 - 使用 ref 避免闭包问题
     deviceHandler.setCallbacks({
       onDeviceStatusChange: (serialNumber, status) => {
-        updateDeviceStatus(serialNumber, status)
+        updateDeviceStatusRef.current(serialNumber, status)
       },
       onNotification: (notification) => {
-        addNotification(notification)
+        addNotificationRef.current(notification)
       }
     })
 
     notificationHandler.setCallbacks({
       onNotification: (notification) => {
-        addNotification(notification)
+        addNotificationRef.current(notification)
       }
     })
 
@@ -94,7 +101,7 @@ export function useWSConnection() {
       wsClient.disconnect()
       hasInitializedRef.current = false
     }
-  }, [user, addNotification, updateDeviceStatus])
+  }, [])  // ✅ 移除所有依赖，只初始化一次
 
   return {
     connectionState: wsClient.getConnectionState(),

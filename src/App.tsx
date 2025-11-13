@@ -15,7 +15,8 @@ import './styles/globals.css'
 
 function App() {
   const isDevelopment = import.meta.env.DEV
-  const { showAuthManagement } = useGlobalStore()
+  // ✅ 只订阅需要的方法，不使用 useGlobalStore()
+  const showAuthManagement = useGlobalStore((state) => state.showAuthManagement)
   
   useErrorHandler()
   
