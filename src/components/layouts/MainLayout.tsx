@@ -8,12 +8,15 @@ import { SoundToggle } from './SoundToggle'
 import { SoundEffectManager } from './SoundEffectManager'
 import { PermissionInitializer } from './PermissionInitializer'
 import { WebSocketInitializer } from './WebSocketInitializer'
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/Popover'
+import { ChangePasswordDialog } from '@/components/business/auth/ChangePasswordDialog'
 import { useStore } from '@/store'
 import { authService } from '@/services/core/auth.service'
 import { useLocation } from 'react-router-dom'
 import { getBreadcrumbFromMenu } from '@/utils/breadcrumb'
-import { useMemo, useCallback, memo } from 'react'
+import { useMemo, useCallback, memo, useState } from 'react'
 import { shallow } from 'zustand/shallow'
+import { KeyRound, ChevronDown } from 'lucide-react'
 
 // ✅ 将选择器提取到组件外部，避免每次渲染创建新函数
 const selectMainLayoutState = (state: any) => ({
@@ -28,7 +31,10 @@ export const MainLayout = memo(function MainLayout() {
   const { menuConfig, user, clearAuth } = useStore(selectMainLayoutState, shallow)
   const location = useLocation()
   
-  // ✅ 移除 useWSConnection 调用，改用独立组件
+  // 🆕 修改密码对话框状态
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false)
+  // 🆕 用户菜单 Popover 状态
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   
   const handleLogout = useCallback(async () => {
     try {
@@ -40,6 +46,12 @@ export const MainLayout = memo(function MainLayout() {
       window.location.href = '/login'
     }
   }, [clearAuth])
+  
+  // 🆕 打开修改密码对话框
+  const handleChangePassword = useCallback(() => {
+    setUserMenuOpen(false)
+    setChangePasswordOpen(true)
+  }, [])
   
   // 从菜单配置动态生成面包屑 - 使用 useMemo 缓存结果
   const breadcrumb = useMemo(() => 
@@ -88,16 +100,32 @@ export const MainLayout = memo(function MainLayout() {
               {/* 用户菜单 */}
               {user && (
                 <div className="flex items-center gap-3 pl-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">
-                      {user.username.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="hidden md:block">
-                      <div className="text-sm font-medium">{user.username}</div>
-                      <div className="text-xs text-muted-foreground">{user.role}</div>
-                    </div>
-                  </div>
+                  {/* 🆕 用户头像下拉菜单 */}
+                  <Popover open={userMenuOpen} onOpenChange={setUserMenuOpen}>
+                    <PopoverTrigger asChild>
+                      <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-accent transition-colors">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">
+                          {user.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="hidden md:block text-left">
+                          <div className="text-sm font-medium">{user.username}</div>
+                          <div className="text-xs text-muted-foreground">{user.role}</div>
+                        </div>
+                        <ChevronDown className="h-4 w-4 text-muted-foreground hidden md:block" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-48 p-1">
+                      <button
+                        onClick={handleChangePassword}
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
+                      >
+                        <KeyRound className="h-4 w-4" />
+                        <span>修改密码</span>
+                      </button>
+                    </PopoverContent>
+                  </Popover>
                   
+                  {/* 退出按钮 */}
                   <Button variant="ghost" size="icon" onClick={handleLogout}>
                     <span className="sr-only">退出登录</span>
                     <svg
@@ -126,6 +154,12 @@ export const MainLayout = memo(function MainLayout() {
           <Outlet />
         </main>
       </SidebarInset>
+      
+      {/* 🆕 修改密码对话框 */}
+      <ChangePasswordDialog
+        open={changePasswordOpen}
+        onClose={() => setChangePasswordOpen(false)}
+      />
     </SidebarProvider>
   )
 })  // ✅ memo 的闭合

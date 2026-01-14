@@ -110,6 +110,16 @@ class AuthService {
   }
 
   /**
+   * 🆕 修改密码（登录后使用）
+   */
+  async changePassword(params: {
+    old_password: string
+    new_password: string
+  }): Promise<void> {
+    await httpClient.post('/auth/change-password', params)
+  }
+
+  /**
    * 用户登出
    */
   async logout(): Promise<void> {
@@ -316,5 +326,13 @@ export const auth = {
     new_password: string
   }) {
     return authService.forceChangePassword(params)
+  },
+  
+  // 🆕 修改密码（登录后使用）
+  async changePassword(params: {
+    old_password: string
+    new_password: string
+  }) {
+    return authService.changePassword(params)
   }
 }
