@@ -99,6 +99,17 @@ class AuthService {
   }
 
   /**
+   * 🆕 强制修改密码（密码过期时使用）
+   */
+  async forceChangePassword(params: {
+    user_id: string
+    old_password: string
+    new_password: string
+  }): Promise<void> {
+    await httpClient.post('/auth/force-change-password', params)
+  }
+
+  /**
    * 用户登出
    */
   async logout(): Promise<void> {
@@ -296,5 +307,14 @@ export const auth = {
   
   getToken() {
     return authService.getToken()
+  },
+  
+  // 🆕 强制修改密码
+  async forceChangePassword(params: {
+    user_id: string
+    old_password: string
+    new_password: string
+  }) {
+    return authService.forceChangePassword(params)
   }
 }

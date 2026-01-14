@@ -7,9 +7,10 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { Logo } from '@/components/ui/Logo'
 import { useAuth } from '@/store'
 import { auth } from '@/services/core/auth.service'
-import { isDevelopment } from '@/config'
+import { isDevelopment, ERROR_CODES } from '@/config'
 import { useNotifications } from '@/hooks/useNotifications'
 import { encryptPassword } from '@/utils/crypto'
+import { ForceChangePasswordDialog } from '@/components/business/auth/ForceChangePasswordDialog'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -23,10 +24,21 @@ const LoginPage = () => {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   
+  // 🆕 密码过期对话框状态
+  const [passwordExpiredDialog, setPasswordExpiredDialog] = useState({
+    open: false,
+    userId: '',
+    username: ''
+  })
+  
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
+    }
+    // 清除登录错误
+    if (errors.login) {
+      setErrors(prev => ({ ...prev, login: '' }))
     }
   }
   
@@ -58,7 +70,6 @@ const LoginPage = () => {
         username: formData.username
       })
       
-      // 🔧 修复：使用统一的认证服务，错误会自动在全局拦截器中处理
       const result = await auth.login({
         username: formData.username,
         password: encryptPassword(formData.password)
@@ -66,34 +77,69 @@ const LoginPage = () => {
       
       console.log('Login success:', result)
       
-      // 🔧 完整更新 store：从 localStorage 读取包含 permissions 的完整用户信息
+      // 完整更新 store
       const userStr = localStorage.getItem('user')
       if (userStr) {
         const fullUser = JSON.parse(userStr)
         setUser(fullUser)
         setPermissions(fullUser.permissions || [])
       } else {
-        // 降级方案：使用返回的简化用户信息
         setUser(result.user as any)
         setPermissions([])
       }
       
-      // 显示成功消息
       showSuccess('登录成功', `欢迎回来，${result.user.username}!`)
-      
-      // 跳转到首页
       navigate('/')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error)
       
-      // 🔧 修复：错误信息已在全局拦截器中处理和显示
-      // 这里只需要处理本地状态，不再重复显示错误
+      const code = error?.code
+      const data = error?.data?.data || error?.data || {}
+      const message = error?.message
       
-      // 只有在特殊情况下（比如表单验证错误）才显示在表单中
-      if (error && typeof error === 'object' && 'code' in error) {
-        const errorCode = (error as any).code
-        if (errorCode === 1004) { // 表单验证错误
-          const validationErrors = (error as any).errors
+      // 🆕 根据错误码进行本地处理
+      switch (code) {
+        case ERROR_CODES.LOGIN_FAILED: {
+          // 2006 登录失败（密码错误，有剩余次数）
+          const remainingAttempts = data.remaining_attempts
+          if (remainingAttempts !== undefined) {
+            setErrors({ login: `用户名或密码错误，还剩 ${remainingAttempts} 次机会` })
+          } else {
+            setErrors({ login: message || '用户名或密码错误' })
+          }
+          break
+        }
+        
+        case ERROR_CODES.USER_NOT_FOUND: {
+          // 2007 用户不存在
+          setErrors({ login: message || '用户不存在' })
+          break
+        }
+        
+        case ERROR_CODES.ACCOUNT_LOCKED: {
+          // 2010 账户已锁定
+          const remainingSeconds = data.remaining_seconds
+          if (remainingSeconds !== undefined) {
+            setErrors({ login: `账户已锁定，请 ${remainingSeconds} 秒后重试` })
+          } else {
+            setErrors({ login: message || '账户已锁定，请稍后重试' })
+          }
+          break
+        }
+        
+        case ERROR_CODES.PASSWORD_EXPIRED: {
+          // 2011 密码过期 - 打开修改密码对话框
+          setPasswordExpiredDialog({
+            open: true,
+            userId: data.user_id || '',
+            username: data.username || formData.username
+          })
+          break
+        }
+        
+        case ERROR_CODES.VALIDATION_ERROR: {
+          // 1004 表单验证错误
+          const validationErrors = error?.errors
           if (validationErrors && Array.isArray(validationErrors)) {
             const formErrors: Record<string, string> = {}
             validationErrors.forEach((err: any) => {
@@ -102,19 +148,31 @@ const LoginPage = () => {
               }
             })
             setErrors(formErrors)
+          } else {
+            setErrors({ login: message || '输入数据验证失败' })
           }
+          break
         }
+        
+        default:
+          // 其他错误（网络错误等）- 已在全局拦截器中处理，这里不重复显示
+          break
       }
-      
-      // 其他错误不在这里处理，由全局错误处理系统显示
     } finally {
       setLoading(false)
     }
   }
   
+  // 🆕 密码修改成功回调
+  const handlePasswordChangeSuccess = () => {
+    setPasswordExpiredDialog({ open: false, userId: '', username: '' })
+    // 清空密码输入框，让用户用新密码重新登录
+    setFormData(prev => ({ ...prev, password: '' }))
+    setErrors({ login: '密码已更新，请使用新密码登录' })
+  }
+  
   // 获取测试账号提示
   const getTestAccountHints = () => {
-    // 只有在开发环境下才显示测试账号
     if (!isDevelopment()) {
       return null
     }
@@ -133,16 +191,14 @@ const LoginPage = () => {
     <div className="min-h-screen bg-bg-page flex flex-col relative overflow-hidden">
       {/* 装饰性背景元素 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* 渐变圆形装饰 - 左上 */}
         <div className="absolute -top-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl"></div>
-        {/* 渐变圆形装饰 - 右下 */}
         <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-primary/8 rounded-full blur-3xl"></div>
       </div>
       
       {/* 主内容区域 */}
       <div className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
         <div className="w-full max-w-md">
-          {/* Logo 和产品名称 - 移到卡片外 */}
+          {/* Logo 和产品名称 */}
           <div className="text-center mb-6">
             <div className="flex justify-center mb-3">
               <Logo size="lg" className="drop-shadow-lg" />
@@ -208,6 +264,13 @@ const LoginPage = () => {
                 </div>
               </div>
               
+              {/* 🆕 登录错误显示 */}
+              {errors.login && (
+                <div className="text-sm text-error bg-error/10 p-3 rounded-md border border-error/30">
+                  {errors.login}
+                </div>
+              )}
+              
               {errors.submit && (
                 <div className="text-sm text-error bg-error/10 p-3 rounded-md border border-error/30">
                   {errors.submit}
@@ -236,6 +299,15 @@ const LoginPage = () => {
           {import.meta.env.VITE_COMPANY_NAME} | v{import.meta.env.VITE_APP_VERSION}
         </p>
       </footer>
+      
+      {/* 🆕 强制修改密码对话框 */}
+      <ForceChangePasswordDialog
+        open={passwordExpiredDialog.open}
+        onClose={() => setPasswordExpiredDialog({ open: false, userId: '', username: '' })}
+        onSuccess={handlePasswordChangeSuccess}
+        userId={passwordExpiredDialog.userId}
+        username={passwordExpiredDialog.username}
+      />
     </div>
   )
 }

@@ -3,7 +3,7 @@
  */
 
 import { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios'
-import { HTTP_STATUS, JWT_CONFIG, ERROR_CODES, getErrorCategory, needsAutoLogin, getErrorMessage } from '@/config'
+import { HTTP_STATUS, JWT_CONFIG, ERROR_CODES, getErrorCategory, needsAutoLogin, getErrorMessage, isLoginLocalError, isChangePasswordLocalError } from '@/config'
 import type { ApiResponse, ValidationError } from '@/types/api/response.types'
 import { errorHandler } from './error.handler'
 // 使用统一的认证服务
@@ -172,6 +172,11 @@ async function handleApiError(
   requestId?: string,
   fullData?: any  // 🆕 添加完整的响应数据
 ) {
+  // 🆕 登录页/修改密码页本地处理的错误码，不走全局通知
+  if (isLoginLocalError(code) || isChangePasswordLocalError(code)) {
+    return
+  }
+  
   const category = getErrorCategory(code)
   const userMessage = getErrorMessage(code, message)
   

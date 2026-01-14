@@ -280,9 +280,12 @@ export const ERROR_CODES = {
   PERMISSION_DENIED: 2004,
   ACCESS_DENIED: 2005,
   LOGIN_FAILED: 2006,
-  USER_NOT_EXIST: 2007,
-  PASSWORD_ERROR: 2008,
+  USER_NOT_FOUND: 2007,
+  PASSWORD_INVALID: 2008,
   REFRESH_TOKEN_INVALID: 2009,
+  ACCOUNT_LOCKED: 2010,
+  PASSWORD_EXPIRED: 2011,
+  PASSWORD_WEAK: 2012,
   
   // 3️⃣ 文件操作错误码 (3xxx)
   FILE_NOT_EXIST: 3001,
@@ -349,6 +352,22 @@ export const AUTH_REDIRECT_CODES = [2001, 2002, 2003, 2009] as const
 // 🆕 需要重试的错误码
 export const RETRYABLE_ERROR_CODES = [9001, 9002, 9003] as const
 
+// 🆕 登录页本地处理的错误码（不走全局通知）
+export const LOGIN_LOCAL_ERROR_CODES = [2006, 2007, 2010, 2011] as const
+
+// 🆕 修改密码本地处理的错误码
+export const CHANGE_PASSWORD_LOCAL_ERROR_CODES = [2008, 2012] as const
+
+// 🆕 检查是否为登录页本地处理的错误
+export const isLoginLocalError = (code: number): boolean => {
+  return LOGIN_LOCAL_ERROR_CODES.includes(code as any)
+}
+
+// 🆕 检查是否为修改密码本地处理的错误
+export const isChangePasswordLocalError = (code: number): boolean => {
+  return CHANGE_PASSWORD_LOCAL_ERROR_CODES.includes(code as any)
+}
+
 // 🆕 用户友好的错误信息映射
 export const ERROR_MESSAGES = {
   // 通用错误 1xxx
@@ -365,8 +384,11 @@ export const ERROR_MESSAGES = {
   2005: '访问被拒绝',
   2006: '用户名或密码错误',
   2007: '用户不存在',
-  2008: '密码错误',
+  2008: '原密码错误',
   2009: '刷新令牌无效，请重新登录',
+  2010: '账户已锁定',
+  2011: '密码已过期，请修改密码',
+  2012: '密码强度不足',
   
   // 文件错误 3xxx
   3001: '文件不存在或已被删除',
