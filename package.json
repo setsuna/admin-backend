@@ -36,6 +36,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.0.0",
     "js-yaml": "^4.1.0",
+    "jsencrypt": "^3.5.4",
     "lucide-react": "^0.294.0",
     "qrcode": "^1.5.3",
     "react": "^18.2.0",

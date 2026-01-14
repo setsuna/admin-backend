@@ -9,6 +9,7 @@ import { useAuth } from '@/store'
 import { auth } from '@/services/core/auth.service'
 import { isDevelopment } from '@/config'
 import { useNotifications } from '@/hooks/useNotifications'
+import { encryptPassword } from '@/utils/crypto'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -60,7 +61,7 @@ const LoginPage = () => {
       // 🔧 修复：使用统一的认证服务，错误会自动在全局拦截器中处理
       const result = await auth.login({
         username: formData.username,
-        password: formData.password
+        password: encryptPassword(formData.password)
       })
       
       console.log('Login success:', result)
