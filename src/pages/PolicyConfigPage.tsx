@@ -274,9 +274,6 @@ const PolicyConfigPage = () => {
                 onValueChange={(value) => updatePolicyField('systemSecurityLevel', value)}
                 options={systemSecurityLevelOptions}
               />
-              <p className="text-xs text-gray-500 mt-1">
-                系统整体安全等级，只能向上调整，不可降级
-              </p>
             </div>
             
             <div>
