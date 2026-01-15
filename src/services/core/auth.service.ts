@@ -32,7 +32,7 @@ class AuthService {
       console.log('[认证服务] 登录响应:', response)
       
       // 🆕 适配新的数据结构
-      const { access_token, refresh_token, expires_in, user } = response
+      const { access_token, refresh_token, expires_in, session_timeout_minutes, user } = response
       
       if (!access_token || !user) {
         throw new Error('登录响应数据不完整')
@@ -69,6 +69,7 @@ class AuthService {
         refresh_token,
         token_type: 'Bearer',
         expires_in,
+        session_timeout_minutes,
         user
       }
       
@@ -78,6 +79,11 @@ class AuthService {
       this.currentUser = userInfo
       
       localStorage.setItem('user', JSON.stringify(userInfo))
+      
+      // 🆕 保存会话超时时间
+      if (session_timeout_minutes) {
+        localStorage.setItem('session_timeout_minutes', String(session_timeout_minutes))
+      }
       
       // 🔧 Store 更新由调用者负责（LoginPage 等组件）
       // 这样避免了循环依赖和动态导入警告
@@ -276,6 +282,7 @@ class AuthService {
     localStorage.removeItem(this.tokenKey)
     localStorage.removeItem(this.refreshTokenKey)
     localStorage.removeItem('user')
+    localStorage.removeItem('session_timeout_minutes')
     this.currentUser = null
   }
 }

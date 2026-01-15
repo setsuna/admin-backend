@@ -8,6 +8,7 @@ import { SoundToggle } from './SoundToggle'
 import { SoundEffectManager } from './SoundEffectManager'
 import { PermissionInitializer } from './PermissionInitializer'
 import { WebSocketInitializer } from './WebSocketInitializer'
+import { IdleTimeoutManager } from './IdleTimeoutManager'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/Popover'
 import { ChangePasswordDialog } from '@/components/business/auth/ChangePasswordDialog'
 import { useStore } from '@/store'
@@ -68,6 +69,9 @@ export const MainLayout = memo(function MainLayout() {
       
       {/* WebSocket 初始化器 - 负责初始化 WebSocket 连接 */}
       <WebSocketInitializer />
+      
+      {/* 空闲超时管理器 - 负责监听用户活动并在超时后登出 */}
+      <IdleTimeoutManager />
       
       <AppSidebar />
       <SidebarInset>
