@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, KeyboardEvent } from 'react'
-import { Save, RefreshCw, Shield, Clock, Key, Lock, FileText, Monitor, AlertTriangle, Settings } from 'lucide-react'
+import { Save, RefreshCw, Shield, Clock, Key, FileText, Monitor, AlertTriangle, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -52,6 +52,16 @@ const PolicyConfigPage = () => {
     { label: '最小化', value: 'minimal' },
     { label: '标准', value: 'standard' },
     { label: '详细', value: 'detailed' }
+  ]
+  
+  // 文件存储周期选项
+  const fileRetentionOptions = [
+    { label: '30天', value: '30' },
+    { label: '60天', value: '60' },
+    { label: '90天', value: '90' },
+    { label: '180天', value: '180' },
+    { label: '365天', value: '365' },
+    { label: '永久', value: '0' }
   ]
   
   // 标签输入组件
@@ -276,17 +286,7 @@ const PolicyConfigPage = () => {
               />
             </div>
             
-            <div>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={!policy.allowSecurityDowngrade}
-                  onChange={(e) => updatePolicyField('allowSecurityDowngrade', !e.target.checked)}
-                  className="rounded"
-                />
-                <span className="text-sm">禁止密级降级</span>
-              </label>
-            </div>
+            {/* 禁止密级降级 - 已隐藏 */}
           </CardContent>
         </Card>
         
@@ -300,14 +300,13 @@ const PolicyConfigPage = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">服务器文件存储周期 (天)</label>
-              <Input
-                type="number"
-                value={policy.serverFileRetentionDays}
-                onChange={(e) => updatePolicyField('serverFileRetentionDays', parseInt(e.target.value) || 90)}
-                min="1"
-                max="3650"
+              <label className="block text-sm font-medium mb-2">服务器文件存储周期</label>
+              <Select
+                value={String(policy.serverFileRetentionDays)}
+                onValueChange={(value) => updatePolicyField('serverFileRetentionDays', parseInt(value))}
+                options={fileRetentionOptions}
               />
+              <p className="text-xs text-gray-500 mt-1">选择"永久"表示文件永不过期</p>
             </div>
             
             <div>
@@ -341,17 +340,7 @@ const PolicyConfigPage = () => {
               />
             </div>
             
-            <div>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={policy.fileEncryptionEnabled}
-                  onChange={(e) => updatePolicyField('fileEncryptionEnabled', e.target.checked)}
-                  className="rounded"
-                />
-                <span className="text-sm">启用文件加密存储</span>
-              </label>
-            </div>
+            {/* 启用文件加密存储 - 已隐藏 */}
           </CardContent>
         </Card>
         
@@ -370,10 +359,16 @@ const PolicyConfigPage = () => {
                 <Input
                   type="number"
                   value={policy.passwordPolicy.minLength}
-                  onChange={(e) => updatePolicyField('passwordPolicy.minLength', parseInt(e.target.value) || 8)}
-                  min="6"
-                  max="32"
+                  onChange={(e) => {
+                    let val = parseInt(e.target.value) || 8
+                    if (val < 8) val = 8
+                    if (val > 15) val = 15
+                    updatePolicyField('passwordPolicy.minLength', val)
+                  }}
+                  min="8"
+                  max="15"
                 />
+                <p className="text-xs text-gray-500 mt-1">范围：8-15</p>
               </div>
               
               <div>
@@ -381,10 +376,16 @@ const PolicyConfigPage = () => {
                 <Input
                   type="number"
                   value={policy.passwordPolicy.changeIntervalDays}
-                  onChange={(e) => updatePolicyField('passwordPolicy.changeIntervalDays', parseInt(e.target.value) || 90)}
-                  min="30"
-                  max="365"
+                  onChange={(e) => {
+                    let val = parseInt(e.target.value) || 30
+                    if (val < 1) val = 1
+                    if (val > 30) val = 30
+                    updatePolicyField('passwordPolicy.changeIntervalDays', val)
+                  }}
+                  min="1"
+                  max="30"
                 />
+                <p className="text-xs text-gray-500 mt-1">最大30天</p>
               </div>
             </div>
             
@@ -394,10 +395,16 @@ const PolicyConfigPage = () => {
                 <Input
                   type="number"
                   value={policy.passwordPolicy.maxFailAttempts}
-                  onChange={(e) => updatePolicyField('passwordPolicy.maxFailAttempts', parseInt(e.target.value) || 5)}
-                  min="3"
-                  max="10"
+                  onChange={(e) => {
+                    let val = parseInt(e.target.value) || 3
+                    if (val < 1) val = 1
+                    if (val > 5) val = 5
+                    updatePolicyField('passwordPolicy.maxFailAttempts', val)
+                  }}
+                  min="1"
+                  max="5"
                 />
+                <p className="text-xs text-gray-500 mt-1">最大5次</p>
               </div>
               
               <div>
@@ -468,16 +475,7 @@ const PolicyConfigPage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">会话超时时间 (分钟)</label>
-              <Input
-                type="number"
-                value={policy.sessionTimeoutMinutes}
-                onChange={(e) => updatePolicyField('sessionTimeoutMinutes', parseInt(e.target.value) || 480)}
-                min="5"
-                max="1440"
-              />
-            </div>
+            {/* 会话超时时间 - 已隐藏 */}
             
             <div>
               <label className="block text-sm font-medium mb-2">空闲锁定时间 (分钟)</label>
@@ -490,129 +488,13 @@ const PolicyConfigPage = () => {
               />
             </div>
             
-            <div>
-              <label className="block text-sm font-medium mb-2">最大并发会话数</label>
-              <Input
-                type="number"
-                value={policy.maxConcurrentSessions}
-                onChange={(e) => updatePolicyField('maxConcurrentSessions', parseInt(e.target.value) || 3)}
-                min="1"
-                max="10"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={policy.rememberPasswordEnabled}
-                  onChange={(e) => updatePolicyField('rememberPasswordEnabled', e.target.checked)}
-                  className="rounded"
-                />
-                <span className="text-sm">允许记住密码</span>
-              </label>
-              
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={policy.singleSignOnEnabled}
-                  onChange={(e) => updatePolicyField('singleSignOnEnabled', e.target.checked)}
-                  className="rounded"
-                />
-                <span className="text-sm">启用单点登录</span>
-              </label>
-            </div>
+            {/* 最大并发会话数 - 已隐藏 */}
+            {/* 允许记住密码 - 已隐藏 */}
+            {/* 启用单点登录 - 已隐藏 */}
           </CardContent>
         </Card>
         
-        {/* 访问控制策略 */}
-        <Card className="break-inside-avoid mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Lock className="w-5 h-5 mr-2" />
-              访问控制策略
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="flex items-center space-x-2 mb-2">
-                <input
-                  type="checkbox"
-                  checked={policy.allowedLoginHours.enabled}
-                  onChange={(e) => updatePolicyField('allowedLoginHours.enabled', e.target.checked)}
-                  className="rounded"
-                />
-                <span className="text-sm font-medium">限制登录时间段</span>
-              </label>
-              
-              {policy.allowedLoginHours.enabled && (
-                <div className="grid grid-cols-2 gap-4 ml-6">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">开始时间</label>
-                    <Input
-                      type="time"
-                      value={policy.allowedLoginHours.start}
-                      onChange={(e) => updatePolicyField('allowedLoginHours.start', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">结束时间</label>
-                    <Input
-                      type="time"
-                      value={policy.allowedLoginHours.end}
-                      onChange={(e) => updatePolicyField('allowedLoginHours.end', e.target.value)}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            <div>
-              <label className="flex items-center space-x-2 mb-2">
-                <input
-                  type="checkbox"
-                  checked={policy.ipWhitelistEnabled}
-                  onChange={(e) => updatePolicyField('ipWhitelistEnabled', e.target.checked)}
-                  className="rounded"
-                />
-                <span className="text-sm font-medium">启用IP白名单</span>
-              </label>
-              
-              {policy.ipWhitelistEnabled && (
-                <div className="ml-6">
-                  <label className="block text-sm font-medium mb-2">IP白名单</label>
-                  <TagInput
-                    value={policy.ipWhitelist}
-                    onChange={(value) => updatePolicyField('ipWhitelist', value)}
-                    placeholder="输入IP地址后按回车"
-                  />
-                </div>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={policy.deviceBindingEnabled}
-                  onChange={(e) => updatePolicyField('deviceBindingEnabled', e.target.checked)}
-                  className="rounded"
-                />
-                <span className="text-sm">启用设备绑定</span>
-              </label>
-              
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={policy.geoLocationRestricted}
-                  onChange={(e) => updatePolicyField('geoLocationRestricted', e.target.checked)}
-                  className="rounded"
-                />
-                <span className="text-sm">启用地理位置限制</span>
-              </label>
-            </div>
-          </CardContent>
-        </Card>
+        {/* 访问控制策略 - 已隐藏 */}
         
         {/* 审计策略 */}
         <Card className="break-inside-avoid mb-6">
@@ -657,72 +539,7 @@ const PolicyConfigPage = () => {
           </CardContent>
         </Card>
         
-        {/* 系统维护策略 */}
-        <Card className="break-inside-avoid mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Settings className="w-5 h-5 mr-2" />
-              系统维护策略
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="flex items-center space-x-2 mb-2">
-                <input
-                  type="checkbox"
-                  checked={policy.maintenanceWindow.enabled}
-                  onChange={(e) => updatePolicyField('maintenanceWindow.enabled', e.target.checked)}
-                  className="rounded"
-                />
-                <span className="text-sm font-medium">设置维护时间窗口</span>
-              </label>
-              
-              {policy.maintenanceWindow.enabled && (
-                <div className="grid grid-cols-2 gap-4 ml-6">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">开始时间</label>
-                    <Input
-                      type="time"
-                      value={policy.maintenanceWindow.start}
-                      onChange={(e) => updatePolicyField('maintenanceWindow.start', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">结束时间</label>
-                    <Input
-                      type="time"
-                      value={policy.maintenanceWindow.end}
-                      onChange={(e) => updatePolicyField('maintenanceWindow.end', e.target.value)}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            <div>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={policy.autoBackupEnabled}
-                  onChange={(e) => updatePolicyField('autoBackupEnabled', e.target.checked)}
-                  className="rounded"
-                />
-                <span className="text-sm">启用自动备份</span>
-              </label>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">备份保留时间 (天)</label>
-              <Input
-                type="number"
-                value={policy.backupRetentionDays}
-                onChange={(e) => updatePolicyField('backupRetentionDays', parseInt(e.target.value) || 30)}
-                min="7"
-                max="365"
-              />
-            </div>
-          </CardContent>
-        </Card>
+        {/* 系统维护策略 - 已隐藏 */}
       </div>
     </div>
   )
