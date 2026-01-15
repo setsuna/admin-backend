@@ -11,13 +11,13 @@ import { QueryClient } from '@tanstack/react-query'
  */
 export const defaultQueryOptions = {
   queries: {
-    // 数据保持新鲜的时间（5分钟）
-    // 在此时间内，数据被视为新鲜，不会重新请求
-    staleTime: 5 * 60 * 1000,
+    // 数据立即过期
+    // 确保 invalidateQueries 后能立即重新获取数据
+    staleTime: 0,
     
-    // 缓存保留时间（10分钟）
-    // TanStack Query v5 使用 gcTime 替代 cacheTime
-    gcTime: 10 * 60 * 1000,
+    // 缓存保留时间（5分钟）
+    // 离开页面后缓存保留时间，避免短时间内重复请求
+    gcTime: 5 * 60 * 1000,
     
     // 失败重试次数
     retry: 1,
@@ -26,12 +26,12 @@ export const defaultQueryOptions = {
     // 避免用户切换标签页时频繁请求
     refetchOnWindowFocus: false,
     
-    // 网络重连时不自动刷新
-    refetchOnReconnect: false,
+    // 网络重连时自动刷新
+    refetchOnReconnect: true,
     
-    // 组件重新挂载时不自动刷新
-    // 确保不会因为路由切换而重新请求
-    refetchOnMount: false,
+    // 组件挂载时自动刷新（如果数据 stale）
+    // 确保返回列表页时能获取最新数据
+    refetchOnMount: true,
   },
 }
 
