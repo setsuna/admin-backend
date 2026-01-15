@@ -35,7 +35,6 @@ export interface LoginResponse {
   refresh_token: string
   token_type: string
   expires_in: number
-  session_timeout_minutes?: number  // 会话空闲超时时间（分钟）
   user: {
     id: string
     username: string
