@@ -12,15 +12,15 @@ import { useNotifications } from '@/hooks/useNotifications'
 import { DialogComponents } from '@/components/ui/DialogComponents'
 import { useDevices } from '@/hooks/useDevices'
 import type { 
-  Device, 
-  DeviceFilters, 
-  DeviceStatus, 
+  ManagedDevice, 
+  ManagedDeviceFilters, 
+  ManagedDeviceStatus, 
   UpdateDeviceRequest,
   TableColumn 
 } from '@/types'
 
 // 设备状态配置
-const statusConfig: Record<DeviceStatus, { label: string; color: string; bgColor: string }> = {
+const statusConfig: Record<ManagedDeviceStatus, { label: string; color: string; bgColor: string }> = {
   '-1': { label: '未注册', color: 'text-orange-600', bgColor: 'bg-orange-100' },
   0: { label: '离线', color: 'text-gray-600', bgColor: 'bg-gray-100' },
   1: { label: '在线', color: 'text-green-600', bgColor: 'bg-green-100' },
@@ -35,7 +35,7 @@ const DeviceListPage: React.FC = () => {
 
   // 搜索和筛选状态
   const [searchText, setSearchText] = useState('')
-  const [statusFilter, setStatusFilter] = useState<DeviceStatus | ''>('')
+  const [statusFilter, setStatusFilter] = useState<ManagedDeviceStatus | ''>('')
   const [pagination, setPagination] = useState({
     page: 1,
     pageSize: 20,
@@ -43,7 +43,7 @@ const DeviceListPage: React.FC = () => {
 
   // 弹窗状态
   const [modalOpen, setModalOpen] = useState(false)
-  const [editingDevice, setEditingDevice] = useState<Device | null>(null)
+  const [editingDevice, setEditingDevice] = useState<ManagedDevice | null>(null)
   const [formData, setFormData] = useState({
     serial_number: '',
     number: undefined as number | undefined,
@@ -60,7 +60,7 @@ const DeviceListPage: React.FC = () => {
   }, 500)
 
   // 构建筛选条件
-  const filters: DeviceFilters = {
+  const filters: ManagedDeviceFilters = {
     keyword: searchText || undefined,
     status: statusFilter !== '' ? statusFilter : undefined,
   }
@@ -78,7 +78,7 @@ const DeviceListPage: React.FC = () => {
   }
 
   // 打开编辑弹窗
-  const handleEdit = (device: Device) => {
+  const handleEdit = (device: ManagedDevice) => {
     setEditingDevice(device)
     setFormData({
       serial_number: device.serialNumber,
@@ -120,7 +120,7 @@ const DeviceListPage: React.FC = () => {
   }
 
   // 删除设备
-  const handleDelete = async (device: Device) => {
+  const handleDelete = async (device: ManagedDevice) => {
     const confirmed = await dialog.confirm({
       title: '删除设备',
       message: `确定要删除设备「${device.serialNumber}」吗？`,
@@ -142,7 +142,7 @@ const DeviceListPage: React.FC = () => {
   }
 
   // 渲染状态标签
-  const renderStatus = (status: DeviceStatus) => {
+  const renderStatus = (status: ManagedDeviceStatus) => {
     const config = statusConfig[status]
     return (
       <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${config.bgColor} ${config.color}`}>
@@ -153,7 +153,7 @@ const DeviceListPage: React.FC = () => {
   }
 
   // 表格列定义
-  const columns: TableColumn<Device>[] = [
+  const columns: TableColumn<ManagedDevice>[] = [
     {
       key: 'serialNumber',
       title: '序列号',
@@ -186,7 +186,7 @@ const DeviceListPage: React.FC = () => {
       key: 'status',
       title: '状态',
       width: 100,
-      render: (status: DeviceStatus) => renderStatus(status),
+      render: (status: ManagedDeviceStatus) => renderStatus(status),
     },
     {
       key: 'lastLogin',
@@ -242,7 +242,7 @@ const DeviceListPage: React.FC = () => {
           <select
             value={statusFilter}
             onChange={(e) => {
-              setStatusFilter(e.target.value !== '' ? Number(e.target.value) as DeviceStatus : '')
+              setStatusFilter(e.target.value !== '' ? Number(e.target.value) as ManagedDeviceStatus : '')
               setPagination(prev => ({ ...prev, page: 1 }))
             }}
             className="rounded-md border bg-background px-3 py-2 text-sm"

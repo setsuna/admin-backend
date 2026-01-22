@@ -5,8 +5,8 @@
 import { httpClient } from '@/services/core/http.client'
 import { API_PATHS } from '@/config'
 import type {
-  Device,
-  DeviceFilters,
+  ManagedDevice,
+  ManagedDeviceFilters,
   CreateDeviceRequest,
   UpdateDeviceRequest,
   UpdateDeviceStatusRequest,
@@ -48,12 +48,12 @@ interface DeviceResponse {
 /**
  * 转换后端响应为前端类型
  */
-function transformDevice(data: DeviceResponse): Device {
+function transformDevice(data: DeviceResponse): ManagedDevice {
   return {
     id: data.id,
     code: data.code,
     serialNumber: data.serial_number,
-    type: data.type as Device['type'],
+    type: data.type as ManagedDevice['type'],
     typeName: data.type_name,
     number: data.number,
     department: data.department,
@@ -69,7 +69,7 @@ function transformDevice(data: DeviceResponse): Device {
     screenHeight: data.screen_height,
     screenImgExt: data.screen_img_ext,
     ctrlCode: data.ctrl_code,
-    status: data.status as Device['status'],
+    status: data.status as ManagedDevice['status'],
     statusName: data.status_name,
     isDeleted: data.is_deleted,
     authCode: data.auth_code,
@@ -85,10 +85,10 @@ export class DeviceApiService {
    * 获取设备列表
    */
   async getDevices(
-    filters: DeviceFilters = {},
+    filters: ManagedDeviceFilters = {},
     page: number = 1,
     pageSize: number = 20
-  ): Promise<PaginatedResponse<Device>> {
+  ): Promise<PaginatedResponse<ManagedDevice>> {
     const response = await httpClient.get<PaginatedResponse<DeviceResponse>>(this.basePath, {
       keyword: filters.keyword,
       type: filters.type,
@@ -106,7 +106,7 @@ export class DeviceApiService {
   /**
    * 获取单个设备详情
    */
-  async getDevice(id: number): Promise<Device> {
+  async getDevice(id: number): Promise<ManagedDevice> {
     const response = await httpClient.get<DeviceResponse>(`${this.basePath}/${id}`)
     return transformDevice(response)
   }
@@ -114,7 +114,7 @@ export class DeviceApiService {
   /**
    * 创建设备
    */
-  async createDevice(data: CreateDeviceRequest): Promise<Device> {
+  async createDevice(data: CreateDeviceRequest): Promise<ManagedDevice> {
     const response = await httpClient.post<DeviceResponse>(this.basePath, data)
     return transformDevice(response)
   }
@@ -122,7 +122,7 @@ export class DeviceApiService {
   /**
    * 更新设备信息
    */
-  async updateDevice(id: number, data: UpdateDeviceRequest): Promise<Device> {
+  async updateDevice(id: number, data: UpdateDeviceRequest): Promise<ManagedDevice> {
     const response = await httpClient.put<DeviceResponse>(`${this.basePath}/${id}`, data)
     return transformDevice(response)
   }

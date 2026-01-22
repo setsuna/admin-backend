@@ -13,7 +13,7 @@ import { deviceApi, sseService } from '@/services'
 import { syncApi } from '@/services/api/sync.api'
 import { BatchSyncPanel } from '@/components/business/sync/BatchSyncPanel'
 import type { 
-  OnlineDevice,
+  ManagedDevice,
   SubTaskInfo,
   BatchSyncInfo,
   BatchTaskInfo
@@ -30,11 +30,11 @@ export default function MeetingSyncPage() {
 
   // 获取设备列表
   const { data: devicesData, isLoading: isDevicesLoading, refetch: refetchDevices } = useQuery({
-    queryKey: ['online-devices'],
-    queryFn: () => deviceApi.getOnlineDevices({ page: 1, size: 100 }),
+    queryKey: ['devices-for-sync'],
+    queryFn: () => deviceApi.getDevices({}, 1, 100),
   })
 
-  const devices: OnlineDevice[] = devicesData?.items || []
+  const devices: ManagedDevice[] = devicesData?.items || []
 
   // 设备排序：在线状态优先显示在最上面
   const sortedDevices = useMemo(() => {
@@ -42,7 +42,7 @@ export default function MeetingSyncPage() {
       if (a.status !== b.status) {
         return b.status - a.status
       }
-      return a.serial_number.localeCompare(b.serial_number)
+      return a.serialNumber.localeCompare(b.serialNumber)
     })
   }, [devices])
 
@@ -288,7 +288,7 @@ export default function MeetingSyncPage() {
   }
 
   const handleDeviceSelect = (deviceId: string) => {
-    const device = devices.find(d => d.serial_number === deviceId)
+    const device = devices.find(d => d.serialNumber === deviceId)
     // 只能选择在线设备（status === 1）
     if (!device || device.status !== 1) {
       return
@@ -307,7 +307,7 @@ export default function MeetingSyncPage() {
     if (selectedDeviceIds.length === onlineDevices.length) {
       setSelectedDeviceIds([])
     } else {
-      setSelectedDeviceIds(onlineDevices.map(d => d.serial_number))
+      setSelectedDeviceIds(onlineDevices.map(d => d.serialNumber))
     }
   }
 
@@ -568,33 +568,33 @@ export default function MeetingSyncPage() {
                       
                       return (
                         <Card
-                          key={device.serial_number}
+                          key={device.serialNumber}
                           className={`p-3 transition-all ${
-                            selectedDeviceIds.includes(device.serial_number)
+                            selectedDeviceIds.includes(device.serialNumber)
                               ? 'border-primary bg-primary/5'
                               : ''
                           } ${!canSelect ? 'opacity-50' : 'cursor-pointer'}`}
                           hover={canSelect ? 'border' : undefined}
-                          onClick={() => canSelect && handleDeviceSelect(device.serial_number)}
+                          onClick={() => canSelect && handleDeviceSelect(device.serialNumber)}
                         >
                           <div className="flex items-center gap-3">
                             <Checkbox
-                              checked={selectedDeviceIds.includes(device.serial_number)}
+                              checked={selectedDeviceIds.includes(device.serialNumber)}
                               onChange={() => {}}
                               disabled={!canSelect}
                             />
                             <div className="flex-1 min-w-0 space-y-1">
                               <div className="flex items-center gap-2">
-                                <span className="font-medium text-sm truncate">{device.serial_number}</span>
+                                <span className="font-medium text-sm truncate">{device.serialNumber}</span>
                                 <Badge variant={statusVariant} className="flex items-center gap-1 shrink-0">
                                   {isOnline && <Cable className="w-3 h-3" />}
                                   {device.status === 0 && <Unplug className="w-3 h-3" />}
-                                  {device.status_name}
+                                  {device.statusName}
                                 </Badge>
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                最后在线: {device.last_login 
-                                  ? new Date(device.last_login).toLocaleString('zh-CN', {
+                                最后在线: {device.lastLogin 
+                                  ? new Date(device.lastLogin).toLocaleString('zh-CN', {
                                       month: '2-digit',
                                       day: '2-digit',
                                       hour: '2-digit',

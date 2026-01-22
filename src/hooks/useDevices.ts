@@ -6,7 +6,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { deviceApi } from '@/services/api/device.api'
-import type { Device, DeviceFilters } from '@/types'
+import type { ManagedDevice, ManagedDeviceFilters } from '@/types'
 
 /**
  * Hook 配置选项
@@ -23,7 +23,7 @@ interface UseDevicesOptions {
  */
 interface UseDevicesResult {
   /** 设备列表数据 */
-  devices: Device[]
+  devices: ManagedDevice[]
   /** 总记录数 */
   total: number
   /** 是否正在加载 */
@@ -58,7 +58,7 @@ interface UseDevicesResult {
  * ```
  */
 export function useDevices(
-  filters: DeviceFilters,
+  filters: ManagedDeviceFilters,
   page: number,
   pageSize: number,
   options: UseDevicesOptions = {}
