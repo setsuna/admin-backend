@@ -21,6 +21,7 @@ const PAGE_COMPONENTS: Record<string, () => Promise<{ default: ComponentType<any
   '/departments': () => import('@/pages/DepartmentPage'),
   '/users': () => import('@/pages/UserManagePage'),
   '/security-users': () => import('@/pages/UserManagePage'),
+  '/devices': () => import('@/pages/DeviceListPage'),
   '/data-dictionary': () => import('@/pages/DataDictionaryPage'),
   '/basic-config': () => import('@/pages/PolicyConfigPage'),
   '/admin-logs': () => import('@/pages/LogPage'),

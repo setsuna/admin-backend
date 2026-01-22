@@ -24,7 +24,7 @@ export const API_PATHS = {
   DEPARTMENT_OPTIONS: '/departments/options',
   
   // 设备管理
-  DEVICES: '/mount/online-devices',
+  DEVICES: '/devices',
   
   // 认证相关
   AUTH_LOGIN: '/auth/login',
