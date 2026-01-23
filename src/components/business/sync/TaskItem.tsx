@@ -6,17 +6,11 @@ import type { BatchTaskInfo } from '@/types'
 interface TaskItemProps {
   task: BatchTaskInfo
   onViewDetail?: (task: BatchTaskInfo) => void
+  showSerialNumber?: boolean // 是否显示设备序列号
 }
 
-const formatBytes = (bytes: number): string => {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`
-}
 
-export function TaskItem({ task, onViewDetail }: TaskItemProps) {
+export function TaskItem({ task, onViewDetail, showSerialNumber = true }: TaskItemProps) {
   const getStatusIcon = () => {
     if (task.createStatus === 'failed') {
       return <XCircle className="w-5 h-5 text-destructive shrink-0" />
@@ -57,10 +51,14 @@ export function TaskItem({ task, onViewDetail }: TaskItemProps) {
               <span className="font-medium text-sm truncate">
                 {task.meetingName}
               </span>
-              <span className="text-xs text-muted-foreground">→</span>
-              <span className="text-xs text-muted-foreground truncate">
-                {task.serialNumber}
-              </span>
+              {showSerialNumber && (
+                <>
+                  <span className="text-xs text-muted-foreground">→</span>
+                  <span className="text-xs text-muted-foreground truncate">
+                    {task.serialNumber}
+                  </span>
+                </>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground whitespace-nowrap">
@@ -120,11 +118,7 @@ export function TaskItem({ task, onViewDetail }: TaskItemProps) {
                 </div>
               )}
 
-              {task.copyStatus === 'completed' && (
-                <div className="text-xs text-success">
-                  拷贝完成 • {formatBytes(task.totalBytes)}
-                </div>
-              )}
+
             </div>
           )}
         </div>

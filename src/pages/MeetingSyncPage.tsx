@@ -171,13 +171,14 @@ export default function MeetingSyncPage() {
         currentStatusCounts.pending !== lastStatusCounts.pending
       
       if (!hasStatusChanged) {
-        // 只更新汇总信息，不查询详细 tasks
+        // 只更新汇总信息和进度，不查询详细 tasks
         setCurrentBatch(prev => {
           if (!prev) return null
           return {
             ...prev,
             successCount: status.statusCounts.completed,
             failureCount: status.statusCounts.failed,
+            progress: status.progress,
             status: status.status === 'completed' || status.status === 'partial_failed' ? 'completed' :
                     status.createdCount < status.totalCount ? 'creating' : 'syncing'
           }
@@ -246,6 +247,7 @@ export default function MeetingSyncPage() {
         failureCount: status.statusCounts.failed,
         tasks: tasksMap,
         startTime: status.createdAt * 1000,
+        progress: status.progress,
         status: status.status === 'completed' || status.status === 'partial_failed' ? 'completed' :
                 status.createdCount < status.totalCount ? 'creating' : 'syncing'
       })

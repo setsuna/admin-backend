@@ -1,8 +1,16 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { TaskItem } from './TaskItem'
 import { TaskDetailModal } from './TaskDetailModal'
 import type { BatchSyncInfo, BatchTaskInfo } from '@/types'
+
+// 设备分组信息
+interface DeviceGroup {
+  serialNumber: string
+  tasks: BatchTaskInfo[]
+  completedCount: number
+  totalCount: number
+}
 
 interface BatchSyncPanelProps {
   batchInfo: BatchSyncInfo | null
@@ -10,6 +18,36 @@ interface BatchSyncPanelProps {
 
 export function BatchSyncPanel({ batchInfo }: BatchSyncPanelProps) {
   const [selectedTask, setSelectedTask] = useState<BatchTaskInfo | null>(null)
+
+  // 按设备分组 - 必须在条件返回之前
+  const deviceGroups = useMemo(() => {
+    if (!batchInfo) return []
+    
+    const tasks = Array.from(batchInfo.tasks.values())
+    const groupMap = new Map<string, BatchTaskInfo[]>()
+    
+    tasks.forEach(task => {
+      const existing = groupMap.get(task.serialNumber) || []
+      existing.push(task)
+      groupMap.set(task.serialNumber, existing)
+    })
+    
+    const groups: DeviceGroup[] = []
+    groupMap.forEach((taskList, serialNumber) => {
+      const completedCount = taskList.filter(
+        t => t.copyStatus === 'completed'
+      ).length
+      groups.push({
+        serialNumber,
+        tasks: taskList,
+        completedCount,
+        totalCount: taskList.length
+      })
+    })
+    
+    // 按序列号排序
+    return groups.sort((a, b) => a.serialNumber.localeCompare(b.serialNumber))
+  }, [batchInfo])
 
   if (!batchInfo) {
     return (
@@ -24,21 +62,20 @@ export function BatchSyncPanel({ batchInfo }: BatchSyncPanelProps) {
     )
   }
 
-  const tasks = Array.from(batchInfo.tasks.values())
   const createPercentage = batchInfo.totalCount > 0 
     ? (batchInfo.createdCount / batchInfo.totalCount) * 100 
     : 0
 
   return (
     <>
-      <Card className="h-full flex flex-col">
+      <Card className="h-full flex flex-col overflow-hidden min-h-0">
         <CardHeader className="pb-3">
           <CardTitle className="text-base">
             批次任务 #{batchInfo.batchId.slice(-8)}
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="flex-1 overflow-hidden flex flex-col space-y-4">
+        <CardContent className="flex-1 overflow-hidden flex flex-col space-y-4 min-h-0">
           {/* 任务创建进度 */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
@@ -60,21 +97,57 @@ export function BatchSyncPanel({ batchInfo }: BatchSyncPanelProps) {
             </div>
           </div>
 
-          {/* 任务列表 */}
-          <div className="flex-1 overflow-hidden flex flex-col">
+          {/* 批次整体拷贝进度 */}
+          {batchInfo.progress && batchInfo.progress.runningTasks > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">整体拷贝进度</span>
+                <span className="text-muted-foreground">
+                  {batchInfo.progress.progressPercent.toFixed(1)}%
+                </span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                <div 
+                  className="bg-green-500 h-full transition-all duration-300"
+                  style={{ width: `${batchInfo.progress.progressPercent}%` }}
+                />
+              </div>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <span>速度: {batchInfo.progress.speed}</span>
+                <span>运行中: {batchInfo.progress.runningTasks} 个任务</span>
+              </div>
+            </div>
+          )}
+
+          {/* 任务列表 - 按设备分组 */}
+          <div className="flex-1 overflow-hidden flex flex-col min-h-0">
             <div className="text-sm font-medium mb-2">拷贝进度</div>
-            <div className="flex-1 overflow-y-auto space-y-2">
-              {tasks.length === 0 ? (
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1 min-h-0">
+              {deviceGroups.length === 0 ? (
                 <div className="text-sm text-muted-foreground text-center py-8">
                   暂无任务
                 </div>
               ) : (
-                tasks.map(task => (
-                  <TaskItem 
-                    key={task.taskId} 
-                    task={task}
-                    onViewDetail={setSelectedTask}
-                  />
+                deviceGroups.map(group => (
+                  <div key={group.serialNumber} className="space-y-2">
+                    {/* 设备分组标题 */}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex-1 h-px bg-border" />
+                      <span className="font-medium">
+                        {group.serialNumber} ({group.completedCount}/{group.totalCount})
+                      </span>
+                      <div className="flex-1 h-px bg-border" />
+                    </div>
+                    {/* 该设备的任务列表 */}
+                    {group.tasks.map(task => (
+                      <TaskItem 
+                        key={task.taskId} 
+                        task={task}
+                        onViewDetail={setSelectedTask}
+                        showSerialNumber={false}
+                      />
+                    ))}
+                  </div>
                 ))
               )}
             </div>

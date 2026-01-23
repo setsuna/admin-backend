@@ -169,6 +169,7 @@ export interface BatchSyncInfo {
   tasks: Map<string, BatchTaskInfo>  // taskId -> TaskInfo
   startTime: number
   status: 'creating' | 'syncing' | 'completed'
+  progress?: BatchProgress // 批次整体进度
 }
 
 // 单个批次任务信息
@@ -303,6 +304,16 @@ export interface CreateBatchSyncResponse {
   createdAt: number
 }
 
+// 批次整体进度信息
+export interface BatchProgress {
+  totalBytes: number
+  copiedBytes: number
+  progressPercent: number
+  speedBytesPerSec: number
+  speed: string
+  runningTasks: number
+}
+
 // 批量任务状态
 export interface BatchTaskStatus {
   batchId: string
@@ -315,6 +326,7 @@ export interface BatchTaskStatus {
     completed: number
     failed: number
   }
+  progress?: BatchProgress
   createdAt: number
   updatedAt: number
   duration: number
