@@ -354,6 +354,49 @@ export interface SecurityPolicy extends BaseEntity {
   maintenanceWindow: TimeWindow
   autoBackupEnabled: boolean
   backupRetentionDays: number
+  // 审计日志存储相关
+  auditLogMaxCount: number           // 日志总量上限
+  auditLogAlertThreshold: number     // 告警阈值（剩余条数）
+}
+
+// ==================== 告警相关类型 ====================
+
+// 告警级别
+export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical'
+
+// 告警项
+export interface AlertItem {
+  type: string           // 告警类型
+  severity: AlertSeverity // 级别
+  title: string          // 告警标题
+  message: string        // 告警详情
+}
+
+// 告警检查响应
+export interface AlertCheckResponse {
+  hasAlert: boolean
+  alerts: AlertItem[]
+}
+
+// 审计日志统计响应
+export interface AuditLogStatsResponse {
+  maxCount: number        // 总量上限
+  usedCount: number       // 已使用
+  remainingCount: number  // 剩余条数
+  usagePercent: number    // 使用比例
+  alertThreshold: number  // 告警阈值
+  isAlert: boolean        // 当前是否告警
+  retentionDays: number   // 日志周期(天)
+}
+
+// 覆盖日志请求
+export interface PurgeAuditLogsRequest {
+  months: 6 | 9 | 12
+}
+
+// 覆盖日志响应
+export interface PurgeAuditLogsResponse {
+  deletedCount: number
 }
 
 // 菜单管理

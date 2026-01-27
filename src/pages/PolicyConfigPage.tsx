@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, KeyboardEvent } from 'react'
-import { Save, RefreshCw, Shield, Clock, Key, FileText, Monitor, AlertTriangle, Settings } from 'lucide-react'
+import { Save, RefreshCw, Shield, Clock, Key, FileText, Monitor, AlertTriangle, Settings, Database } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -12,10 +12,15 @@ import { Select } from '@/components/ui/Select'
 import { Loading } from '@/components/ui/Loading'
 import { useGlobalDialog } from '@/components/ui/DialogProvider'
 import { usePolicy } from '@/hooks/usePolicy'
-import type { SecurityPolicy } from '@/types'
+import { Slider } from '@/components/ui/Slider'
+import { CircularProgress } from '@/components/ui/CircularProgress'
+import { policyService } from '@/services/policy'
+import { useNotifications } from '@/hooks/useNotifications'
+import type { SecurityPolicy, AuditLogStatsResponse } from '@/types'
 
 const PolicyConfigPage = () => {
   const { showConfirm } = useGlobalDialog()
+  const { showSuccess, showError } = useNotifications()
   
   // 使用策略管理hook
   const {
@@ -34,12 +39,106 @@ const PolicyConfigPage = () => {
   // 本地策略状态
   const [policy, setPolicy] = useState<SecurityPolicy | null>(null)
   
+  // 🆕 日志统计状态
+  const [auditLogStats, setAuditLogStats] = useState<AuditLogStatsResponse | null>(null)
+  const [statsLoading, setStatsLoading] = useState(false)
+  const [isPurging, setIsPurging] = useState(false)
+  const [isUpdatingRetention, setIsUpdatingRetention] = useState(false)
+  
   // 当原始策略加载后，同步到本地状态
   useEffect(() => {
     if (originalPolicy) {
       setPolicy(originalPolicy)
     }
   }, [originalPolicy])
+  
+  // 🆕 加载日志统计信息
+  const loadAuditLogStats = async () => {
+    setStatsLoading(true)
+    try {
+      const stats = await policyService.getAuditLogStats()
+      setAuditLogStats(stats)
+    } catch (e) {
+      console.error('加载日志统计失败:', e)
+    } finally {
+      setStatsLoading(false)
+    }
+  }
+  
+  // 页面加载时获取日志统计
+  useEffect(() => {
+    loadAuditLogStats()
+  }, [])
+  
+  // 🆕 覆盖日志操作（固定删6个月前的日志）
+  const handlePurgeAuditLogs = async () => {
+    const confirmed = await showConfirm({
+      title: '覆盖日志',
+      content: '确定要覆盖 6 个月前的日志吗？此操作不可恢复。',
+      confirmText: '确定覆盖',
+      cancelText: '取消'
+    })
+    
+    if (!confirmed) return
+    
+    setIsPurging(true)
+    try {
+      const result = await policyService.purgeAuditLogs()
+      showSuccess('覆盖成功', `已删除 ${result.deletedCount} 条日志记录`)
+      // 刷新统计数据
+      await loadAuditLogStats()
+    } catch (e: any) {
+      showError('覆盖失败', e.message || '操作失败，请重试')
+    } finally {
+      setIsPurging(false)
+    }
+  }
+  
+  // 🆕 更新日志存储周期并保存
+  const handleRetentionChange = async (months: string) => {
+    if (!policy) return
+    
+    const days = monthsToDays(months)
+    
+    setIsUpdatingRetention(true)
+    try {
+      // 更新本地状态
+      const updatedPolicy = { ...policy, auditLogRetentionDays: days }
+      setPolicy(updatedPolicy)
+      
+      // 立即保存到服务器
+      const { id, createdAt, updatedAt, ...configToUpdate } = updatedPolicy
+      await policyService.updatePolicy(configToUpdate)
+      
+      showSuccess('保存成功', `日志存储周期已更新为 ${months} 个月`)
+      // 刷新统计数据
+      await loadAuditLogStats()
+      // 刷新策略数据
+      refreshData()
+    } catch (e: any) {
+      showError('保存失败', e.message || '操作失败，请重试')
+    } finally {
+      setIsUpdatingRetention(false)
+    }
+  }
+  
+  // 🆕 天数转换为月数显示
+  const daysToMonths = (days: number): string => {
+    if (days >= 365) return '12'
+    if (days >= 270) return '9'
+    if (days >= 180) return '6'
+    return String(Math.round(days / 30))
+  }
+  
+  // 🆕 月数转换为天数
+  const monthsToDays = (months: string): number => {
+    switch (months) {
+      case '12': return 365
+      case '9': return 270
+      case '6': return 180
+      default: return 365
+    }
+  }
   
   // 系统密级选项
   const systemSecurityLevelOptions = [
@@ -62,6 +161,13 @@ const PolicyConfigPage = () => {
     { label: '180天', value: '180' },
     { label: '365天', value: '365' },
     { label: '永久', value: '0' }
+  ]
+  
+  // 🆕 日志存储周期选项
+  const logRetentionOptions = [
+    { label: '6个月', value: '6' },
+    { label: '9个月', value: '9' },
+    { label: '12个月', value: '12' }
   ]
   
   // 标签输入组件
@@ -536,6 +642,119 @@ const PolicyConfigPage = () => {
                 <span className="text-sm">允许审计日志导出</span>
               </label>
             </div>
+          </CardContent>
+        </Card>
+        
+        {/* 🆕 日志存储管理 */}
+        <Card className="break-inside-avoid mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Database className="w-5 h-5 mr-2" />
+              日志存储管理
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {statsLoading ? (
+              <div className="flex justify-center py-8">
+                <Loading />
+              </div>
+            ) : auditLogStats ? (
+              <>
+                {/* 日志存储占用比例 */}
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <h4 className="text-sm font-medium text-gray-700 mb-4">日志存储占用比例</h4>
+                  <div className="flex justify-center">
+                    <CircularProgress
+                      value={auditLogStats.usagePercent}
+                      size={140}
+                      strokeWidth={10}
+                      color={auditLogStats.isAlert ? '#f97316' : '#3b82f6'}
+                      markerValue={((auditLogStats.maxCount - (policy.auditLogAlertThreshold || 13000)) / auditLogStats.maxCount) * 100}
+                      markerColor="#3b82f6"
+                    />
+                  </div>
+                </div>
+                
+                {/* 日志详情 */}
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <h4 className="text-sm font-medium text-gray-700 mb-4">日志详情</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">总量：</span>
+                      <span className="font-medium">{auditLogStats.maxCount.toLocaleString()} 条</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">使用比例：</span>
+                      <span className="font-medium">{auditLogStats.usagePercent.toFixed(2)} %</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">告警剩余条数：</span>
+                      <span className="font-medium">{(policy.auditLogAlertThreshold || 13000).toLocaleString()} 条</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">已使用：</span>
+                      <span className="font-medium">{auditLogStats.usedCount.toLocaleString()} 条</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">当前是否已告警：</span>
+                      <span className={`font-medium ${auditLogStats.isAlert ? 'text-orange-600' : 'text-green-600'}`}>
+                        {auditLogStats.isAlert ? '是' : '否'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">日志周期：</span>
+                      <span className="font-medium">{daysToMonths(auditLogStats.retentionDays)} 个月</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 告警剩余条数滑块 */}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-4">告警剩余条数</h4>
+                  <div className="space-y-4">
+                    <Slider
+                      value={[policy.auditLogAlertThreshold || 13000]}
+                      onValueChange={(value) => updatePolicyField('auditLogAlertThreshold', value[0])}
+                      min={1000}
+                      max={100000}
+                      step={1000}
+                      className="w-full"
+                    />
+                    <p className="text-sm text-gray-600 text-center">
+                      当日志剩余条数小于等于 <span className="font-semibold text-primary">{(policy.auditLogAlertThreshold || 13000).toLocaleString()}</span> 条，弹出警告提示。
+                    </p>
+                  </div>
+                </div>
+                
+                {/* 日志周期和覆盖操作 */}
+                <div className="flex items-center justify-between pt-4 border-t">
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm text-gray-600">日志周期：</span>
+                    <Select
+                      value={daysToMonths(policy.auditLogRetentionDays)}
+                      onValueChange={handleRetentionChange}
+                      options={logRetentionOptions}
+                      className="w-32"
+                      disabled={isUpdatingRetention}
+                    />
+                    {isUpdatingRetention && (
+                      <span className="text-sm text-gray-500">保存中...</span>
+                    )}
+                  </div>
+                  <Button
+                    onClick={handlePurgeAuditLogs}
+                    loading={isPurging}
+                    variant="destructive"
+                  >
+                    覆盖6个月前日志
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                无法加载日志统计信息
+              </div>
+            )}
           </CardContent>
         </Card>
         

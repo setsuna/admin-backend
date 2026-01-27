@@ -6,7 +6,12 @@
  */
 
 import { httpClient } from '../core/http.client'
-import type { SecurityPolicy } from '@/types'
+import type { 
+  SecurityPolicy, 
+  AlertCheckResponse, 
+  AuditLogStatsResponse,
+  PurgeAuditLogsResponse 
+} from '@/types'
 
 const API_BASE = '/policy'
 
@@ -50,6 +55,32 @@ export class PolicyApiService {
    */
   async exportPolicy(): Promise<Blob> {
     return await httpClient.download(`${API_BASE}/export`)
+  }
+
+  // ==================== 告警相关接口 ====================
+
+  /**
+   * 检查告警（登录后调用）
+   */
+  async checkAlerts(): Promise<AlertCheckResponse> {
+    return await httpClient.get<AlertCheckResponse>(`${API_BASE}/alerts/check`)
+  }
+
+  /**
+   * 获取审计日志统计信息
+   */
+  async getAuditLogStats(): Promise<AuditLogStatsResponse> {
+    return await httpClient.get<AuditLogStatsResponse>(`${API_BASE}/audit-logs/stats`)
+  }
+
+  /**
+   * 覆盖（清理）审计日志
+   */
+  async purgeAuditLogs(): Promise<PurgeAuditLogsResponse> {
+    // axios DELETE 请求带 body 需要用 data 配置项
+    return await httpClient.delete<PurgeAuditLogsResponse>(`${API_BASE}/audit-logs`, undefined, {
+      data: { months: 6 }
+    })
   }
 }
 

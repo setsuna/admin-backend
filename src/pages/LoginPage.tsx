@@ -11,6 +11,10 @@ import { isDevelopment, ERROR_CODES } from '@/config'
 import { useNotifications } from '@/hooks/useNotifications'
 import { encryptPassword } from '@/utils/crypto'
 import { ForceChangePasswordDialog } from '@/components/business/auth/ForceChangePasswordDialog'
+import { policyService } from '@/services/policy'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
+import { AlertTriangle } from 'lucide-react'
+import type { AlertItem } from '@/types'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -29,6 +33,15 @@ const LoginPage = () => {
     open: false,
     userId: '',
     username: ''
+  })
+  
+  // 🆕 告警弹窗状态
+  const [alertDialog, setAlertDialog] = useState<{
+    open: boolean
+    alerts: AlertItem[]
+  }>({
+    open: false,
+    alerts: []
   })
   
   const handleInputChange = (field: string, value: string) => {
@@ -89,6 +102,23 @@ const LoginPage = () => {
       }
       
       showSuccess('登录成功', `欢迎回来，${result.user.username}!`)
+      
+      // 🆕 登录成功后检查告警
+      try {
+        const alertRes = await policyService.checkAlerts()
+        if (alertRes.hasAlert && alertRes.alerts.length > 0) {
+          // 有告警，显示弹窗
+          setAlertDialog({
+            open: true,
+            alerts: alertRes.alerts
+          })
+          return // 等待用户关闭弹窗后再跳转
+        }
+      } catch (e) {
+        // 告警检查失败不影响登录流程
+        console.warn('检查告警失败:', e)
+      }
+      
       navigate('/')
     } catch (error: any) {
       console.error('Login error:', error)
@@ -169,6 +199,26 @@ const LoginPage = () => {
     // 清空密码输入框，让用户用新密码重新登录
     setFormData(prev => ({ ...prev, password: '' }))
     setErrors({ login: '密码已更新，请使用新密码登录' })
+  }
+  
+  // 🆕 关闭告警弹窗并跳转
+  const handleAlertDialogClose = () => {
+    setAlertDialog({ open: false, alerts: [] })
+    navigate('/')
+  }
+  
+  // 🆕 根据告警级别获取颜色
+  const getAlertSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'critical':
+        return 'text-red-600 bg-red-50 border-red-200'
+      case 'high':
+        return 'text-orange-600 bg-orange-50 border-orange-200'
+      case 'medium':
+        return 'text-yellow-600 bg-yellow-50 border-yellow-200'
+      default:
+        return 'text-blue-600 bg-blue-50 border-blue-200'
+    }
   }
   
   // 获取测试账号提示
@@ -308,6 +358,34 @@ const LoginPage = () => {
         userId={passwordExpiredDialog.userId}
         username={passwordExpiredDialog.username}
       />
+      
+      {/* 🆕 告警弹窗 */}
+      <Dialog open={alertDialog.open} onOpenChange={(open) => !open && handleAlertDialogClose()}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-orange-600">
+              <AlertTriangle className="h-5 w-5" />
+              系统告警
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            {alertDialog.alerts.map((alert, index) => (
+              <div
+                key={index}
+                className={`p-4 rounded-lg border ${getAlertSeverityColor(alert.severity)}`}
+              >
+                <div className="font-medium mb-1">{alert.title}</div>
+                <div className="text-sm opacity-80">{alert.message}</div>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button onClick={handleAlertDialogClose}>
+              知道了
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

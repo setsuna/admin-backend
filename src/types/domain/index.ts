@@ -31,7 +31,14 @@ export type {
   MenuItem,
   MenuConfig,
   SystemLog,
-  AuditLog
+  AuditLog,
+  // 告警相关类型
+  AlertSeverity,
+  AlertItem,
+  AlertCheckResponse,
+  AuditLogStatsResponse,
+  PurgeAuditLogsRequest,
+  PurgeAuditLogsResponse
 } from './system.types'
 
 // 设备相关类型需要明确命名以避免冲突

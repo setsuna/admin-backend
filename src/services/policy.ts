@@ -4,7 +4,12 @@
  */
 
 import { policyApi } from './api/policy.api'
-import type { SecurityPolicy } from '@/types'
+import type { 
+  SecurityPolicy, 
+  AlertCheckResponse, 
+  AuditLogStatsResponse,
+  PurgeAuditLogsResponse 
+} from '@/types'
 
 /**
  * 策略配置业务服务类
@@ -45,6 +50,29 @@ class PolicyService {
    */
   async exportPolicy(): Promise<Blob> {
     return await policyApi.exportPolicy()
+  }
+
+  // ==================== 告警相关方法 ====================
+
+  /**
+   * 检查告警（登录后调用）
+   */
+  async checkAlerts(): Promise<AlertCheckResponse> {
+    return await policyApi.checkAlerts()
+  }
+
+  /**
+   * 获取审计日志统计信息
+   */
+  async getAuditLogStats(): Promise<AuditLogStatsResponse> {
+    return await policyApi.getAuditLogStats()
+  }
+
+  /**
+   * 覆盖（清理）审计日志
+   */
+  async purgeAuditLogs(): Promise<PurgeAuditLogsResponse> {
+    return await policyApi.purgeAuditLogs()
   }
 }
 
