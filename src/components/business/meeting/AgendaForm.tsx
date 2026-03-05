@@ -22,6 +22,7 @@ interface AgendaFormProps {
   onEditVote: (agendaId: string, vote: MeetingVote) => void
   readOnly?: boolean
   systemSecurityLevel?: 'confidential' | 'secret'  // 系统密级
+  policyFileTypes?: string[]  // 策略配置的允许文件类型
 }
 
 const AgendaForm: React.FC<AgendaFormProps> = ({
@@ -39,7 +40,8 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
   onRemoveVote,
   onEditVote,
   readOnly = false,
-  systemSecurityLevel
+  systemSecurityLevel,
+  policyFileTypes
 }) => {
   const [editingAgenda, setEditingAgenda] = useState<string | null>(null)
   
@@ -78,10 +80,10 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
   const FileDropzone: React.FC<{ agendaId: string }> = ({ agendaId }) => {
     const onDrop = useCallback((acceptedFiles: File[]) => {
       // 过滤支持的文件
-      const supportedFiles = acceptedFiles.filter(file => isFileSupported(file))
+      const supportedFiles = acceptedFiles.filter(file => isFileSupported(file, policyFileTypes))
       
       if (supportedFiles.length !== acceptedFiles.length) {
-        const unsupportedFiles = acceptedFiles.filter(file => !isFileSupported(file))
+        const unsupportedFiles = acceptedFiles.filter(file => !isFileSupported(file, policyFileTypes))
         console.warn('不支持的文件类型:', unsupportedFiles.map(f => f.name))
       }
       
@@ -98,7 +100,7 @@ const AgendaForm: React.FC<AgendaFormProps> = ({
       fileRejections
     } = useDropzone({
       onDrop,
-      accept: getDropzoneAccept(),
+      accept: getDropzoneAccept(policyFileTypes),
       maxSize: 50 * 1024 * 1024, // 50MB
       multiple: true
     })

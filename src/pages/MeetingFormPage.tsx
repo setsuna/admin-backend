@@ -217,7 +217,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
             <CardContent className="flex-1 p-4 overflow-y-auto">
               <Card className="mb-4 p-3 bg-warning/10 border-warning/30">
                 <p className="text-sm text-warning">
-                  议题材料支持格式：{getFormattedExtensions()}
+                  议题材料支持格式：{getFormattedExtensions(policy?.allowedFileTypes)}
                 </p>
               </Card>
               
@@ -237,6 +237,7 @@ const MeetingFormPage: React.FC<MeetingFormPageProps> = ({ mode }) => {
                 onEditVote={handleEditVote}
                 readOnly={mode === 'view'}
                 systemSecurityLevel={policy?.systemSecurityLevel}
+                policyFileTypes={policy?.allowedFileTypes}
               />
             </CardContent>
           </Card>
