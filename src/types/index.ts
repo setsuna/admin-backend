@@ -21,6 +21,7 @@ export * from './domain/sync.types'
 export * from './domain/log.types'
 export * from './domain/device.types'
 export * from './domain/device-log.types'
+export * from './domain/archive.types'
 
 // ========== API 类型 ==========
 export * from './api/request.types'

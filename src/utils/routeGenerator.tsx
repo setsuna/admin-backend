@@ -35,6 +35,7 @@ const PAGE_COMPONENTS: Record<string, () => Promise<{ default: ComponentType<any
     )
   }),
   '/device-logs': () => import('@/pages/DeviceLogPage'),
+  '/archives': () => import('@/pages/ArchiveListPage'),
   '/system-logs': () => Promise.resolve({
     default: () => (
       <div className="p-6">

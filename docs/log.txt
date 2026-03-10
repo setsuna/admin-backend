@@ -1,0 +1,77 @@
+归档功能 API 接口文档
+1. 获取归档列表
+GET /api/v1/archives
+Query 参数：
+参数类型必填说明keywordstring否搜索会议名称/组织者statusstring否processing / completed / failedsecurity_levelstring否internal / confidential / secretpageint否页码，默认 1sizeint否每页数量，默认 20，最大 100
+响应：
+json{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "items": [
+      {
+        "id": "archive-uuid",
+        "meeting_id": "meeting-uuid",
+        "meeting_name": "第三季度工作会议",
+        "meeting_start_time": "2026-03-09T15:00:00+08:00",
+        "meeting_end_time": "2026-03-09T17:00:00+08:00",
+        "security_level": "confidential",
+        "organizer_name": "张三",
+        "status": "completed",
+        "signatures_count": 5,
+        "edited_files_count": 3,
+        "records_count": 2,
+        "votes_count": 12,
+        "archived_devices": ["WST300LX1000560", "WST300LX1000561"],
+        "created_at": "2026-03-09T17:30:00+08:00",
+        "updated_at": "2026-03-09T17:32:00+08:00"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "size": 20,
+      "total": 8
+    }
+  }
+}
+```
+
+### 2. 获取归档详情
+```
+GET /api/v1/archives/:id
+```
+
+响应结构同列表中的单条 item。
+
+### 3. 下载归档 zip 包
+```
+GET /api/v1/archives/:id/download
+```
+
+**响应：** 直接返回 `application/zip` 文件流，浏览器自动触发下载。
+
+**zip 包内容：**
+```
+归档_第三季度工作会议_20260309173200.zip
+├── 签到表.pdf              ← 实时生成，含签名图片
+├── 投票统计.csv            ← 实时生成，含各投票选项统计和明细
+├── signatures/             ← 签名原始文件
+├── edited/{userId}/        ← 编辑后的文件
+└── records/                ← 会议记录文件
+```
+
+### 4. 删除归档
+```
+DELETE /api/v1/archives/:id
+响应：
+json{
+  "code": 200,
+  "message": "删除归档成功",
+  "data": null
+}
+5. WebSocket 归档通知（实时推送）
+设备插入充电坞后自动归档，前端通过 WebSocket 监听以下消息：
+type时机data 字段archive_start检测到数据开始归档device_serialarchive_complete归档完成device_serial, meeting_count, signatures_count, votes_countarchive_failed归档失败device_serial, error_message
+前端收到 archive_complete 后可刷新归档列表或弹出 toast 提示。
+
+就这 4 个 REST 接口 + 3 个 WebSocket 消息类型，归档数据的产生完全由设备插入自动触发，UI 只需要做展示列表、查看详情、下载、删除。

@@ -10,6 +10,9 @@ export type WSMessageType =
   | 'meeting_update'
   | 'meeting_delete'
   | 'sync_progress'
+  | 'archive_start'
+  | 'archive_complete'
+  | 'archive_failed'
 
 /**
  * WebSocket 消息基础结构
@@ -64,6 +67,18 @@ export interface SyncProgressData {
   speed: string
   eta: string
   currentFile?: string  // 转换为 camelCase
+}
+
+/**
+ * 归档通知消息数据
+ */
+export interface ArchiveNotifyData {
+  device_serial: string
+  meeting_count?: number
+  signatures_count?: number
+  votes_count?: number
+  audit_logs_count?: number
+  error_message?: string
 }
 
 /**

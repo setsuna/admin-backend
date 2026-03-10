@@ -27,6 +27,7 @@ export { licenseApi } from './api/license.api'
 export { logApiService } from './api/log.api'
 export { deviceApi } from './api/device.api'
 export { deviceLogApiService } from './api/device-log.api'
+export { archiveApiService, archiveApi } from './api/archive.api'
 
 // 简写导出
 export { departmentApiService as departmentApi } from './api/department.api'
@@ -48,7 +49,7 @@ export { deviceLogService } from './device-log'
 // WebSocket 服务导出 (新架构)
 // ========================================
 export { wsClient, useWSConnection, useWSSubscription, useWSState } from './websocket'
-export type { WSMessage, WSMessageType, WSConnectionState } from './websocket'
+export type { WSMessage, WSMessageType, WSConnectionState, ArchiveNotifyData } from './websocket'
 
 // ========================================
 // 类型导出

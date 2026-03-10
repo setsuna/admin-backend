@@ -72,6 +72,7 @@ export type {
   SystemNotifyData,
   HeartbeatData,
   SyncProgressData,
+  ArchiveNotifyData,
   MessageHandler,
   StateListener,
 } from './types'

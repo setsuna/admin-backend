@@ -65,6 +65,9 @@ export const API_PATHS = {
   // 终端日志
   DEVICE_LOGS: '/device-logs',
   DEVICE_LOGS_STATS: '/device-logs/stats',
+
+  // 归档管理
+  ARCHIVES: '/archives',
 } as const
 
 // HTTP状态码配置
