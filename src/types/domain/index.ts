@@ -49,3 +49,6 @@ export type {
 
 // 同步领域类型
 export * from './sync.types'
+
+// 终端日志领域类型
+export * from './device-log.types'

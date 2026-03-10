@@ -61,6 +61,10 @@ export const API_PATHS = {
   // 日志管理
   LOGS: '/logs',
   LOGS_THREE_ADMIN: '/logs/three-admin',
+  
+  // 终端日志
+  DEVICE_LOGS: '/device-logs',
+  DEVICE_LOGS_STATS: '/device-logs/stats',
 } as const
 
 // HTTP状态码配置
