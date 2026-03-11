@@ -16,6 +16,7 @@ import {
   Search,
   AlertTriangle,
   Tablet,
+  Archive,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import {
@@ -62,6 +63,7 @@ const iconMap: Record<string, any> = {
   Search,
   AlertTriangle,
   Tablet,
+  Archive,
 }
 
 // 获取图标组件
