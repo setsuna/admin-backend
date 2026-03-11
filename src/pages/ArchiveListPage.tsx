@@ -278,7 +278,7 @@ const ArchiveListPage: React.FC = () => {
     {
       key: 'actions',
       title: '操作',
-      width: 140,
+      width: 232,
       align: 'center',
       render: (_: any, record: ArchiveType) => (
         <div className="flex items-center justify-center gap-1">

@@ -130,12 +130,18 @@ const DeviceLogPage: React.FC = () => {
     {
       key: 'timestamp',
       title: '操作时间',
-      width: 180,
-      render: (timestamp: string) => (
-        <span className="whitespace-nowrap">
-          {timestamp}
-        </span>
-      )
+      width: 120,
+      render: (timestamp: string) => {
+        // 去掉日期部分，只显示时分秒
+        const time = timestamp.includes('T')
+          ? new Date(timestamp).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+          : timestamp
+        return (
+          <span className="whitespace-nowrap">
+            {time}
+          </span>
+        )
+      }
     },
     {
       key: 'deviceSerial',
