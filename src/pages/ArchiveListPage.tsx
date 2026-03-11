@@ -14,14 +14,7 @@ import { useDialog } from '@/hooks/useModal'
 import { useNotifications } from '@/hooks/useNotifications'
 import { DialogComponents } from '@/components/ui/DialogComponents'
 import { useArchives, useArchiveNotifications } from '@/hooks/useArchive'
-import type { Archive as ArchiveType, ArchiveFilters, ArchiveStatus, SystemSecurityLevel, TableColumn } from '@/types'
-
-// 归档状态配置
-const statusConfig: Record<ArchiveStatus, { label: string; color: string; bgColor: string }> = {
-  processing: { label: '归档中', color: 'text-blue-600', bgColor: 'bg-blue-100' },
-  completed: { label: '已完成', color: 'text-green-600', bgColor: 'bg-green-100' },
-  failed: { label: '失败', color: 'text-red-600', bgColor: 'bg-red-100' },
-}
+import type { Archive as ArchiveType, ArchiveFilters, SystemSecurityLevel, TableColumn } from '@/types'
 
 // 密级配置
 const securityLevelConfig: Record<SystemSecurityLevel, { label: string; color: string }> = {
@@ -37,7 +30,6 @@ const ArchiveListPage: React.FC = () => {
 
   // 搜索和筛选状态
   const [searchText, setSearchText] = useState('')
-  const [statusFilter, setStatusFilter] = useState<ArchiveStatus | ''>('')
   const [securityFilter, setSecurityFilter] = useState<SystemSecurityLevel | ''>('')
   const [pagination, setPagination] = useState({
     page: 1,
@@ -60,7 +52,6 @@ const ArchiveListPage: React.FC = () => {
   // 构建筛选条件
   const filters: ArchiveFilters = {
     keyword: searchText || undefined,
-    status: statusFilter || undefined,
     securityLevel: securityFilter || undefined,
   }
 
@@ -78,11 +69,6 @@ const ArchiveListPage: React.FC = () => {
 
   const handleSearch = (value: string) => {
     debouncedSearch(value)
-  }
-
-  const handleStatusFilter = (status: string) => {
-    setStatusFilter(status as ArchiveStatus | '')
-    setPagination(prev => ({ ...prev, page: 1 }))
   }
 
   const handleSecurityFilter = (level: string) => {
@@ -197,17 +183,6 @@ const ArchiveListPage: React.FC = () => {
     )
   }
 
-  const renderStatus = (status: ArchiveStatus) => {
-    const config = statusConfig[status]
-    if (!config) return <span>{status}</span>
-    return (
-      <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${config.bgColor} ${config.color}`}>
-        {status === 'processing' && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
-        {config.label}
-      </span>
-    )
-  }
-
   const renderDevices = (devices: string[]) => {
     if (!devices || devices.length === 0) return <span className="text-muted-foreground">-</span>
 
@@ -279,12 +254,6 @@ const ArchiveListPage: React.FC = () => {
       key: 'organizerName',
       title: '组织者',
       width: 100,
-    },
-    {
-      key: 'status',
-      title: '状态',
-      width: 100,
-      render: (status: ArchiveStatus) => renderStatus(status),
     },
     {
       key: 'id', // 使用任意 key，实际取 record 整体
@@ -361,17 +330,6 @@ const ArchiveListPage: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
-            <select
-              value={statusFilter}
-              onChange={(e) => handleStatusFilter(e.target.value)}
-              className="rounded-md border bg-background px-3 py-2 text-sm"
-            >
-              <option value="">归档状态</option>
-              <option value="processing">归档中</option>
-              <option value="completed">已完成</option>
-              <option value="failed">失败</option>
-            </select>
-
             <select
               value={securityFilter}
               onChange={(e) => handleSecurityFilter(e.target.value)}

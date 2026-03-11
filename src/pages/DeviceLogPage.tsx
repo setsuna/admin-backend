@@ -189,16 +189,6 @@ const DeviceLogPage: React.FC = () => {
         <span className="text-muted-foreground text-sm">{logDate}</span>
       )
     },
-    {
-      key: 'importedAt',
-      title: '导入时间',
-      width: 180,
-      render: (importedAt: string) => (
-        <span className="text-muted-foreground text-sm whitespace-nowrap">
-          {importedAt}
-        </span>
-      )
-    }
   ]
 
   return (
