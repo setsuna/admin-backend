@@ -1,11 +1,14 @@
 import React, { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Search, Filter, Shield, Download, Trash2, Loader2 } from 'lucide-react'
+import { Search, Filter, Shield, Download, Trash2, Loader2, Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { DataTable } from '@/components/features/DataTable'
+import { Modal } from '@/components/ui/Modal'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/Tooltip'
 import { archiveApi } from '@/services/api/archive.api'
+import { httpClient } from '@/services/core/http.client'
+import type { ArchiveExportResult } from '@/services/api/archive.api'
 import { debounce, formatDate } from '@/utils'
 import { useDialog } from '@/hooks/useModal'
 import { useNotifications } from '@/hooks/useNotifications'
@@ -43,6 +46,10 @@ const ArchiveListPage: React.FC = () => {
 
   // 下载中的归档 ID
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
+
+  // 密码弹窗状态
+  const [exportResult, setExportResult] = useState<ArchiveExportResult | null>(null)
+  const [copied, setCopied] = useState(false)
 
   // 防抖搜索
   const debouncedSearch = debounce((keyword: string) => {
@@ -83,25 +90,48 @@ const ArchiveListPage: React.FC = () => {
     setPagination(prev => ({ ...prev, page: 1 }))
   }
 
-  // 下载归档
+  // 导出归档（第一步：获取密码 + 下载链接，第二步：带 token 下载文件）
   const handleDownload = async (archive: ArchiveType) => {
     setDownloadingId(archive.id)
     try {
-      const blob = await archiveApi.downloadArchive(archive.id)
+      const result = await archiveApi.exportArchive(archive.id)
+      // 弹出密码提示
+      setExportResult(result)
+      setCopied(false)
+      // 带 Authorization header 下载文件
+      const blob = await httpClient.download(result.download_url)
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      // 使用与后端一致的文件名格式
-      const dateStr = new Date(archive.createdAt).toISOString().replace(/[-:T]/g, '').slice(0, 14)
-      link.download = `归档_${archive.meetingName}_${dateStr}.zip`
+      link.download = result.file_name
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
     } catch (err: any) {
-      showError('下载失败', err.message)
+      showError('导出失败', err.message)
     } finally {
       setDownloadingId(null)
+    }
+  }
+
+  // 复制密码
+  const handleCopyPassword = async () => {
+    if (!exportResult) return
+    try {
+      await navigator.clipboard.writeText(exportResult.password)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // clipboard API 不可用时的回退方案
+      const textarea = document.createElement('textarea')
+      textarea.value = exportResult.password
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     }
   }
 
@@ -389,6 +419,43 @@ const ArchiveListPage: React.FC = () => {
 
       {/* 对话框组件 */}
       <DialogComponents dialog={dialog} />
+
+      {/* 归档密码弹窗 */}
+      <Modal
+        isOpen={!!exportResult}
+        onClose={() => setExportResult(null)}
+        title="归档文件已开始下载"
+        size="sm"
+      >
+        <div className="p-6 space-y-4">
+          <p className="text-sm text-muted-foreground">
+            文件已加密压缩，请使用以下密码解压（支持 7-Zip 或 WinRAR）：
+          </p>
+          <div className="flex items-center gap-3">
+            <div className="flex-1 bg-muted rounded-lg px-4 py-3 font-mono text-2xl tracking-[0.3em] text-center font-bold select-all">
+              {exportResult?.password}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyPassword}
+              className="shrink-0"
+            >
+              {copied ? (
+                <><Check className="h-4 w-4 mr-1 text-green-600" />已复制</>
+              ) : (
+                <><Copy className="h-4 w-4 mr-1" />复制</>
+              )}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            文件名：{exportResult?.file_name}
+          </p>
+          <div className="flex justify-end">
+            <Button onClick={() => setExportResult(null)}>知道了</Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

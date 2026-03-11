@@ -55,6 +55,15 @@ function transformArchive(data: ArchiveResponse): Archive {
   }
 }
 
+/**
+ * 归档导出响应
+ */
+export interface ArchiveExportResult {
+  password: string
+  file_name: string
+  download_url: string
+}
+
 export class ArchiveApiService {
   private basePath = API_PATHS.ARCHIVES
 
@@ -89,10 +98,10 @@ export class ArchiveApiService {
   }
 
   /**
-   * 下载归档 zip 包
+   * 导出归档（第一步：获取密码和下载链接）
    */
-  async downloadArchive(id: string): Promise<Blob> {
-    return await httpClient.download(`${this.basePath}/${id}/download`)
+  async exportArchive(id: string): Promise<ArchiveExportResult> {
+    return await httpClient.post<ArchiveExportResult>(`${this.basePath}/${id}/export`)
   }
 
   /**
